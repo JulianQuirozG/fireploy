@@ -1,5 +1,13 @@
+import { Docente } from 'src/modelos/docente/entities/docente.entity';
 import { Estudiante } from 'src/modelos/estudiante/entities/estudiante.entity';
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Proyecto {
@@ -29,4 +37,14 @@ export class Proyecto {
 
   @ManyToMany(() => Estudiante, (estudiante) => estudiante.proyectos)
   estudiantes: Estudiante[];
+
+  @ManyToOne(() => Seccion, (seccion) => seccion.proyectos, {
+    onDelete: 'SET NULL',
+  })
+  seccion: Seccion;
+
+  @ManyToOne(() => Docente, (docente) => docente.proyectos, {
+    onDelete: 'SET NULL',
+  })
+  tutor: Docente;
 }

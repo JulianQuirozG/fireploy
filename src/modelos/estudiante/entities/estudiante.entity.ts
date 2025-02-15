@@ -1,3 +1,4 @@
+import { Curso } from 'src/modelos/curso/entities/curso.entity';
 import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
 import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 import { ChildEntity, Column, JoinTable, ManyToMany } from 'typeorm';
@@ -10,4 +11,8 @@ export class Estudiante extends Usuario {
   @ManyToMany(() => Proyecto, (proyecto) => proyecto.estudiantes)
   @JoinTable()
   proyectos: Proyecto[];
+
+  @ManyToMany(() => Curso, (curso) => curso.estudiantes)
+  @JoinTable()
+  cursos: Curso[];
 }
