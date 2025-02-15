@@ -1,11 +1,16 @@
+import { BaseDeDato } from 'src/modelos/base_de_datos/entities/base_de_dato.entity';
 import { Docente } from 'src/modelos/docente/entities/docente.entity';
 import { Estudiante } from 'src/modelos/estudiante/entities/estudiante.entity';
+import { Repositorio } from 'src/modelos/repositorio/entities/repositorio.entity';
 import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToMany,
   ManyToOne,
+  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -47,4 +52,14 @@ export class Proyecto {
     onDelete: 'SET NULL',
   })
   tutor: Docente;
+
+  @OneToMany(() => Repositorio, (repositorio) => repositorio.proyecto_id)
+  repositorios: Repositorio[];
+
+  @OneToOne(() => BaseDeDato, (db) => db.proyecto)
+  @JoinColumn()
+  base_de_datos: BaseDeDato;
+
+  @Column({ nullable: false })
+  fecha_creacion: Date;
 }

@@ -9,16 +9,16 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 @Entity()
 export class Curso {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ nullable: false, type: 'char', length: 1 })
+  @PrimaryColumn({ nullable: false, type: 'char', length: 1 })
   grupo: string;
+
+  @PrimaryColumn({ nullable: false, length: 50 })
+  semestre: string;
 
   @Column({ length: 512 })
   descripcion: string;
@@ -31,11 +31,14 @@ export class Curso {
   @ManyToOne(() => Materia, (materia) => materia.cursos, {
     onDelete: 'SET NULL',
   })
-  materia: Docente;
+  materia: Materia;
 
-  @OneToMany(() => Seccion, (seccion) => seccion.curso_id)
+  @OneToMany(() => Seccion, (seccion) => seccion.curso)
   secciones: Seccion[];
 
   @ManyToMany(() => Estudiante, (estudiante) => estudiante.cursos)
   estudiantes: Estudiante[];
+
+  @Column({ nullable: false, length: 1, type: 'char' })
+  estado: string;
 }

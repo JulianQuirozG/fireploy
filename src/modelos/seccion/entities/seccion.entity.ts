@@ -28,8 +28,11 @@ export class Seccion {
   @ManyToOne(() => Curso, (curso) => curso.secciones, {
     onDelete: 'SET NULL',
   })
-  curso_id: Curso;
+  curso: Curso;
 
   @OneToMany(() => Proyecto, (proyecto) => proyecto.seccion)
   proyectos: Proyecto[];
+
+  @Column({ nullable: false, length: 1, type: 'char' })
+  estado: string;
 }

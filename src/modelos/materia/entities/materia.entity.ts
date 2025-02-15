@@ -1,9 +1,9 @@
 import { Curso } from 'src/modelos/curso/entities/curso.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Materia {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @Column({ nullable: false, length: 50 })
@@ -14,4 +14,7 @@ export class Materia {
 
   @OneToMany(() => Curso, (curso) => curso.docente)
   cursos: Curso[];
+
+  @Column({ nullable: false, length: 1, type: 'char' })
+  estado: string;
 }
