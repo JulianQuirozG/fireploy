@@ -13,6 +13,7 @@ import { Administrador } from './modelos/administrador/entities/administrador.en
 import { ProyectoModule } from './modelos/proyecto/proyecto.module';
 import { Proyecto } from './modelos/proyecto/entities/proyecto.entity';
 import { CursoModule } from './modelos/curso/curso.module';
+import { Curso } from './modelos/curso/entities/curso.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -22,7 +23,7 @@ import { CursoModule } from './modelos/curso/curso.module';
       username: 'root',
       password: '',
       database: 'fireploy',
-      entities: [Usuario, Docente, Estudiante, Administrador, Proyecto],
+      entities: [Usuario, Docente, Estudiante, Administrador, Proyecto, Curso],
       synchronize: true,
     }),
     UsuarioModule,

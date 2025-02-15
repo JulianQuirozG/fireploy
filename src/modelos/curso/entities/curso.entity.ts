@@ -1,5 +1,6 @@
 //import { Docente } from 'src/modelos/docente/entities/docente.entity';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Docente } from 'src/modelos/docente/entities/docente.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Curso {
@@ -11,4 +12,8 @@ export class Curso {
 
   @Column({ length: 512 })
   descripcion: string;
+  @ManyToOne(() => Docente, (docente) => docente.cursos, {
+    onDelete: 'SET NULL',
+  })
+  docente: Docente;
 }
