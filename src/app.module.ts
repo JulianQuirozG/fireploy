@@ -14,6 +14,10 @@ import { ProyectoModule } from './modelos/proyecto/proyecto.module';
 import { Proyecto } from './modelos/proyecto/entities/proyecto.entity';
 import { CursoModule } from './modelos/curso/curso.module';
 import { Curso } from './modelos/curso/entities/curso.entity';
+import { MateriaModule } from './modelos/materia/materia.module';
+import { Materia } from './modelos/materia/entities/materia.entity';
+import { SeccionModule } from './modelos/seccion/seccion.module';
+import { Seccion } from './modelos/seccion/entities/seccion.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -23,7 +27,16 @@ import { Curso } from './modelos/curso/entities/curso.entity';
       username: 'root',
       password: '',
       database: 'fireploy',
-      entities: [Usuario, Docente, Estudiante, Administrador, Proyecto, Curso],
+      entities: [
+        Usuario,
+        Docente,
+        Estudiante,
+        Administrador,
+        Proyecto,
+        Curso,
+        Materia,
+        Seccion,
+      ],
       synchronize: true,
     }),
     UsuarioModule,
@@ -32,6 +45,8 @@ import { Curso } from './modelos/curso/entities/curso.entity';
     AdministradorModule,
     ProyectoModule,
     CursoModule,
+    MateriaModule,
+    SeccionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
