@@ -18,6 +18,10 @@ import { MateriaModule } from './modelos/materia/materia.module';
 import { Materia } from './modelos/materia/entities/materia.entity';
 import { SeccionModule } from './modelos/seccion/seccion.module';
 import { Seccion } from './modelos/seccion/entities/seccion.entity';
+import { RepositorioModule } from './modelos/repositorio/repositorio.module';
+import { Repositorio } from './modelos/repositorio/entities/repositorio.entity';
+import { BaseDeDatosModule } from './modelos/base_de_datos/base_de_datos.module';
+import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -36,6 +40,8 @@ import { Seccion } from './modelos/seccion/entities/seccion.entity';
         Curso,
         Materia,
         Seccion,
+        Repositorio,
+        BaseDeDato,
       ],
       synchronize: true,
     }),
@@ -47,6 +53,8 @@ import { Seccion } from './modelos/seccion/entities/seccion.entity';
     CursoModule,
     MateriaModule,
     SeccionModule,
+    RepositorioModule,
+    BaseDeDatosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
