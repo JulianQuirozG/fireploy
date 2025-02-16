@@ -14,10 +14,13 @@ import {
 
 @Entity()
 export class Curso {
-  @PrimaryColumn({ nullable: false, type: 'char', length: 1 })
+  @PrimaryColumn({ nullable: false, length: 512 })
+  id: string;
+
+  @Column({ nullable: false, type: 'char', length: 1 })
   grupo: string;
 
-  @PrimaryColumn({ nullable: false, length: 50 })
+  @Column({ nullable: false, length: 50 })
   semestre: string;
 
   @Column({ length: 512 })
