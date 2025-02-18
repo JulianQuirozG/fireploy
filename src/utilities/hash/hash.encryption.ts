@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -8,5 +8,11 @@ export class Encrypt {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const hash: string = await bcrypt.hash(text_to_hash, saltOrRounds);
     return hash;
+  }
+  async compare(password1?: string, password2?: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const isMatch: boolean = await bcrypt.compare(password1, password2);
+    if (!isMatch) throw new UnauthorizedException();
+    else return isMatch;
   }
 }

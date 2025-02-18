@@ -9,5 +9,6 @@ import { Encrypt } from 'src/utilities/hash/hash.encryption';
   imports: [TypeOrmModule.forFeature([Usuario])],
   controllers: [UsuarioController],
   providers: [UsuarioService, Encrypt],
+  exports: [UsuarioService],
 })
 export class UsuarioModule {}

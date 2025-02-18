@@ -42,4 +42,6 @@ export class Usuario {
 
   @Column({ length: 256, nullable: true })
   foto_perfil: string;
+
+  tipo: string;
 }
