@@ -7,7 +7,7 @@ import {
 
 @Entity()
 @TableInheritance({
-  column: { type: 'varchar', name: 'tipo', nullable: false, length: 7 },
+  column: { type: 'varchar', name: 'tipo', nullable: false, length: 13 },
 })
 export class Usuario {
   @PrimaryGeneratedColumn()
@@ -25,7 +25,7 @@ export class Usuario {
   @Column({ type: 'char', length: 1, nullable: false })
   sexo: string;
 
-  @Column({ length: 512 })
+  @Column({ length: 512, nullable: true })
   descripcion: string;
 
   @Column({ length: 50, unique: true, nullable: false })
@@ -37,9 +37,9 @@ export class Usuario {
   @Column({ type: 'char', length: 1, nullable: false })
   estado: string;
 
-  @Column({ length: 256 })
+  @Column({ length: 256, nullable: true })
   red_social: string;
 
-  @Column({ length: 256 })
+  @Column({ length: 256, nullable: true })
   foto_perfil: string;
 }

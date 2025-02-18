@@ -1,11 +1,37 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Usuario } from './entities/usuario.entity';
+import { Repository } from 'typeorm';
+import { Encrypt } from 'src/utilities/hash/hash.encryption';
 
 @Injectable()
 export class UsuarioService {
-  create(createUsuarioDto: CreateUsuarioDto) {
-    return 'This action adds a new usuario';
+  constructor(
+    @InjectRepository(Usuario)
+    private usersRepository: Repository<Usuario>,
+    private encrypt: Encrypt,
+  ) {}
+
+  async create(createUsuarioDto: CreateUsuarioDto) {
+    //Comprobar si existe un usuario con el mismo correo
+    const user = await this.usersRepository.findOne({
+      where: { correo: createUsuarioDto.correo },
+    });
+
+    if (user)
+      throw new BadRequestException(
+        `El usuario con el correo '${createUsuarioDto.correo}' ya se encuentra registrado.`,
+      );
+
+    //Encriptar la contraseña
+    const encrypted_password = this.encrypt.getHash(
+      createUsuarioDto.contrasenia,
+    );
+    createUsuarioDto.contrasenia = await encrypted_password;
+    //Crear al nuevo usuario
+    return await this.usersRepository.save(createUsuarioDto);
   }
 
   findAll() {
