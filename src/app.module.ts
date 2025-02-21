@@ -30,6 +30,7 @@ import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity
 import { AuthModule } from './auth/auth.module';
 import { tokenMiddleware } from './middleware/token.middleware';
 import { ConfigModule } from '@nestjs/config';
+import { createUsuarioPermissionsMiddleware } from './middleware/createUsuarioPermission.middleware';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -75,7 +76,12 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(tokenMiddleware)
-      .exclude({ path: 'auth/(.*)', method: RequestMethod.ALL })
-      .forRoutes('*');
+      .exclude(
+        { path: 'auth/(.*)', method: RequestMethod.ALL },
+        { path: 'usuario/crear', method: RequestMethod.ALL },
+      )
+      .forRoutes('*')
+      .apply(createUsuarioPermissionsMiddleware)
+      .forRoutes({ path: 'usuario/crear', method: RequestMethod.ALL });
   }
 }

@@ -82,7 +82,7 @@ export class CreateUsuarioDto extends CreateEstudianteDto {
   @IsString({ message: 'tipo debe ser una cadena de texto' })
   @MaxLength(13, { message: 'tipo debe tener maximo 13 carácteres' })
   @IsIn(['Administrador', 'Docente', 'Estudiante'], {
-    message: `tipo debe ser (Administrador) Admin, (Docente) Docente, (Estudiante) Estudiante`,
+    message: `tipo debe ser (Docente) Docente, (Estudiante) Estudiante`,
   })
   readonly tipo: string;
 }

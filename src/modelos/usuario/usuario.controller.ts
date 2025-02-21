@@ -15,7 +15,7 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
-  @Post()
+  @Post('/crear')
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.usuarioService.create(createUsuarioDto);
   }
