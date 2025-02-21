@@ -14,8 +14,6 @@ export class createUsuarioPermissionsMiddleware implements NestMiddleware {
   constructor(private jwtService: JwtService) {}
   async use(req: Request, res: Response, next: NextFunction) {
     const { tipo } = req.body as CreateUsuarioDto;
-    //Veriry create a student
-    if (tipo == 'Estudiante') return next();
 
     //Verify token exist
     const sessionToken: string = req.headers['sessiontoken'] as string;
@@ -26,6 +24,9 @@ export class createUsuarioPermissionsMiddleware implements NestMiddleware {
     const sessionType = await this.jwtService.verifyAsync(sessionToken, {
       secret: process.env.SECRETTOKEN,
     });
+
+    //Veriry create a student
+    if (tipo == 'Estudiante') return next();
 
     //Verify create docente permission
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
