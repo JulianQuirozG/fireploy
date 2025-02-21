@@ -62,7 +62,7 @@ export class UsuarioService {
 
     if (!usuario)
       throw new NotFoundException(
-        `El usuario con el correo: ${correo},   no se encontra en la base de datos`,
+        `El usuario con el correo: ${correo},nose encontra en la base de datos`,
       );
 
     return usuario;
