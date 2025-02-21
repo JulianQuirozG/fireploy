@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -23,8 +28,13 @@ import { Repositorio } from './modelos/repositorio/entities/repositorio.entity';
 import { BaseDeDatosModule } from './modelos/base_de_datos/base_de_datos.module';
 import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity';
 import { AuthModule } from './auth/auth.module';
+import { tokenMiddleware } from './middleware/token.middleware';
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
@@ -61,4 +71,11 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(tokenMiddleware)
+      .exclude({ path: 'auth/(.*)', method: RequestMethod.ALL })
+      .forRoutes('*');
+  }
+}

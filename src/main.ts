@@ -12,4 +12,6 @@ async function bootstrap() {
   );
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+console.log(process.env.SALT_OR_ROUNDS);
+console.log(process.env.SECRETTOKEN);
+void bootstrap();
