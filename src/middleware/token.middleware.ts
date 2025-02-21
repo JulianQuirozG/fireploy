@@ -12,7 +12,7 @@ export class tokenMiddleware implements NestMiddleware {
   constructor(private jwtService: JwtService) {}
   async use(req: Request, res: Response, next: NextFunction) {
     const sessionToken: string = req.headers['sessiontoken'] as string;
-    if (req.headers.sessionToken) {
+    if (sessionToken) {
       try {
         void ((await this.jwtService.verifyAsync(sessionToken, {
           secret: process.env.SECRETTOKEN,
