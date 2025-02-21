@@ -3,7 +3,6 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
 import { UsuarioModule } from 'src/modelos/usuario/usuario.module';
 
 @Module({
@@ -11,8 +10,8 @@ import { UsuarioModule } from 'src/modelos/usuario/usuario.module';
     UsuarioModule,
     JwtModule.register({
       global: true,
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' },
+      secret: process.env.SECRETTOKEN as string,
+      signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [AuthController],
