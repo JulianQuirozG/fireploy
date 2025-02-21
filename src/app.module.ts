@@ -22,6 +22,7 @@ import { RepositorioModule } from './modelos/repositorio/repositorio.module';
 import { Repositorio } from './modelos/repositorio/entities/repositorio.entity';
 import { BaseDeDatosModule } from './modelos/base_de_datos/base_de_datos.module';
 import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity';
+import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -55,6 +56,7 @@ import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity
     SeccionModule,
     RepositorioModule,
     BaseDeDatosModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
