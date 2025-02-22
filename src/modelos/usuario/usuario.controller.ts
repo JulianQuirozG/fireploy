@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { FilterUsuarioDto } from './dto/filter-usuario.dto';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -21,8 +23,8 @@ export class UsuarioController {
   }
 
   @Get()
-  findAll() {
-    return this.usuarioService.findAll();
+  findAll(@Query() filtros: FilterUsuarioDto) {
+    return this.usuarioService.findAll(filtros);
   }
 
   @Get(':id')

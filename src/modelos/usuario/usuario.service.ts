@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { Repository } from 'typeorm';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
+import { FilterUsuarioDto } from './dto/filter-usuario.dto';
 
 @Injectable()
 export class UsuarioService {
@@ -19,7 +20,7 @@ export class UsuarioService {
   ) {}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
-    //Comprobar si existe un usuario con el mismo correo
+    //verify user exists
     const user = await this.usersRepository.findOne({
       where: { correo: createUsuarioDto.correo },
     });
@@ -29,17 +30,18 @@ export class UsuarioService {
         `El usuario con el correo '${createUsuarioDto.correo}' ya se encuentra registrado.`,
       );
 
-    //Encriptar la contraseña
+    //Encrypt password
     const encrypted_password = this.encrypt.getHash(
       createUsuarioDto.contrasenia,
     );
     createUsuarioDto.contrasenia = await encrypted_password;
-    //Crear al nuevo usuario
+    //Create the user
     return await this.usersRepository.save(createUsuarioDto);
   }
 
-  findAll() {
-    return `This action returns all usuario`;
+  //
+  async findAll(filters: FilterUsuarioDto) {
+    return await this.usersRepository.find({ where: filters });
   }
 
   async findOne(id: number): Promise<Usuario | undefined> {

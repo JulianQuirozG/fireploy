@@ -31,6 +31,7 @@ import { AuthModule } from './auth/auth.module';
 import { tokenMiddleware } from './middleware/token.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { createUsuarioPermissionsMiddleware } from './middleware/createUsuarioPermission.middleware';
+import { getUserPermissionMiddleware } from './middleware/getUserPermission.middleware';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -82,6 +83,11 @@ export class AppModule implements NestModule {
       )
       .forRoutes('*')
       .apply(createUsuarioPermissionsMiddleware)
-      .forRoutes({ path: 'usuario/crear', method: RequestMethod.ALL });
+      .forRoutes({ path: 'usuario/crear', method: RequestMethod.ALL })
+      .apply(getUserPermissionMiddleware)
+      .forRoutes(
+        { path: 'usuario/*', method: RequestMethod.GET },
+        { path: 'usuario', method: RequestMethod.GET },
+      );
   }
 }
