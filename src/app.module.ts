@@ -32,6 +32,7 @@ import { tokenMiddleware } from './middleware/token.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { createUsuarioPermissionsMiddleware } from './middleware/createUsuarioPermission.middleware';
 import { getUserPermissionMiddleware } from './middleware/getUserPermission.middleware';
+import { updateUsuarioPermissionMiddleware } from './middleware/updateUsuarioPermission.middleware';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -88,6 +89,8 @@ export class AppModule implements NestModule {
       .forRoutes(
         { path: 'usuario/*', method: RequestMethod.GET },
         { path: 'usuario', method: RequestMethod.GET },
-      );
+      )
+      .apply(updateUsuarioPermissionMiddleware)
+      .forRoutes({ path: 'usuario/*', method: RequestMethod.PATCH });
   }
 }

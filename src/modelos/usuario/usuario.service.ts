@@ -70,8 +70,25 @@ export class UsuarioService {
     return usuario;
   }
 
-  update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return `This action updates a #${id} usuario`;
+  async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
+    //Verify user exists
+    await this.findOne(id);
+
+    //Verify update data
+    if (
+      Object.keys(updateUsuarioDto).length === 0 ||
+      updateUsuarioDto === undefined
+    ) {
+      throw new BadRequestException(
+        'Se debe enviar al menos un campo para actualizar',
+      );
+    }
+    //Update the user
+    updateUsuarioDto.id = id;
+    await this.usersRepository.save(updateUsuarioDto);
+
+    //Return the updated user
+    return await this.findOne(id);
   }
 
   remove(id: number) {

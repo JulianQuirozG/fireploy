@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NestMiddleware,
 } from '@nestjs/common';
@@ -31,14 +32,14 @@ export class createUsuarioPermissionsMiddleware implements NestMiddleware {
     //Verify create docente permission
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (!sessionType.tipo || sessionType.tipo == 'Estudiante')
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 
     //Verify create admin permission
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (tipo == 'Administrador' && sessionType.tipo != 'Administrador')
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
     next();
