@@ -16,18 +16,25 @@ export class createUsuarioPermissionsMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     const { tipo } = req.body as CreateUsuarioDto;
 
+    //Veriry create a student
+    if (tipo == 'Estudiante') return next();
+
     //Verify token exist
     const sessionToken: string = req.headers['sessiontoken'] as string;
     if (!sessionToken)
       throw new BadRequestException(`No se ha enviado el token de sesión`);
-
-    //Verify permission token
-    const sessionType = await this.jwtService.verifyAsync(sessionToken, {
-      secret: process.env.SECRETTOKEN,
-    });
-
-    //Veriry create a student
-    if (tipo == 'Estudiante') return next();
+    let sessionType;
+    try {
+      //Verify permission token
+      sessionType = await this.jwtService.verifyAsync(sessionToken, {
+        secret: process.env.SECRETTOKEN,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new BadRequestException(
+        `La sesion ha acabado o el token de sesión es invalido`,
+      );
+    }
 
     //Verify create docente permission
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
