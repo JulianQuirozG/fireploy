@@ -10,6 +10,7 @@ import { Request, Response, NextFunction } from 'express';
 @Injectable()
 export class tokenMiddleware implements NestMiddleware {
   constructor(private jwtService: JwtService) {}
+
   async use(req: Request, res: Response, next: NextFunction) {
     const sessionToken: string = req.headers['sessiontoken'] as string;
     if (sessionToken) {
@@ -17,10 +18,11 @@ export class tokenMiddleware implements NestMiddleware {
         void ((await this.jwtService.verifyAsync(sessionToken, {
           secret: process.env.SECRETTOKEN,
         })) as Promise<any>);
+
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         throw new BadRequestException(
-          `La sesión ha acabado, vuelva a logearse`,
+          `La sesion ha acabado o el token de sesión es invalido`,
         );
       }
     } else {
