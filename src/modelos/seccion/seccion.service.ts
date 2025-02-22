@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Seccion } from './entities/seccion.entity';
 import { CursoService } from '../curso/curso.service';
+import { FilterSeccionDto } from './dto/filter-seccion.dto';
 
 @Injectable()
 export class SeccionService {
@@ -38,8 +39,25 @@ export class SeccionService {
     return seccion;
   }
 
-  findAll() {
-    return `This action returns all seccion`;
+  //Return a seccion filter list
+  async findAll(filters?: FilterSeccionDto) {
+    if (filters) {
+      const { curso } = filters;
+      const curso_id = curso as unknown as string;
+
+      //verify curso exists
+      if (curso_id) {
+        const exist = await this.cursoService.findOne(curso_id);
+
+        if (!exist)
+          throw new BadRequestException(
+            `El curso con id ${curso_id} No existe`,
+          );
+
+        filters.curso = exist;
+      }
+    }
+    return await this.seccionRepository.find({ where: filters });
   }
 
   //get a seccion by id
@@ -56,11 +74,42 @@ export class SeccionService {
     return seccion;
   }
 
-  update(id: number, updateSeccionDto: UpdateSeccionDto) {
-    return `This action updates a #${id} seccion`;
+  //Update a seccion info
+  async update(id: number, updateSeccionDto: UpdateSeccionDto) {
+    const seccion: Seccion = await this.findOne(id);
+    const { fecha_inicio, fecha_fin } = updateSeccionDto;
+    //Verify seccion exists
+    if (!seccion) {
+      throw new NotFoundException(
+        `La seccion con el id ${id} no se encuentra registrada.`,
+      );
+    }
+
+    //Verify curso dates
+    if (fecha_inicio && fecha_fin) {
+      if (fecha_inicio > fecha_fin)
+        throw new BadRequestException(
+          `La fecha de inicio del curso no puede ser despues de la fecha fin.`,
+        );
+    } else {
+      if (fecha_inicio && new Date(fecha_inicio) > seccion.fecha_fin)
+        throw new BadRequestException(
+          `La nueva fecha de inicio no puede ser despues que la actual fecha de fin`,
+        );
+
+      if (fecha_fin && new Date(fecha_fin) > seccion.fecha_inicio)
+        throw new BadRequestException(
+          `La nueva fecha de fin no puede ser antes que la actual fecha de inicio`,
+        );
+    }
+
+    //Update seccion info
+    await this.seccionRepository.save({ id, ...updateSeccionDto });
+
+    //Return updated user
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} seccion`;
+  async remove(id: number) {
   }
 }
