@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsuarioService } from 'src/modelos/usuario/usuario.service';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
@@ -16,7 +20,9 @@ export class AuthService {
     pass: string,
   ): Promise<{ access_token: string }> {
     const user = await this.usuarioService.findOneCorreo(correo);
-    console.log(1);
+    if (user?.estado == 'I') {
+      throw new ForbiddenException();
+    }
     const answer = await this.encrypt.compare(pass, user?.contrasenia);
     if (!answer) throw new UnauthorizedException();
     const payload = { sub: user?.id, tipo: user?.tipo };
