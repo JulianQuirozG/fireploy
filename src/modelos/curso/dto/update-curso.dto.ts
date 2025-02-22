@@ -1,6 +1,9 @@
 import { IsIn, IsOptional, IsString, Length } from 'class-validator';
+import { Docente } from 'src/modelos/docente/entities/docente.entity';
 
 export class UpdateCursoDto {
+  id: string;
+
   @IsOptional()
   @IsString({ message: 'descripcion debe ser una cadena de texto' })
   @Length(0, 512, {
@@ -17,5 +20,5 @@ export class UpdateCursoDto {
   estado?: string;
 
   @IsOptional()
-  docenteId?: string;
+  docente?: Docente;
 }

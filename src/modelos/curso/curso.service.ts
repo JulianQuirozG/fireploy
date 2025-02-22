@@ -10,6 +10,7 @@ import { Curso } from './entities/curso.entity';
 import { Repository } from 'typeorm';
 import { MateriaService } from '../materia/materia.service';
 import { Usuario } from '../usuario/entities/usuario.entity';
+import { Docente } from '../docente/entities/docente.entity';
 
 @Injectable()
 export class CursoService {
@@ -72,8 +73,26 @@ export class CursoService {
   }
 
   async update(id: string, updateCursoDto: UpdateCursoDto) {
+    //Verify curso exists
     await this.findOne(id);
-    await this.cursoRepository.update(id, updateCursoDto);
+
+    //If docente change verify docente exists
+    if (updateCursoDto.docente) {
+      const tutor = await this.usuarioRepository.findOne({
+        where: {
+          id: updateCursoDto.docente as unknown as number,
+          tipo: 'Docente',
+        },
+      });
+      if (!tutor) {
+        throw new NotFoundException('No existe un docente con ese id');
+      }
+      updateCursoDto.docente = tutor as Docente;
+    }
+
+    //update curso info
+    updateCursoDto.id = id;
+    await this.cursoRepository.save(updateCursoDto);
     return await this.findOne(id);
   }
 
