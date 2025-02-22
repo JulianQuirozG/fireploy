@@ -23,8 +23,8 @@ export class UsuarioController {
   }
 
   @Get()
-  findAll(@Query() filtros: FilterUsuarioDto) {
-    return this.usuarioService.findAll(filtros);
+  findAll(@Query() filters: FilterUsuarioDto) {
+    return this.usuarioService.findAll(filters);
   }
 
   @Get(':id')

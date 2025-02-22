@@ -1,6 +1,16 @@
-import { IsOptional, IsString, MaxLength, IsIn } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  MaxLength,
+  IsIn,
+  IsNumber,
+} from 'class-validator';
 
 export class FilterUsuarioDto {
+  @IsOptional()
+  @IsNumber()
+  readonly id?: number;
+
   @IsOptional()
   @IsString({ message: 'El sexo debe ser una cadena de texto' })
   @IsIn(['M', 'F', 'O'], {

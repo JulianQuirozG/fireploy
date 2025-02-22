@@ -9,7 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Curso } from './entities/curso.entity';
 import { Repository } from 'typeorm';
 import { MateriaService } from '../materia/materia.service';
-import { Usuario } from '../usuario/entities/usuario.entity';
+import { Docente } from '../docente/entities/docente.entity';
+import { UsuarioService } from '../usuario/usuario.service';
 
 @Injectable()
 export class CursoService {
@@ -17,8 +18,7 @@ export class CursoService {
     @InjectRepository(Curso)
     private cursoRepository: Repository<Curso>,
     private materiaService: MateriaService,
-    @InjectRepository(Usuario)
-    private usuarioRepository: Repository<Usuario>,
+    private usuarioService: UsuarioService,
   ) {}
   async create(createCursoDto: CreateCursoDto) {
     const id: string = `${createCursoDto.materiaId}${createCursoDto.grupo}${createCursoDto.semestre}`;
@@ -28,12 +28,13 @@ export class CursoService {
     }
     let docente;
     if (createCursoDto.docenteId) {
-      docente = await this.usuarioRepository.findOne({
-        where: { id: +createCursoDto.docenteId, tipo: 'Docente' },
+      docente = await this.usuarioService.findAll({
+        id: +createCursoDto.docenteId,
+        tipo: 'Docente',
       });
       if (!docente) {
         throw new NotFoundException(
-          `El docente con el ID: ${createCursoDto.docenteId} no encontrado `,
+          `El docente con el ID: ${createCursoDto.docenteId} no encontrado o no es docente`,
         );
       }
     }
@@ -72,8 +73,24 @@ export class CursoService {
   }
 
   async update(id: string, updateCursoDto: UpdateCursoDto) {
+    //Verify curso exists
     await this.findOne(id);
-    await this.cursoRepository.update(id, updateCursoDto);
+
+    //If docente change verify docente exists
+    if (updateCursoDto.docente) {
+      const tutor = await this.usuarioService.findAll({
+        id: +updateCursoDto.docente,
+        tipo: 'Docente',
+      });
+      if (!tutor) {
+        throw new NotFoundException('No existe un docente con ese id');
+      }
+      updateCursoDto.docente = tutor[0] as Docente;
+    }
+
+    //update curso info
+    updateCursoDto.id = id;
+    await this.cursoRepository.save(updateCursoDto);
     return await this.findOne(id);
   }
 

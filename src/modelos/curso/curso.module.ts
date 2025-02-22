@@ -15,5 +15,6 @@ import { Usuario } from '../usuario/entities/usuario.entity';
   ],
   controllers: [CursoController],
   providers: [CursoService],
+  exports: [CursoService],
 })
 export class CursoModule {}

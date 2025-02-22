@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SeccionService } from './seccion.service';
 import { CreateSeccionDto } from './dto/create-seccion.dto';
 import { UpdateSeccionDto } from './dto/update-seccion.dto';
+import { FilterSeccionDto } from './dto/filter-seccion.dto';
 
 @Controller('seccion')
 export class SeccionController {
@@ -21,8 +23,8 @@ export class SeccionController {
   }
 
   @Get()
-  findAll() {
-    return this.seccionService.findAll();
+  findAll(@Query() filters: FilterSeccionDto) {
+    return this.seccionService.findAll(filters);
   }
 
   @Get(':id')
