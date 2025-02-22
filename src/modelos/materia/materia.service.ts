@@ -1,26 +1,57 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMateriaDto } from './dto/create-materia.dto';
 import { UpdateMateriaDto } from './dto/update-materia.dto';
+import { Materia } from './entities/materia.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class MateriaService {
-  create(createMateriaDto: CreateMateriaDto) {
-    return 'This action adds a new materia';
+  constructor(
+    @InjectRepository(Materia)
+    private materiaRepository: Repository<Materia>,
+  ) {}
+  async create(createMateriaDto: CreateMateriaDto) {
+    const materia = await this.materiaRepository.findOne({
+      where: {
+        nombre: createMateriaDto.nombre,
+        estado: `A`,
+      },
+    });
+    if (materia) {
+      throw new ConflictException(
+        `La materia con nombre ${createMateriaDto.nombre}, ya existe`,
+      );
+    }
+    return await this.materiaRepository.save(createMateriaDto);
   }
 
-  findAll() {
-    return `This action returns all materia`;
+  async findAll() {
+    return await this.materiaRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} materia`;
+  async findOne(id: number) {
+    const materia = await this.materiaRepository.findOne({
+      where: { id: id },
+    });
+    if (!materia) {
+      throw new NotFoundException();
+    }
+    return materia;
   }
 
-  update(id: number, updateMateriaDto: UpdateMateriaDto) {
-    return `This action updates a #${id} materia`;
+  async update(id: number, updateMateriaDto: UpdateMateriaDto) {
+    await this.findOne(id);
+    await this.materiaRepository.update(id, updateMateriaDto);
+    return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} materia`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return await this.materiaRepository.delete(id);
   }
 }
