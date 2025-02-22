@@ -33,7 +33,7 @@ export class CursoService {
       });
       if (!docente) {
         throw new NotFoundException(
-          `El docente con el ID: ${createCursoDto.docenteId} no encontrado`,
+          `El docente con el ID: ${createCursoDto.docenteId} no encontrado `,
         );
       }
     }
