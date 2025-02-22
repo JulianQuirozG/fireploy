@@ -27,16 +27,16 @@ export class CursoController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.cursoService.findOne(+id);
+    return this.cursoService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCursoDto: UpdateCursoDto) {
-    return this.cursoService.update(+id, updateCursoDto);
+    return this.cursoService.update(id, updateCursoDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.cursoService.remove(+id);
+    return this.cursoService.remove(id);
   }
 }

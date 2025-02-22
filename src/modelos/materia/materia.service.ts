@@ -50,7 +50,8 @@ export class MateriaService {
     return await this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} materia`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return await this.materiaRepository.delete(id);
   }
 }
