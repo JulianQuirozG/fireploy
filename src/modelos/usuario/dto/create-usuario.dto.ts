@@ -56,13 +56,13 @@ export class CreateUsuarioDto extends CreateEstudianteDto {
   })
   contrasenia: string;
 
-  @IsDefined({ message: 'estado es obligatorio' })
+  @IsOptional()
   @IsString({ message: 'estado debe ser una cadena de texto' })
   @MaxLength(1, { message: 'estado debe tener solo 1 carácter' })
   @IsIn(['A', 'I'], {
     message: 'estado debe ser "A" para activo o "I" para inactivo',
   })
-  readonly estado: string;
+  readonly estado: string = 'A';
 
   @IsOptional()
   @IsString({ message: 'red_social debe ser una cadena de texto' })
