@@ -110,6 +110,5 @@ export class SeccionService {
     return await this.findOne(id);
   }
 
-  async remove(id: number) {
-  }
+  async remove(id: number) {}
 }
