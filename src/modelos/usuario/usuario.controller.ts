@@ -15,6 +15,7 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { FilterUsuarioDto } from './dto/filter-usuario.dto';
 import { CreateUserGuard } from 'src/guard/createUser.guard';
 import { Public } from 'src/decorators/public.decorator';
+import { GetUserPermissionGuard } from 'src/guard/getUserInfo.guard';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -28,11 +29,13 @@ export class UsuarioController {
   }
 
   @Get()
+  @UseGuards(GetUserPermissionGuard)
   findAll(@Query() filters: FilterUsuarioDto) {
     return this.usuarioService.findAll(filters);
   }
 
   @Get(':id')
+  @UseGuards(GetUserPermissionGuard)
   findOne(@Param('id') id: string) {
     return this.usuarioService.findOne(+id);
   }

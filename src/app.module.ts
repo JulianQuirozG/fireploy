@@ -29,7 +29,6 @@ import { BaseDeDatosModule } from './modelos/base_de_datos/base_de_datos.module'
 import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { getUserPermissionMiddleware } from './middleware/getUserPermission.middleware';
 import { updateUsuarioPermissionMiddleware } from './middleware/updateUsuarioPermission.middleware';
 import { APP_GUARD } from '@nestjs/core';
 import { SessionTokenGuard } from './guard/sessionToken.guard';
@@ -83,11 +82,6 @@ import { SessionTokenGuard } from './guard/sessionToken.guard';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(getUserPermissionMiddleware)
-      .forRoutes(
-        { path: 'usuario/*', method: RequestMethod.GET },
-        { path: 'usuario', method: RequestMethod.GET },
-      )
       .apply(updateUsuarioPermissionMiddleware)
       .forRoutes({ path: 'usuario/*', method: RequestMethod.PATCH });
   }
