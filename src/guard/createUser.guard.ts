@@ -1,23 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BadRequestException,
+  CanActivate,
+  ExecutionContext,
   ForbiddenException,
   Injectable,
-  NestMiddleware,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { Request, Response, NextFunction } from 'express';
 import { CreateUsuarioDto } from 'src/modelos/usuario/dto/create-usuario.dto';
 
-//Middleware to create user permissions
 @Injectable()
-export class createUsuarioPermissionsMiddleware implements NestMiddleware {
-  constructor(private jwtService: JwtService) {}
-  async use(req: Request, res: Response, next: NextFunction) {
-    const { tipo } = req.body as CreateUsuarioDto;
+export class CreateUserGuard implements CanActivate {
+  constructor(
+    private reflector: Reflector,
+    private jwtService: JwtService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req: Request = context.switchToHttp().getRequest();
+    const { tipo } = req.body as unknown as CreateUsuarioDto;
 
     //Veriry create a student
-    if (tipo == 'Estudiante') return next();
+    if (tipo == 'Estudiante') return true;
 
     //Verify token exist
     const sessionToken: string = req.headers['sessiontoken'] as string;
@@ -26,6 +30,7 @@ export class createUsuarioPermissionsMiddleware implements NestMiddleware {
     let sessionType;
     try {
       //Verify permission token
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       sessionType = await this.jwtService.verifyAsync(sessionToken, {
         secret: process.env.SECRETTOKEN,
       });
@@ -36,19 +41,16 @@ export class createUsuarioPermissionsMiddleware implements NestMiddleware {
       );
     }
 
-    //Verify create docente permission
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (!sessionType.tipo || sessionType.tipo == 'Estudiante')
+    //Verify create docente and admin permission
+    if (
+      (tipo == 'Docente' || tipo == 'Administrador') &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      sessionType.tipo != 'Administrador'
+    )
       throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 
-    //Verify create admin permission
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (tipo == 'Administrador' && sessionType.tipo != 'Administrador')
-      throw new ForbiddenException(
-        `El usuario no tiene permiso para realizar esa acción`,
-      );
-    next();
+    return true;
   }
 }
