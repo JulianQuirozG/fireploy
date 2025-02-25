@@ -28,11 +28,10 @@ import { Repositorio } from './modelos/repositorio/entities/repositorio.entity';
 import { BaseDeDatosModule } from './modelos/base_de_datos/base_de_datos.module';
 import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity';
 import { AuthModule } from './auth/auth.module';
-import { tokenMiddleware } from './middleware/token.middleware';
 import { ConfigModule } from '@nestjs/config';
-import { createUsuarioPermissionsMiddleware } from './middleware/createUsuarioPermission.middleware';
-import { getUserPermissionMiddleware } from './middleware/getUserPermission.middleware';
 import { updateUsuarioPermissionMiddleware } from './middleware/updateUsuarioPermission.middleware';
+import { APP_GUARD } from '@nestjs/core';
+import { SessionTokenGuard } from './guard/sessionToken.guard';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -72,24 +71,17 @@ import { updateUsuarioPermissionMiddleware } from './middleware/updateUsuarioPer
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: SessionTokenGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(tokenMiddleware)
-      .exclude(
-        { path: 'auth/(.*)', method: RequestMethod.ALL },
-        { path: 'usuario/crear', method: RequestMethod.ALL },
-      )
-      .forRoutes('*')
-      .apply(createUsuarioPermissionsMiddleware)
-      .forRoutes({ path: 'usuario/crear', method: RequestMethod.ALL })
-      .apply(getUserPermissionMiddleware)
-      .forRoutes(
-        { path: 'usuario/*', method: RequestMethod.GET },
-        { path: 'usuario', method: RequestMethod.GET },
-      )
       .apply(updateUsuarioPermissionMiddleware)
       .forRoutes({ path: 'usuario/*', method: RequestMethod.PATCH });
   }
