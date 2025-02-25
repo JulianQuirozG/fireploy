@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -11,6 +12,7 @@ import { Repository } from 'typeorm';
 import { MateriaService } from '../materia/materia.service';
 import { Docente } from '../docente/entities/docente.entity';
 import { UsuarioService } from '../usuario/usuario.service';
+import { FilterCursoDto } from './dto/filter-curso.dto';
 
 @Injectable()
 export class CursoService {
@@ -53,19 +55,41 @@ export class CursoService {
     return this.cursoRepository.save(nuevoCurso);
   }
 
-  async findAll() {
-    return await this.cursoRepository.find();
+  async findAll(filters?: FilterCursoDto) {
+    if (filters) {
+      const { materia } = filters;
+      const materiaId = materia as unknown as string;
+
+      //verify curso exists
+      if (materiaId) {
+        const exist = await this.materiaService.findOne(+materiaId);
+
+        if (!exist)
+          throw new BadRequestException(
+            `La materia con id ${materiaId} No existe`,
+          );
+
+        filters.materia = exist;
+      }
+    }
+    return await this.cursoRepository.find({
+      where: filters,
+      relations: ['materia', 'docente'],
+    });
   }
 
   async findAllByMateria(id: number) {
     return await this.cursoRepository.find({
       where: { materia: { id } },
-      relations: ['materia'],
+      relations: ['materia', 'docente'],
     });
   }
 
   async findOne(id: string) {
-    const curso = await this.cursoRepository.findOne({ where: { id: id } });
+    const curso = await this.cursoRepository.findOne({
+      where: { id: id },
+      relations: ['materia', 'docente'],
+    });
     if (!curso) {
       throw new NotFoundException('El curso que está buscando no existe');
     }
@@ -96,6 +120,6 @@ export class CursoService {
 
   async remove(id: string) {
     await this.findOne(id);
-    return await this.cursoRepository.delete(id);
+    return;
   }
 }
