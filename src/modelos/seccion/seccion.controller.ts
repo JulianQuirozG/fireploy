@@ -15,6 +15,8 @@ import { UpdateSeccionDto } from './dto/update-seccion.dto';
 import { FilterSeccionDto } from './dto/filter-seccion.dto';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
+import { CreateSeccionGuard } from 'src/guard/createSeccion.guard';
+import { updateSeccionGuard } from 'src/guard/updateSeccion.guard';
 
 @Controller('seccion')
 export class SeccionController {
@@ -22,6 +24,7 @@ export class SeccionController {
 
   @Post()
   @UseGuards(RolesGuard)
+  @UseGuards(CreateSeccionGuard)
   @Roles('Administrador', 'Docente')
   create(@Body() createSeccionDto: CreateSeccionDto) {
     return this.seccionService.create(createSeccionDto);
@@ -38,7 +41,7 @@ export class SeccionController {
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, updateSeccionGuard)
   @Roles('Administrador', 'Docente')
   update(@Param('id') id: string, @Body() updateSeccionDto: UpdateSeccionDto) {
     return this.seccionService.update(+id, updateSeccionDto);
