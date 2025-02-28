@@ -64,5 +64,5 @@ export class CreateProyectoDto {
 
   baseDeDatosId?: number;
 
-  fecha_creacion: Date;
+  fecha_creacion: Date = new Date(Date.now());
 }
