@@ -1,11 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBaseDeDatoDto } from './dto/create-base_de_dato.dto';
 import { UpdateBaseDeDatoDto } from './dto/update-base_de_dato.dto';
+import { BaseDeDato } from './entities/base_de_dato.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class BaseDeDatosService {
+  constructor(
+    @InjectRepository(BaseDeDato)
+    private baseDeDatosRepository: Repository<BaseDeDato>,
+  ) {}
   create(createBaseDeDatoDto: CreateBaseDeDatoDto) {
-    return 'This action adds a new baseDeDato';
+    //save new Base de datos
+    const baseDeDatos = this.baseDeDatosRepository.save(createBaseDeDatoDto);
+    return baseDeDatos;
   }
 
   findAll() {
