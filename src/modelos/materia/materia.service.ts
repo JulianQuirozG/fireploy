@@ -39,7 +39,7 @@ export class MateriaService {
       where: { id: id },
     });
     if (!materia) {
-      throw new NotFoundException();
+      throw new NotFoundException(`La materia con el id ${id} no existe`);
     }
     return materia;
   }

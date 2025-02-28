@@ -30,15 +30,16 @@ export class CursoService {
     }
     let docente;
     if (createCursoDto.docenteId) {
-      docente = await this.usuarioService.findAll({
+      const docentes = await this.usuarioService.findAll({
         id: +createCursoDto.docenteId,
         tipo: 'Docente',
       });
-      if (!docente) {
+      if (!docentes || docentes.length === 0) {
         throw new NotFoundException(
           `El docente con el ID: ${createCursoDto.docenteId} no encontrado o no es docente`,
         );
       }
+      docente = docentes[0] as Docente;
     }
     const materia = await this.materiaService.findOne(createCursoDto.materiaId);
     const nuevoCurso = this.cursoRepository.create({
