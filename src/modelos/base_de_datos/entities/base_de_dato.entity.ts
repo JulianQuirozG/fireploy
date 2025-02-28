@@ -1,3 +1,4 @@
+import { IsIn } from 'class-validator';
 import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -16,6 +17,9 @@ export class BaseDeDato {
   url: string;
 
   @Column({ type: 'char', nullable: false, length: 1 })
+  @IsIn(['S', 'N'], {
+    message: 'SQL (S) y NoSQL (N).',
+  })
   tipo: string;
 
   @OneToOne(() => Proyecto, (proyecto) => proyecto.base_de_datos)
