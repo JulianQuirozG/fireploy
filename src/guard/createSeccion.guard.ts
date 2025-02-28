@@ -2,26 +2,22 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUsuarioDto } from 'src/modelos/usuario/dto/create-usuario.dto';
+import { CursoService } from 'src/modelos/curso/curso.service';
+import { CreateSeccionDto } from 'src/modelos/seccion/dto/create-seccion.dto';
 
 @Injectable()
-export class CreateUserGuard implements CanActivate {
+export class CreateSeccionGuard implements CanActivate {
   constructor(
-    private reflector: Reflector,
     private jwtService: JwtService,
+    private cursoService: CursoService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req: Request = context.switchToHttp().getRequest();
-    const { tipo } = req.body as unknown as CreateUsuarioDto;
-
-    //Veriry create a student
-    if (tipo == 'Estudiante') return true;
+    const { cursoId } = req.body as unknown as CreateSeccionDto;
 
     //Verify token exist
     const sessionToken: string = req.headers['sessiontoken'] as string;
@@ -41,13 +37,27 @@ export class CreateUserGuard implements CanActivate {
       );
     }
 
-    //Verify create docente and admin permission
+    //Verify curso exists
+    const curso = await this.cursoService.findOne(cursoId);
+    if (!curso)
+      throw new BadRequestException(
+        `El curso al cual se quiere asignar la sección no existe`,
+      );
+
+    //Verify is estudiante
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (session.tipo == 'Estudiante')
+      throw new BadRequestException(
+        `El usuario no tiene permiso para realizar esa acción`,
+      );
+
+    //Verify docente is the curso'tutor
     if (
-      (tipo == 'Docente' || tipo == 'Administrador') &&
+      !curso.docente.id ||
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      session.tipo != 'Administrador'
+      (session.tipo == 'Docente' && curso.docente.id != session.sub)
     )
-      throw new ForbiddenException(
+      throw new BadRequestException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 
