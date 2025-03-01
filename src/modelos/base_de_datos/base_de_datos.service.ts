@@ -24,15 +24,30 @@ export class BaseDeDatosService {
   async findOne(id: number) {
     const baseDeDatos = await this.baseDeDatosRepository.findOne({
       where: { id: id },
+      relations: ['proyecto'],
     });
+
     if (!baseDeDatos) {
-      throw new NotFoundException();
+      throw new NotFoundException(
+        `No se ha encontrado una base de datos con id ${id}`,
+      );
     }
+
     return baseDeDatos;
   }
 
-  update(id: number, updateBaseDeDatoDto: UpdateBaseDeDatoDto) {
-    return `This action updates a #${id} baseDeDato`;
+  async update(id: number, updateBaseDeDatoDto: UpdateBaseDeDatoDto) {
+    //Verify exists data base
+    const baseDeDatos = await this.findOne(id);
+
+    if (!baseDeDatos) {
+      throw new NotFoundException(
+        `No se ha encontrado una base de datos con id ${id}`,
+      );
+    }
+
+    await this.baseDeDatosRepository.save({ id, ...updateBaseDeDatoDto });
+    return this.findOne(id);
   }
 
   async remove(id: number) {
