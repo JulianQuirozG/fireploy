@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { BaseDeDatosService } from './base_de_datos.service';
 import { CreateBaseDeDatoDto } from './dto/create-base_de_dato.dto';
 import { UpdateBaseDeDatoDto } from './dto/update-base_de_dato.dto';
+import { GetDataBaseGuard } from 'src/guard/getDataBaseInfo.guard';
 
 @Controller('base-de-datos')
 export class BaseDeDatosController {
@@ -26,6 +28,7 @@ export class BaseDeDatosController {
   }
 
   @Get(':id')
+  @UseGuards(GetDataBaseGuard)
   findOne(@Param('id') id: string) {
     return this.baseDeDatosService.findOne(+id);
   }

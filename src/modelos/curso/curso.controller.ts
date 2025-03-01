@@ -53,7 +53,6 @@ export class CursoController {
     @Param('id') id: string,
     @Body() updateCursoDto: addEstudiantesCursoDto,
   ) {
-    console.log(id);
     return this.cursoService.addStudents(id, updateCursoDto);
   }
 

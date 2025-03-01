@@ -83,7 +83,7 @@ export class ProyectoService {
   }
 
   async findOne(id: number) {
-    return this.proyectoRepository.findOne({
+    return await this.proyectoRepository.findOne({
       where: { id: id },
       relations: [
         'estudiantes',

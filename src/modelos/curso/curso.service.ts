@@ -124,16 +124,12 @@ export class CursoService {
   }
 
   async addStudents(id: string, addEstudiantes: addEstudiantesCursoDto) {
-    console.log(id);
     const curso = await this.findOne(id);
     const estudantes: Estudiante[] = await Promise.all(
       addEstudiantes.estudiantes.map((estudiante) => {
         return this.estudianteService.findOne(estudiante);
       }),
     );
-
-    console.log(estudantes);
-
     let nuevoEstudantes: Estudiante[];
     if (addEstudiantes.operacion == 'A') {
       // Unir arrays sin repetir valores (basado en ID)

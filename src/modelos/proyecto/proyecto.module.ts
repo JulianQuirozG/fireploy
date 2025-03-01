@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProyectoService } from './proyecto.service';
 import { ProyectoController } from './proyecto.controller';
 import { Proyecto } from './entities/proyecto.entity';
@@ -16,7 +16,7 @@ import { BaseDeDatosModule } from '../base_de_datos/base_de_datos.module';
     DocenteModule,
     CursoModule,
     SeccionModule,
-    BaseDeDatosModule,
+    forwardRef(() => BaseDeDatosModule),
   ],
   controllers: [ProyectoController],
   providers: [ProyectoService],
