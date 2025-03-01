@@ -10,5 +10,6 @@ import { Proyecto } from '../proyecto/entities/proyecto.entity';
   imports: [TypeOrmModule.forFeature([Repositorio, Proyecto]), ProyectoModule],
   controllers: [RepositorioController],
   providers: [RepositorioService],
+  exports: [RepositorioService],
 })
 export class RepositorioModule {}
