@@ -16,6 +16,7 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { FilterCursoDto } from './dto/filter-curso.dto';
 import { CreateCursoPermissionGuard } from 'src/guard/patchCurso.guard';
+import { addEstudiantesCursoDto } from './dto/add-estudiantes-curso.dto';
 
 @Controller('curso')
 export class CursoController {
@@ -43,6 +44,17 @@ export class CursoController {
   @Roles('Administrador', 'Docente')
   update(@Param('id') id: string, @Body() updateCursoDto: UpdateCursoDto) {
     return this.cursoService.update(id, updateCursoDto);
+  }
+
+  @Patch('alumnos/:id')
+  @UseGuards(RolesGuard)
+  @Roles('Administrador', 'Docente')
+  addStudents(
+    @Param('id') id: string,
+    @Body() updateCursoDto: addEstudiantesCursoDto,
+  ) {
+    console.log(id);
+    return this.cursoService.addStudents(id, updateCursoDto);
   }
 
   @Delete(':id')

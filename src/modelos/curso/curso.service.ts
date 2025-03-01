@@ -13,6 +13,9 @@ import { MateriaService } from '../materia/materia.service';
 import { Docente } from '../docente/entities/docente.entity';
 import { UsuarioService } from '../usuario/usuario.service';
 import { FilterCursoDto } from './dto/filter-curso.dto';
+import { addEstudiantesCursoDto } from './dto/add-estudiantes-curso.dto';
+import { Estudiante } from '../estudiante/entities/estudiante.entity';
+import { EstudianteService } from '../estudiante/estudiante.service';
 
 @Injectable()
 export class CursoService {
@@ -21,6 +24,7 @@ export class CursoService {
     private cursoRepository: Repository<Curso>,
     private materiaService: MateriaService,
     private usuarioService: UsuarioService,
+    private estudianteService: EstudianteService,
   ) {}
   async create(createCursoDto: CreateCursoDto) {
     const id: string = `${createCursoDto.materiaId}${createCursoDto.grupo}${createCursoDto.semestre}`;
@@ -82,14 +86,14 @@ export class CursoService {
   async findAllByMateria(id: number) {
     return await this.cursoRepository.find({
       where: { materia: { id } },
-      relations: ['materia', 'docente'],
+      relations: ['materia', 'docente', 'estudiantes'],
     });
   }
 
   async findOne(id: string) {
     const curso = await this.cursoRepository.findOne({
       where: { id: id },
-      relations: ['materia', 'docente'],
+      relations: ['materia', 'docente', 'estudiantes'],
     });
     if (!curso) {
       throw new NotFoundException('El curso que está buscando no existe');
@@ -117,6 +121,37 @@ export class CursoService {
     updateCursoDto.id = id;
     await this.cursoRepository.save(updateCursoDto);
     return await this.findOne(id);
+  }
+
+  async addStudents(id: string, addEstudiantes: addEstudiantesCursoDto) {
+    console.log(id);
+    const curso = await this.findOne(id);
+    const estudantes: Estudiante[] = await Promise.all(
+      addEstudiantes.estudiantes.map((estudiante) => {
+        return this.estudianteService.findOne(estudiante);
+      }),
+    );
+
+    console.log(estudantes);
+
+    let nuevoEstudantes: Estudiante[];
+    if (addEstudiantes.operacion == 'A') {
+      // Unir arrays sin repetir valores (basado en ID)
+      nuevoEstudantes = [
+        ...curso.estudiantes,
+        ...estudantes.filter(
+          (nuevo) => !curso.estudiantes.some((est) => est.id === nuevo.id),
+        ),
+      ];
+    } else {
+      // Eliminar estudiantes de curso basados en ID
+      nuevoEstudantes = curso.estudiantes.filter(
+        (item) => !estudantes.some((est) => est.id === item.id),
+      );
+    }
+
+    curso.estudiantes = nuevoEstudantes;
+    await this.cursoRepository.save(curso);
   }
 
   async remove(id: string) {
