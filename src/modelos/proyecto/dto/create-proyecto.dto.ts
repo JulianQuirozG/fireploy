@@ -5,6 +5,10 @@ import {
   IsOptional,
   IsArray,
   IsUrl,
+  IsNumber,
+  MaxLength,
+  IsIn,
+  IsDate,
 } from 'class-validator';
 
 export class CreateProyectoDto {
@@ -20,9 +24,12 @@ export class CreateProyectoDto {
   })
   descripcion?: string;
 
-  calificacion?: number = 0;
+  @IsOptional()
+  @IsNumber()
+  calificacion: number = 0;
 
-  url?: string = ' ';
+  @IsOptional()
+  url?: string = '';
 
   @IsOptional()
   @IsUrl({}, { message: 'La imagen debe ser una URL válida' })
@@ -30,7 +37,7 @@ export class CreateProyectoDto {
     message: 'La URL de la imagen debe tener máximo 256 caracteres',
   })
   imagen?: string;
-  /* 
+
   @IsNotEmpty({ message: 'El estado del proyecto es obligatorio' })
   @IsString({ message: 'El estado del proyecto debe ser una cadena de texto' })
   @MaxLength(1, {
@@ -39,9 +46,8 @@ export class CreateProyectoDto {
   @IsIn(['A', 'I'], {
     message: 'estado debe ser "A" para activo o "I" para inactivo',
   })
-    */
   estado_proyecto: string = 'A';
-  /*
+
   @IsNotEmpty({ message: 'El estado de ejecución es obligatorio' })
   @IsString({ message: 'El estado de ejecución debe ser una cadena de texto' })
   @MaxLength(1, {
@@ -50,7 +56,6 @@ export class CreateProyectoDto {
   @IsIn(['F', 'N', 'E', 'L'], {
     message: 'estado debe ser Offline (F), Online (N), Error (E), Loading (L)',
   })
-    */
   estado_ejecucion: string = 'F';
 
   @IsOptional()
@@ -64,5 +69,7 @@ export class CreateProyectoDto {
 
   baseDeDatosId?: number;
 
-  fecha_creacion: Date;
+  @IsOptional()
+  @IsDate()
+  fecha_creacion: Date = new Date(Date.now());
 }

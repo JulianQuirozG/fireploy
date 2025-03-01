@@ -53,9 +53,10 @@ export class CreateSeccionGuard implements CanActivate {
 
     //Verify docente is the curso'tutor
     if (
-      !curso.docente.id ||
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (session.tipo == 'Docente' && curso.docente.id != session.sub)
+      session.tipo == 'Docente' &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (!curso.docente.id || curso.docente.id != session.sub)
     )
       throw new BadRequestException(
         `El usuario no tiene permiso para realizar esa acción`,

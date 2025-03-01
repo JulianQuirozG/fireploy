@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBaseDeDatoDto } from './dto/create-base_de_dato.dto';
 import { UpdateBaseDeDatoDto } from './dto/update-base_de_dato.dto';
 import { BaseDeDato } from './entities/base_de_dato.entity';
@@ -18,18 +18,25 @@ export class BaseDeDatosService {
   }
 
   findAll() {
-    return `This action returns all baseDeDatos`;
+    return this.baseDeDatosRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} baseDeDato`;
+  async findOne(id: number) {
+    const baseDeDatos = await this.baseDeDatosRepository.findOne({
+      where: { id: id },
+    });
+    if (!baseDeDatos) {
+      throw new NotFoundException();
+    }
+    return baseDeDatos;
   }
 
   update(id: number, updateBaseDeDatoDto: UpdateBaseDeDatoDto) {
     return `This action updates a #${id} baseDeDato`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} baseDeDato`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.baseDeDatosRepository.delete(id);
   }
 }
