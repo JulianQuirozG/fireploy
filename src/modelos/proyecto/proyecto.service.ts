@@ -15,6 +15,7 @@ import { CursoService } from '../curso/curso.service';
 import { Curso } from '../curso/entities/curso.entity';
 import { DocenteService } from '../docente/docente.service';
 import { Docente } from '../docente/entities/docente.entity';
+import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
 
 @Injectable()
 export class ProyectoService {
@@ -25,6 +26,7 @@ export class ProyectoService {
     private seccionService: SeccionService,
     private cursoService: CursoService,
     private docenteService: DocenteService,
+    private baseDeDatosService: BaseDeDatosService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto) {
     let estudiantes: Estudiante[] = [];
@@ -48,6 +50,8 @@ export class ProyectoService {
       curso.docente.id,
     );
 
+    const baseDeDatos = await this.baseDeDatosService.create({});
+
     const nuevoProyecto = this.proyectoRepository.create({
       titulo: createProyectoDto.titulo,
       descripcion: createProyectoDto.descripcion,
@@ -60,7 +64,7 @@ export class ProyectoService {
       estudiantes: estudiantes,
       seccion: seccion,
       tutor: docente,
-      //  "base_de_datos": null
+      base_de_datos: baseDeDatos,
     });
     const guardadoProyercto = await this.proyectoRepository.save(nuevoProyecto);
     return this.findOne(guardadoProyercto.id);

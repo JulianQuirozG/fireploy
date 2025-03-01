@@ -6,8 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EstudianteModule } from '../estudiante/estudiante.module';
 import { DocenteModule } from '../docente/docente.module';
 import { CursoModule } from '../curso/curso.module';
-import { RepositorioModule } from '../repositorio/repositorio.module';
 import { SeccionModule } from '../seccion/seccion.module';
+import { BaseDeDatosModule } from '../base_de_datos/base_de_datos.module';
 
 @Module({
   imports: [
@@ -16,6 +16,7 @@ import { SeccionModule } from '../seccion/seccion.module';
     DocenteModule,
     CursoModule,
     SeccionModule,
+    BaseDeDatosModule,
   ],
   controllers: [ProyectoController],
   providers: [ProyectoService],
