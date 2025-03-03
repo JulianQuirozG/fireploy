@@ -4,9 +4,6 @@ import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { Proyecto } from './entities/proyecto.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-//import { RepositorioService } from '../repositorio/repositorio.service';
-//import { EstudianteService } from '../estudiante/estudiante.service';
-//import { Length } from 'class-validator';
 import { Estudiante } from '../estudiante/entities/estudiante.entity';
 import { EstudianteService } from '../estudiante/estudiante.service';
 import { SeccionService } from '../seccion/seccion.service';
@@ -16,6 +13,7 @@ import { Curso } from '../curso/entities/curso.entity';
 import { DocenteService } from '../docente/docente.service';
 import { Docente } from '../docente/entities/docente.entity';
 import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
+import { GitService } from 'src/services/git.service';
 
 @Injectable()
 export class ProyectoService {
@@ -27,6 +25,7 @@ export class ProyectoService {
     private cursoService: CursoService,
     private docenteService: DocenteService,
     private baseDeDatosService: BaseDeDatosService,
+    private gitService: GitService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto) {
     let estudiantes: Estudiante[] = [];
@@ -101,5 +100,16 @@ export class ProyectoService {
 
   remove(id: number) {
     return `This action removes a #${id} proyecto`;
+  }
+
+  async cargarProyecto(id: string) {
+    const rute = await this.gitService.cloneRepositorio(
+      'https://github.com/manufosela/introduccion-docker.git',
+      process.env.FOLDER_ROUTE as string,
+      id,
+      'B',
+    );
+
+    return rute;
   }
 }
