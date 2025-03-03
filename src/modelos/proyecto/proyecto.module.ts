@@ -8,6 +8,7 @@ import { DocenteModule } from '../docente/docente.module';
 import { CursoModule } from '../curso/curso.module';
 import { SeccionModule } from '../seccion/seccion.module';
 import { BaseDeDatosModule } from '../base_de_datos/base_de_datos.module';
+import { GitService } from 'src/services/git.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { BaseDeDatosModule } from '../base_de_datos/base_de_datos.module';
     forwardRef(() => BaseDeDatosModule),
   ],
   controllers: [ProyectoController],
-  providers: [ProyectoService],
+  providers: [ProyectoService, GitService],
   exports: [ProyectoService],
 })
 export class ProyectoModule {}

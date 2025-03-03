@@ -42,4 +42,9 @@ export class ProyectoController {
   remove(@Param('id') id: string) {
     return this.proyectoService.remove(+id);
   }
+
+  @Post(':id')
+  cargarProyecto(@Param('id') id: string) {
+    return this.proyectoService.cargarProyecto(id);
+  }
 }
