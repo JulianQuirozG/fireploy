@@ -1,19 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDocenteDto } from './dto/create-docente.dto';
 import { UpdateDocenteDto } from './dto/update-docente.dto';
+import { Repository } from 'typeorm';
+import { Docente } from './entities/docente.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class DocenteService {
+  constructor(
+    @InjectRepository(Docente)
+    private docenteRepository: Repository<Docente>,
+  ) {}
   create(createDocenteDto: CreateDocenteDto) {
-    return 'This action adds a new docente';
+    return this.docenteRepository.save(createDocenteDto);
   }
 
   findAll() {
-    return `This action returns all docente`;
+    return this.docenteRepository.find({
+      relations: ['proyectos', 'cursos'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} docente`;
+  async findOne(id: number) {
+    const docente = await this.docenteRepository.findOne({
+      where: { id: id },
+      relations: ['proyectos', 'cursos'],
+    });
+    if (!docente) {
+      throw new NotFoundException(`El docente con el id ${id} no existe`);
+    }
+    return docente;
   }
 
   update(id: number, updateDocenteDto: UpdateDocenteDto) {

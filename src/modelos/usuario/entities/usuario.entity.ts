@@ -35,7 +35,7 @@ export class Usuario {
   contrasenia: string;
 
   @Column({ type: 'char', length: 1, nullable: false })
-  estado: string;
+  estado: string = 'A';
 
   @Column({ length: 256, nullable: true })
   red_social: string;
