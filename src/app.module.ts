@@ -40,10 +40,10 @@ import { SessionTokenGuard } from './guard/sessionToken.guard';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'fireploy',
+      port: process.env.BD_PORT as unknown as number,
+      username: process.env.BD_USER_NAME as unknown as string,
+      password: process.env.BD_PASSWORD as unknown as string,
+      database: process.env.BD_NAME as unknown as string,
       entities: [
         Usuario,
         Docente,
