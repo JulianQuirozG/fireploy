@@ -44,7 +44,7 @@ export class ProyectoController {
   }
 
   @Post(':id')
-  cargarProyecto(@Param('id') id: string) {
-    return this.proyectoService.cargarProyecto(id);
+  cargarProyecto(@Param('id') id: string, @Body() url) {
+    return this.proyectoService.cargarProyecto(id, url);
   }
 }

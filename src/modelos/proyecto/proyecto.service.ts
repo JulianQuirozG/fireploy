@@ -14,6 +14,7 @@ import { DocenteService } from '../docente/docente.service';
 import { Docente } from '../docente/entities/docente.entity';
 import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
 import { GitService } from 'src/services/git.service';
+import { DockerfileService } from 'src/services/docker.service';
 
 @Injectable()
 export class ProyectoService {
@@ -26,6 +27,7 @@ export class ProyectoService {
     private docenteService: DocenteService,
     private baseDeDatosService: BaseDeDatosService,
     private gitService: GitService,
+    private dockerfileService: DockerfileService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto) {
     let estudiantes: Estudiante[] = [];
@@ -102,14 +104,17 @@ export class ProyectoService {
     return `This action removes a #${id} proyecto`;
   }
 
-  async cargarProyecto(id: string) {
+  async cargarProyecto(id: string, url) {
     const rute = await this.gitService.cloneRepositorio(
-      'https://github.com/manufosela/introduccion-docker.git',
+      url.url,
       process.env.FOLDER_ROUTE as string,
       id,
       'B',
     );
-
-    return rute;
+    const crearDockerfile = this.dockerfileService.buildAndRunContainer(
+      rute,
+      'node',
+    );
+    return crearDockerfile;
   }
 }

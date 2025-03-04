@@ -9,6 +9,7 @@ import { CursoModule } from '../curso/curso.module';
 import { SeccionModule } from '../seccion/seccion.module';
 import { BaseDeDatosModule } from '../base_de_datos/base_de_datos.module';
 import { GitService } from 'src/services/git.service';
+import { DockerfileService } from 'src/services/docker.service';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { GitService } from 'src/services/git.service';
     forwardRef(() => BaseDeDatosModule),
   ],
   controllers: [ProyectoController],
-  providers: [ProyectoService, GitService],
+  providers: [ProyectoService, GitService, DockerfileService],
   exports: [ProyectoService],
 })
 export class ProyectoModule {}
