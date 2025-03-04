@@ -15,6 +15,7 @@ import { Docente } from '../docente/entities/docente.entity';
 import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
 import { GitService } from 'src/services/git.service';
 import { DockerfileService } from 'src/services/docker.service';
+import { SystemService } from 'src/services/system.service';
 
 @Injectable()
 export class ProyectoService {
@@ -28,6 +29,7 @@ export class ProyectoService {
     private baseDeDatosService: BaseDeDatosService,
     private gitService: GitService,
     private dockerfileService: DockerfileService,
+    private systemService: SystemService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto) {
     let estudiantes: Estudiante[] = [];
@@ -105,6 +107,7 @@ export class ProyectoService {
   }
 
   async cargarProyecto(id: string, url) {
+    const FREE_PORTS = await this.systemService.getAvailablePorts();
     const rute = await this.gitService.cloneRepositorio(
       url.url,
       process.env.FOLDER_ROUTE as string,
@@ -114,6 +117,7 @@ export class ProyectoService {
     const crearDockerfile = this.dockerfileService.buildAndRunContainer(
       rute,
       'node',
+      FREE_PORTS[0],
     );
     return crearDockerfile;
   }
