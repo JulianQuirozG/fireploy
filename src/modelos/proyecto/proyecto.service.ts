@@ -98,6 +98,7 @@ export class ProyectoService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updateProyectoDto: UpdateProyectoDto) {
     return `This action updates a #${id} proyecto`;
   }
@@ -109,6 +110,7 @@ export class ProyectoService {
   async cargarProyecto(id: string, url) {
     const FREE_PORTS = await this.systemService.getAvailablePorts();
     const rute = await this.gitService.cloneRepositorio(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
       url.url,
       process.env.FOLDER_ROUTE as string,
       id,
