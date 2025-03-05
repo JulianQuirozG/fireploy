@@ -35,6 +35,7 @@ export class AuthService {
       nombre: user?.nombre + ' ' + user?.apellido,
       tipo: user?.tipo,
       foto: user?.foto_perfil,
+      id: user?.id,
     };
 
     return response;
