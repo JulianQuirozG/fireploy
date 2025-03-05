@@ -10,6 +10,7 @@ import { SeccionModule } from '../seccion/seccion.module';
 import { BaseDeDatosModule } from '../base_de_datos/base_de_datos.module';
 import { GitService } from 'src/services/git.service';
 import { DockerfileService } from 'src/services/docker.service';
+import { SystemService } from 'src/services/system.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { DockerfileService } from 'src/services/docker.service';
     forwardRef(() => BaseDeDatosModule),
   ],
   controllers: [ProyectoController],
-  providers: [ProyectoService, GitService, DockerfileService],
+  providers: [ProyectoService, GitService, DockerfileService, SystemService],
   exports: [ProyectoService],
 })
 export class ProyectoModule {}
