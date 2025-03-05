@@ -10,7 +10,7 @@ export class SystemService {
   async getAvailablePorts(): Promise<number[]> {
     return new Promise((resolve, reject) => {
       try {
-        const command = `bash -c "comm -23 <(seq 0 65535) <(ss -tuln | awk '{print \\$4}' | awk -F':' '{print \\$NF}' | grep -E '^[0-9]+$' | sort -n | uniq)"`;
+        const command = `bash -c "seq 0 65535 | grep -vf <(ss -tuln | awk '{print \\$4}' | awk -F':' '{print \\$NF}' | grep -E '^[0-9]+$' | sort -n | uniq)"`;
 
         exec(command, (error, stdout, stderr) => {
           if (error || stderr) {
