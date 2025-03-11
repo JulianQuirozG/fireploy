@@ -125,9 +125,13 @@ export class UsuarioService {
   }
 
   /**
-   * Upload users to create
-   * @param file file with users to create
-   * @returns status of creation of each user
+   * Uploads a list of users from an Excel file and stores them in the database.
+   *
+   * @param file The uploaded Excel file containing user data.
+   * @returns An object indicating the status of each user creation, including any errors encountered.
+   *
+   * @throws BadRequestException If no file is uploaded.
+   * @throws Error If the file is not a valid Excel file (.xls or .xlsx).
    */
   async UploadUsers(file: Express.Multer.File) {
     //Verify file exits
