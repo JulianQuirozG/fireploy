@@ -21,7 +21,9 @@ export class AuthService {
   ): Promise<{ access_token: string }> {
     const user = await this.usuarioService.findOneCorreo(correo);
     if (user?.estado == 'I') {
-      throw new ForbiddenException();
+      throw new ForbiddenException(
+        'El usuario no se encuentra activo, comuniquese con el administrador',
+      );
     }
     const answer = await this.encrypt.compare(pass, user?.contrasenia);
     if (!answer) throw new UnauthorizedException();

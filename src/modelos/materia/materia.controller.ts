@@ -7,12 +7,15 @@ import {
   Param,
   Delete,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { MateriaService } from './materia.service';
 import { CreateMateriaDto } from './dto/create-materia.dto';
 import { UpdateMateriaDto } from './dto/update-materia.dto';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('materia')
 export class MateriaController {
@@ -43,5 +46,13 @@ export class MateriaController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.materiaService.remove(+id);
+  }
+
+  @Post('carga_masiva')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(RolesGuard)
+  @Roles('Administrador')
+  createUsers(@UploadedFile() file: Express.Multer.File) {
+    return this.materiaService.UploadMaterias(file);
   }
 }
