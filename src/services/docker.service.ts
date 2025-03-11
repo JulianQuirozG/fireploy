@@ -82,6 +82,7 @@ export class DockerfileService {
 
       return `Contenedor ${containerName} corriendo en el puerto ${portMapping[language]}`;
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new Error(`Error al ejecutar Docker: ${error.message}`);
     }
   }

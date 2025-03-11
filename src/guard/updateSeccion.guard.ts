@@ -56,7 +56,6 @@ export class updateSeccionGuard implements CanActivate {
 
     //Verify seccion exists
     const seccion = await this.seccionService.findOne(id as number);
-    console.log(isNaN(Number(id)));
     if (!seccion)
       throw new BadRequestException(`La sección a editar no existe`);
 

@@ -21,6 +21,8 @@ import { GetUserPermissionGuard } from 'src/guard/getUserInfo.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateUserPermissionGuard } from 'src/guard/updateUserPermission.guard';
 import { UpdateUserImageGuard } from 'src/guard/updateUserImage.guard';
+import { RolesGuard } from 'src/guard/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -64,5 +66,13 @@ export class UsuarioController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usuarioService.remove(+id);
+  }
+
+  @Post('carga_masiva')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(RolesGuard)
+  @Roles('Administrador', 'Docente')
+  createUsers(@UploadedFile() file: Express.Multer.File) {
+    return this.usuarioService.UploadUsers(file);
   }
 }

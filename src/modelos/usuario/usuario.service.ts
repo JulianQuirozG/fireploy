@@ -11,6 +11,9 @@ import { Repository } from 'typeorm';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
 import { FilterUsuarioDto } from './dto/filter-usuario.dto';
 import { FirebaseService } from 'src/services/firebase.service';
+import * as xlsx from 'xlsx';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class UsuarioService {
@@ -104,11 +107,10 @@ export class UsuarioService {
    */
   async updateImageUser(id: number, file: Express.Multer.File) {
     //Save the image
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     const fileExtension = file.originalname.split('.').pop();
     const newFileName = `User_Image_${id}.${fileExtension}`;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const renamedFile = {
       ...file,
       originalname: newFileName,
@@ -120,5 +122,60 @@ export class UsuarioService {
       foto_perfil: url,
     } as UpdateUsuarioDto);
     return user;
+  }
+
+  /**
+   * Upload users to create
+   * @param file file with users to create
+   * @returns status of creation of each user
+   */
+  async UploadUsers(file: Express.Multer.File) {
+    //Verify file exits
+    if (!file) {
+      throw new BadRequestException('No se ha cargado ningún archivo');
+    }
+
+    //Verify file extension
+    if (
+      !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
+        file.mimetype,
+      )
+    ) {
+      throw new Error('El archivo debe ser un Excel (.xls o .xlsx)');
+    }
+
+    // read the file content
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    const users = plainToInstance(CreateUsuarioDto, data);
+    const errors: any[] = [];
+
+    for (const user of users) {
+      const errores = await validate(user);
+      if (errores.length > 0) errors.push(errores);
+    }
+
+    if (errors.length > 0)
+      return { mensaje: 'Alguno de los usuarios no se logró cargar', errors };
+
+    for (const user of users) {
+      try {
+        await this.create(user);
+      } catch (error) {
+        errors.push({
+          tittle: `El usuario con correo ${user.correo} No se pudo registrar`,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          message: error.message,
+        });
+      }
+    }
+
+    if (errors.length > 0)
+      return { mensaje: 'Alguno de los usuarios no se logró cargar', errors };
+    else {
+      return { mensaje: 'Usuarios cargados con exito' };
+    }
   }
 }
