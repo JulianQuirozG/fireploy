@@ -148,6 +148,7 @@ export class CursoService {
 
     curso.estudiantes = nuevoEstudantes;
     await this.cursoRepository.save(curso);
+    return await this.findOne(id);
   }
 
   async remove(id: string) {
