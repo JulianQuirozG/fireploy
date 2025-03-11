@@ -85,6 +85,19 @@ export class ProyectoService {
     });
   }
 
+  findAllBySection(id: number) {
+    return this.proyectoRepository.find({
+      where: { seccion: { id } },
+      relations: [
+        'estudiantes',
+        'seccion',
+        'tutor',
+        'repositorios',
+        'base_de_datos',
+      ],
+    });
+  }
+
   async findOne(id: number) {
     return await this.proyectoRepository.findOne({
       where: { id: id },

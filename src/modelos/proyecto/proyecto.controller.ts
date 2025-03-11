@@ -25,6 +25,11 @@ export class ProyectoController {
     return this.proyectoService.findAll();
   }
 
+  @Get('/seccion/:id')
+  findAllByMateria(@Param('id') id: number) {
+    return this.proyectoService.findAllBySection(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.proyectoService.findOne(+id);
