@@ -10,6 +10,7 @@ import { Usuario } from './entities/usuario.entity';
 import { Repository } from 'typeorm';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
 import { FilterUsuarioDto } from './dto/filter-usuario.dto';
+import { FirebaseService } from 'src/services/firebase.service';
 
 @Injectable()
 export class UsuarioService {
@@ -17,6 +18,7 @@ export class UsuarioService {
     @InjectRepository(Usuario)
     private usersRepository: Repository<Usuario>,
     private encrypt: Encrypt,
+    private firebaseService: FirebaseService,
   ) {}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
@@ -64,7 +66,7 @@ export class UsuarioService {
 
     if (!usuario)
       throw new NotFoundException(
-        `El usuario con el correo: ${correo},nose encontra en la base de datos`,
+        `El usuario con el correo: ${correo},no se encuentra en la base de datos`,
       );
 
     return usuario;
@@ -93,5 +95,30 @@ export class UsuarioService {
 
   remove(id: number) {
     return `This action removes a #${id} usuario`;
+  }
+
+  /**
+   *  Update the profile user image
+   * @param id user id to update
+   * @param file image to upload
+   */
+  async updateImageUser(id: number, file: Express.Multer.File) {
+    //Save the image
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const fileExtension = file.originalname.split('.').pop();
+    const newFileName = `User_Image_${id}.${fileExtension}`;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const renamedFile = {
+      ...file,
+      originalname: newFileName,
+    };
+    const url = await this.firebaseService.uploadFile(renamedFile);
+
+    //UpdateUser info
+    const user = await this.update(id, {
+      foto_perfil: url,
+    } as UpdateUsuarioDto);
+    return user;
   }
 }

@@ -1,9 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -29,7 +24,6 @@ import { BaseDeDatosModule } from './modelos/base_de_datos/base_de_datos.module'
 import { BaseDeDato } from './modelos/base_de_datos/entities/base_de_dato.entity';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { updateUsuarioPermissionMiddleware } from './middleware/updateUsuarioPermission.middleware';
 import { APP_GUARD } from '@nestjs/core';
 import { SessionTokenGuard } from './guard/sessionToken.guard';
 @Module({
@@ -79,10 +73,4 @@ import { SessionTokenGuard } from './guard/sessionToken.guard';
     },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(updateUsuarioPermissionMiddleware)
-      .forRoutes({ path: 'usuario/*', method: RequestMethod.PATCH });
-  }
-}
+export class AppModule {}
