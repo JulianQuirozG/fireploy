@@ -31,12 +31,15 @@ export class MateriaService {
   }
 
   async findAll() {
-    return await this.materiaRepository.find();
+    return await this.materiaRepository.find({
+      relations: ['cursos'],
+    });
   }
 
   async findOne(id: number) {
     const materia = await this.materiaRepository.findOne({
       where: { id: id },
+      relations: ['cursos'],
     });
     if (!materia) {
       throw new NotFoundException(`La materia con el id ${id} no existe`);

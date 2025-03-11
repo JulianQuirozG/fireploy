@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
@@ -16,6 +18,9 @@ import { FilterUsuarioDto } from './dto/filter-usuario.dto';
 import { CreateUserGuard } from 'src/guard/createUser.guard';
 import { Public } from 'src/decorators/public.decorator';
 import { GetUserPermissionGuard } from 'src/guard/getUserInfo.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateUserPermissionGuard } from 'src/guard/updateUserPermission.guard';
+import { UpdateUserImageGuard } from 'src/guard/updateUserImage.guard';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -41,8 +46,19 @@ export class UsuarioController {
   }
 
   @Patch(':id')
+  @UseGuards(UpdateUserPermissionGuard)
   update(@Param('id') id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuarioService.update(+id, updateUsuarioDto);
+  }
+
+  @Patch('image/:id')
+  @UseGuards(UpdateUserImageGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  updateImageUser(
+    @Param('id') id: string,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.usuarioService.updateImageUser(+id, image);
   }
 
   @Delete(':id')
