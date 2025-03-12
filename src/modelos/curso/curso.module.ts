@@ -7,6 +7,8 @@ import { MateriaModule } from '../materia/materia.module';
 import { UsuarioModule } from '../usuario/usuario.module';
 import { Usuario } from '../usuario/entities/usuario.entity';
 import { EstudianteModule } from '../estudiante/estudiante.module';
+import { DocenteService } from '../docente/docente.service';
+import { DocenteModule } from '../docente/docente.module';
 
 @Module({
   imports: [
@@ -14,6 +16,7 @@ import { EstudianteModule } from '../estudiante/estudiante.module';
     MateriaModule,
     UsuarioModule,
     EstudianteModule,
+    DocenteModule,
   ],
   controllers: [CursoController],
   providers: [CursoService],

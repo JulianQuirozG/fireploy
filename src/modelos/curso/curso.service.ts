@@ -16,6 +16,7 @@ import { FilterCursoDto } from './dto/filter-curso.dto';
 import { addEstudiantesCursoDto } from './dto/add-estudiantes-curso.dto';
 import { Estudiante } from '../estudiante/entities/estudiante.entity';
 import { EstudianteService } from '../estudiante/estudiante.service';
+import { DocenteService } from '../docente/docente.service';
 
 @Injectable()
 export class CursoService {
@@ -25,6 +26,7 @@ export class CursoService {
     private materiaService: MateriaService,
     private usuarioService: UsuarioService,
     private estudianteService: EstudianteService,
+    private docenteService: DocenteService,
   ) {}
   async create(createCursoDto: CreateCursoDto) {
     const id: string = `${createCursoDto.materiaId}${createCursoDto.grupo}${createCursoDto.semestre}`;
@@ -62,8 +64,9 @@ export class CursoService {
 
   async findAll(filters?: FilterCursoDto) {
     if (filters) {
-      const { materia } = filters;
+      const { materia, docente } = filters;
       const materiaId = materia as unknown as string;
+      const docenteId = docente as unknown as string;
 
       //verify curso exists
       if (materiaId) {
@@ -75,6 +78,18 @@ export class CursoService {
           );
 
         filters.materia = exist;
+      }
+
+      //verify docente exists
+      if (docenteId) {
+        const exist = await this.docenteService.findOne(+docenteId);
+
+        if (!exist)
+          throw new BadRequestException(
+            `El docente con id ${docenteId} No existe`,
+          );
+
+        filters.docente = exist;
       }
     }
     return await this.cursoRepository.find({
