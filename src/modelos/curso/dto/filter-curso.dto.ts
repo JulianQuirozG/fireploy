@@ -3,6 +3,7 @@ import { Docente } from 'src/modelos/docente/entities/docente.entity';
 import { Materia } from 'src/modelos/materia/entities/materia.entity';
 
 export class FilterCursoDto {
+  @IsOptional()
   id?: string;
 
   @IsOptional()
