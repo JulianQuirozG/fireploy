@@ -12,7 +12,7 @@ export class Materia {
   @Column({ nullable: false, length: 5 })
   semestre: string;
 
-  @OneToMany(() => Curso, (curso) => curso.docente)
+  @OneToMany(() => Curso, (curso) => curso.materia)
   cursos: Curso[];
 
   @Column({ nullable: false, length: 1, type: 'char' })
