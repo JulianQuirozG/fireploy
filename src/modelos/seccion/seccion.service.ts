@@ -57,14 +57,17 @@ export class SeccionService {
         filters.curso = exist;
       }
     }
-    return await this.seccionRepository.find({ where: filters });
+    return await this.seccionRepository.find({
+      where: filters,
+      relations: ['proyectos', 'curso'],
+    });
   }
 
   //get a seccion by id
   async findOne(id: number) {
     const seccion = await this.seccionRepository.findOne({
       where: { id: id },
-      relations: ['curso'],
+      relations: ['proyectos', 'curso'],
     });
     if (!seccion) {
       throw new NotFoundException(
