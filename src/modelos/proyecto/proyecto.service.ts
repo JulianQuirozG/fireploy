@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { Proyecto } from './entities/proyecto.entity';
@@ -98,8 +100,15 @@ export class ProyectoService {
     });
   }
 
+  /**
+   * Retrieves a project by its ID, including its related entities.
+   *
+   * @param id - The ID of the project to retrieve.
+   * @returns A promise resolving to the project with the specified ID.
+   * @throws NotFoundException if the project is not found.
+   */
   async findOne(id: number) {
-    return await this.proyectoRepository.findOne({
+    const result = await this.proyectoRepository.findOne({
       where: { id: id },
       relations: [
         'estudiantes',
@@ -109,9 +118,13 @@ export class ProyectoService {
         'base_de_datos',
       ],
     });
+    if (!result)
+      throw new NotFoundException(
+        `El proyecto con el id ${id} no se encuentra registrado.`,
+      );
+    return result;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updateProyectoDto: UpdateProyectoDto) {
     return `This action updates a #${id} proyecto`;
   }
@@ -120,20 +133,38 @@ export class ProyectoService {
     return `This action removes a #${id} proyecto`;
   }
 
-  async cargarProyecto(id: string, url) {
+  async cargarProyecto(id: string) {
+    //get the proyect
+    const proyect = await this.findOne(+id);
+
+    //get repositories
+    const repositorios = proyect.repositorios;
+
+    //if project is all in one
+    if (repositorios.length == 0)
+      throw new NotFoundException(
+        `El proyecto con el id ${id} no tiene repositorios asignados.`,
+      );
+
+    //get free ports
     const FREE_PORTS = await this.systemService.getAvailablePorts();
-    const rute = await this.gitService.cloneRepositorio(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-      url.url,
-      process.env.FOLDER_ROUTE as string,
-      id,
-      'B',
-    );
-    const crearDockerfile = this.dockerfileService.buildAndRunContainer(
-      rute,
-      'node',
-      FREE_PORTS[0],
-    );
-    return crearDockerfile;
+
+    repositorios.forEach(async (repositorio, index) => {
+      // Clone repository
+      const rute = await this.gitService.cloneRepositorio(
+        repositorio.url,
+        process.env.FOLDER_ROUTE as string,
+        id,
+        repositorio.tipo,
+      );
+
+      // Create dockerfile
+      //void this.dockerfileService.generateDockerfile(
+      //rute,
+      //repositorio.tecnologia,
+      //FREE_PORTS[index],
+      //);
+    });
+    return;
   }
 }
