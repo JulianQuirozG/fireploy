@@ -5,66 +5,128 @@ import { exec } from 'child_process';
 
 @Injectable()
 export class DockerfileService {
-  private getDockerFile(tech, port): string {
+  /**
+   * Generates a Dockerfile template based on the specified technology and port.
+   *
+   * This method provides predefined Dockerfile templates for different technologies,
+   * such as Node.js, Python, and PHP. It dynamically inserts the specified port number
+   * into the template before returning it.
+   *
+   * @param tech The technology stack for which the Dockerfile is generated.
+   *             Supported values: 'node', 'python', 'php'.
+   * @param port The port number that the container should expose.
+   * @returns A string containing the corresponding Dockerfile content.
+   */
+  private getDockerFile(tech: string, port: number): string {
     const templates = {
-      node: `# Usa la imagen de Node.js 18
-  FROM node:18
-  
-  # Define el directorio de trabajo dentro del contenedor
-  WORKDIR /app
-  
-  # Copia los archivos de dependencias primero (optimiza la caché)
-  COPY package*.json ./
-  
-  # Instala las dependencias
-  RUN npm install
-  
-  # Copia todo el código fuente
-  COPY . .
-  
-  # Compila TypeScript a JavaScript
-  RUN npm run build
-  
-  # Expone el puerto de la aplicación
-  EXPOSE ${port}
-  
-  # Comando de inicio
-  CMD ["node", "dist/main.js"]
-  `,
+      node: `# Use Node.js 18 as the base image
+    FROM node:18
+    
+    # Set the working directory inside the container
+    WORKDIR /app
+    
+    # Copy dependency files first (to optimize caching)
+    COPY package*.json ./
+    
+    # Install dependencies
+    RUN npm install
+    
+    # Copy the entire application source code
+    COPY . .
+    
+    # Compile TypeScript to JavaScript (if applicable)
+    RUN npm run build
+    
+    # Expose the application port
+    EXPOSE ${port}
+    
+    # Start the application
+    CMD ["node", "dist/main.js"]
+    `,
 
-      python: `FROM python:3.9
-  WORKDIR /app
-  COPY requirements.txt .
-  RUN pip install -r requirements.txt
-  COPY . .
-  EXPOSE ${port}
-  CMD ["python", "app.py"]`,
+      python: `# Use Python 3.9 as the base image
+    FROM python:3.9
+    
+    # Set the working directory inside the container
+    WORKDIR /app
+    
+    # Copy the requirements file
+    COPY requirements.txt .
+    
+    # Install dependencies
+    RUN pip install -r requirements.txt
+    
+    # Copy the entire application source code
+    COPY . .
+    
+    # Expose the application port
+    EXPOSE ${port}
+    
+    # Start the application
+    CMD ["python", "app.py"]`,
 
-      php: `FROM php:8.1-apache
-  COPY . /var/www/html/
-  EXPOSE ${port}
-  CMD ["apache2-foreground"]`,
+      php: `# Use PHP 8.1 with Apache
+    FROM php:8.1-apache
+    
+    # Copy application files to the Apache server directory
+    COPY . /var/www/html/
+    
+    # Expose the application port
+    EXPOSE ${port}
+    
+    # Start Apache in the foreground
+    CMD ["apache2-foreground"]`,
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+
+    // Return the corresponding Dockerfile template for the given technology
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return templates[tech];
   }
 
-  generateDockerfile(projectPath: string, language: string, port) {
+  /**
+   * Generates a Dockerfile for a given project and programming language.
+   *
+   * This method creates a Dockerfile inside the specified project directory based
+   * on the selected language and port. It retrieves a predefined Dockerfile template
+   * using the `getDockerFile` method and writes it to a file.
+   *
+   * @param projectPath The absolute path to the project directory where the Dockerfile should be created.
+   * @param language The programming language or technology stack for which the Dockerfile is generated.
+   *                 Supported values: 'node', 'python', 'php'.
+   * @param port The port number that the container should expose.
+   * @returns The full path of the generated Dockerfile.
+   * @throws Error if the specified language is not supported.
+   */
+  generateDockerfile(
+    projectPath: string,
+    language: string,
+    port: number,
+  ): string {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
+
+    // Retrieve the corresponding Dockerfile template
     const dockerFile = this.getDockerFile(language, port);
+
     if (!dockerFile) {
-      throw new Error('Lenguaje no soportado');
+      throw new Error(`Language ${language} is not supported.`);
     }
+
+    // Create and write the Dockerfile
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     fs.writeFileSync(dockerfilePath, dockerFile);
+
     return dockerfilePath;
   }
 
-  async buildAndRunContainer(projectPath: string, language: string, port) {
+  async buildAndRunContainer(
+    Name: string,
+    projectPath: string,
+    language: string,
+    port,
+  ) {
     try {
-      this.generateDockerfile(projectPath, language, port);
-      const imageName = `mi-app-${language}`;
-      const containerName = `mi-contenedor-${language}`;
+      const imageName = `App-${Name}`;
+      const containerName = `Container-${Name}`;
 
       await this.executeCommand(`docker rm -f ${containerName}`);
 

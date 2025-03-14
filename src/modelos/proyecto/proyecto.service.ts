@@ -140,7 +140,7 @@ export class ProyectoService {
     //get repositories
     const repositorios = proyect.repositorios;
 
-    //if project is all in one
+    //if project hasn't repositories
     if (repositorios.length == 0)
       throw new NotFoundException(
         `El proyecto con el id ${id} no tiene repositorios asignados.`,
@@ -149,22 +149,47 @@ export class ProyectoService {
     //get free ports
     const FREE_PORTS = await this.systemService.getAvailablePorts();
 
-    repositorios.forEach(async (repositorio, index) => {
+    //Rutes of dockerfiles
+    const dockerfiles: any[] = [];
+
+    for (const [index, repositorio] of repositorios.entries()) {
       // Clone repository
       const rute = await this.gitService.cloneRepositorio(
         repositorio.url,
         process.env.FOLDER_ROUTE as string,
-        id,
+        proyect.id as unknown as string,
         repositorio.tipo,
       );
 
-      // Create dockerfile
-      //void this.dockerfileService.generateDockerfile(
-      //rute,
-      //repositorio.tecnologia,
-      //FREE_PORTS[index],
-      //);
-    });
-    return;
+      // Create Dockerfile
+      const dockerfilePath = this.dockerfileService.generateDockerfile(
+        rute,
+        repositorio.tecnologia,
+        FREE_PORTS[index],
+      );
+
+      //Generate image if is type All
+      if (repositorios.length == 1) {
+        await this.dockerfileService.buildAndRunContainer(
+          proyect.id as unknown as string,
+          rute,
+          repositorio.tecnologia,
+          FREE_PORTS[index],
+        );
+      }
+
+      // Add dockerfiles
+      dockerfiles.push({
+        proyect_id: proyect.id,
+        rute,
+        type: repositorio.tipo,
+        port: FREE_PORTS[index],
+        language: repositorio.tecnologia,
+      });
+    }
+
+    console.log(dockerfiles);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return dockerfiles;
   }
 }
