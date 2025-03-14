@@ -29,7 +29,7 @@ export class RepositorioService {
       );
     }
     const nuevorepositorio = this.repositorioRepository.create({
-      version: createRepositorioDto.url,
+      version: createRepositorioDto.version,
       url: createRepositorioDto.url,
       tipo: createRepositorioDto.tipo,
       tecnologia: createRepositorioDto.tecnologia,
