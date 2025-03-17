@@ -76,15 +76,44 @@ export class ProyectoService {
   }
 
   findAll() {
-    return this.proyectoRepository.find({
-      relations: [
-        'estudiantes',
-        'seccion',
-        'tutor',
-        'repositorios',
-        'base_de_datos',
-      ],
-    });
+    return this.proyectoRepository
+      .createQueryBuilder('proyecto')
+      .leftJoin('proyecto.estudiantes', 'estudiante')
+      .leftJoinAndSelect('proyecto.seccion', 'seccion')
+      .leftJoin('proyecto.tutor', 'tutor')
+      .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
+      .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
+
+      .addSelect([
+        'estudiante.id',
+        'estudiante.nombre',
+        'estudiante.apellido',
+        'estudiante.fecha_nacimiento',
+        'estudiante.sexo',
+        'estudiante.descripcion',
+        'estudiante.correo',
+        'estudiante.red_social',
+        'estudiante.foto_perfil',
+        'estudiante.tipo',
+        'estudiante.est_fecha_inicio',
+      ])
+
+      .addSelect([
+        'tutor.id',
+        'tutor.nombre',
+        'tutor.apellido',
+        'tutor.fecha_nacimiento',
+        'tutor.sexo',
+        'tutor.descripcion',
+        'tutor.correo',
+        'tutor.red_social',
+        'tutor.foto_perfil',
+        'tutor.tipo',
+      ])
+
+      .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+
+      .getMany();
   }
 
   findAllBySection(id: number) {

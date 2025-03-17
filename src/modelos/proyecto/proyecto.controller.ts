@@ -10,6 +10,7 @@ import {
 import { ProyectoService } from './proyecto.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -21,6 +22,7 @@ export class ProyectoController {
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.proyectoService.findAll();
   }
