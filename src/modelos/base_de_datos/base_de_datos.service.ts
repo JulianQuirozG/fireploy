@@ -15,16 +15,24 @@ export class BaseDeDatosService {
   ) {}
   async create(createBaseDeDatoDto: CreateBaseDeDatoDto) {
     //save new Base de datos
-    const baseDeDatos = await this.baseDeDatosRepository.save(createBaseDeDatoDto);
-    let data;
-    if(createBaseDeDatoDto.tipo == 'N'){
-    //  data = await this.dockerfileService.createMySQLDatabaseAndUser(process.env.MYSQL_CONTAINER_NAME || 'databasesql',baseDeDatos,baseDeDatos.usuario,baseDeDatos.contrasenia);
-    }
-    else{
-   //   data = await this.dockerfileService.createMySQLDatabaseAndUser(process.env.MONGO_CONTAINER_NAME || 'databaseNosql',baseDeDatos.proyecto.id,baseDeDatos.usuario,baseDeDatos.contrasenia);
+    const baseDeDatos =
+      await this.baseDeDatosRepository.save(createBaseDeDatoDto);
+
+    //Build DB in DB image
+    try {
+      //Verify DB Type
+      if (createBaseDeDatoDto.tipo == process.env.SQL_DB) {
+        await this.dockerfileService.createMySQLDatabaseAndUser(
+          process.env.MYSQL_CONTAINER_NAME as string,
+          baseDeDatos.nombre,
+          baseDeDatos.id as unknown as string,
+          createBaseDeDatoDto.contrasenia,
+        );
+      }
+    } catch (error) {
+      throw new NotFoundException(`Error al generar la base de datos ${error}`);
     }
 
-    
     return baseDeDatos;
   }
 

@@ -164,22 +164,43 @@ export class DockerfileService {
       });
     });
   }
-  
-  async checkAndCreateContainer(containerName: string, image: string, port: number, volume: string, envVars?: string[]) {
+
+  async checkAndCreateContainer(
+    containerName: string,
+    image: string,
+    port: number,
+    volume: string,
+    envVars?: string[],
+  ) {
     try {
-      // Verifica si el contenedor existe
-      await this.executeCommand(`docker ps -a --format "{{.Names}}" | grep -w ${containerName}`);
-      this.logger.log(`✅ El contenedor ${containerName} ya existe.`);
-    } catch {
-      this.logger.log(`🚀 Creando contenedor ${containerName}...`);
-
-      let envString = envVars ? envVars.map((env) => `-e ${env}`).join(' ') : '';
-
+      // Verificar si el contenedor está corriendo
       await this.executeCommand(
-        `docker run -d --name ${containerName} -p ${port}:${port} -v ${volume}:/data ${envString} ${image}`
+        `docker ps --format "{{.Names}}" | grep -w ${containerName}`,
       );
-
-      this.logger.log(`✅ Contenedor ${containerName} creado.`);
+      this.logger.log(`✅ El contenedor ${containerName} ya está corriendo.`);
+    } catch {
+      try {
+        // Verificar si el contenedor existe pero está detenido
+        await this.executeCommand(
+          `docker ps -a --format "{{.Names}}" | grep -w ${containerName}`,
+        );
+        this.logger.log(
+          `⚡ El contenedor ${containerName} existe pero está detenido. Iniciándolo...`,
+        );
+        await this.executeCommand(`docker start ${containerName}`);
+      } catch {
+        // El contenedor no existe, crearlo y ejecutarlo
+        this.logger.log(`🚀 Creando contenedor ${containerName}...`);
+        const envString = envVars
+          ? envVars.map((env) => `-e ${env}`).join(' ')
+          : '';
+        console.log(
+          `docker run -d --name ${containerName} -p ${port}:${port} -v ${volume}:/data ${envString} ${image}`,
+        );
+        await this.executeCommand(
+          `docker run -d --name ${containerName} -p ${port}:${port} -v ${volume}:/data ${envString} ${image}`,
+        );
+      }
     }
   }
 
@@ -189,9 +210,7 @@ export class DockerfileService {
       'mysql:latest',
       Number(process.env.MYSQL_PORT) || 3307,
       process.env.MYSQL_VOLUME || 'mysql_data',
-      [
-        `MYSQL_ROOT_PASSWORD=${process.env.MYSQL_ROOT_PASSWORD || 'root'}`,
-      ]
+      [`MYSQL_ROOT_PASSWORD=${process.env.MYSQL_ROOT_PASSWORD || 'root'}`],
     );
 
     await this.checkAndCreateContainer(
@@ -199,7 +218,7 @@ export class DockerfileService {
       'mongo:latest',
       Number(process.env.MONGO_PORT) || 27017,
       process.env.MONGO_VOLUME || 'mongo_data',
-      []
+      [],
     );
   }
 
@@ -215,27 +234,32 @@ export class DockerfileService {
    * @param dbPassword - The password for the new database user.
    * @returns A promise that resolves with the command output if successful, or rejects with an error message.
    */
-  async createMySQLDatabaseAndUser(containerName: string, dbName: string, dbUser: string, dbPassword: string) {
+  async createMySQLDatabaseAndUser(
+    containerName: string,
+    dbName: string,
+    dbUser: string,
+    dbPassword: string,
+  ) {
     const command = `
-      docker exec ${containerName} mysql -u root -pYOUR_ROOT_PASSWORD -e "
+      docker exec ${containerName} mysql -u root -p${process.env.MYSQL_ROOT_PASSWORD} -e "
       CREATE DATABASE IF NOT EXISTS ${dbName};
       CREATE USER IF NOT EXISTS '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}';
       GRANT ALL PRIVILEGES ON ${dbName}.* TO '${dbUser}'@'%';
       FLUSH PRIVILEGES;"
     `;
-  
+
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error al crear DB y usuario en MySQL:`, stderr);
           reject(error);
         } else {
-          console.log(`Base de datos '${dbName}' y usuario '${dbUser}' creados en MySQL`);
+          console.log(
+            `Base de datos '${dbName}' y usuario '${dbUser}' creados en MySQL`,
+          );
           resolve(stdout);
         }
       });
     });
   }
-  
-
 }

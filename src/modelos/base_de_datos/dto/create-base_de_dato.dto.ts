@@ -7,11 +7,6 @@ import {
 } from 'class-validator';
 
 export class CreateBaseDeDatoDto {
-  @IsNotEmpty({ message: 'El usuario no puede estar vacío' })
-  @IsString({ message: 'El usuario debe ser una cadena de texto' })
-  @Length(1, 50, { message: 'El usuario no puede tener más de 50 caracteres' })
-  usuario: string;
-
   @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
   @IsString({ message: 'El nombre debe ser una cadena de texto' })
   @Length(1, 50, { message: 'El nombre no puede tener más de 50 caracteres' })
