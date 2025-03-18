@@ -55,7 +55,10 @@ export class ProyectoService {
       curso.docente.id,
     );
 
-    //const baseDeDatos = await this.baseDeDatosService.create({});
+    if (createProyectoDto.base_de_datos)
+      createProyectoDto.base_de_datos = await this.baseDeDatosService.create(
+        createProyectoDto.base_de_datos,
+      );
 
     const nuevoProyecto = this.proyectoRepository.create({
       titulo: createProyectoDto.titulo,
@@ -69,10 +72,10 @@ export class ProyectoService {
       estudiantes: estudiantes,
       seccion: seccion,
       tutor: docente,
-      //base_de_datos: baseDeDatos,
+      base_de_datos: createProyectoDto.base_de_datos,
     });
-    const guardadoProyercto = await this.proyectoRepository.save(nuevoProyecto);
-    return this.findOne(guardadoProyercto.id);
+    const guardadoProyecto = await this.proyectoRepository.save(nuevoProyecto);
+    return this.findOne(guardadoProyecto.id);
   }
 
   findAll() {

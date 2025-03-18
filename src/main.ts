@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DockerfileService } from './services/docker.service';
 
 async function bootstrap() {
-  const dockerfileService = new DockerfileService;
+  const dockerfileService = new DockerfileService();
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -19,7 +19,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'sessiontoken'],
   });
 
-  dockerfileService.setupDatabases();
+  await dockerfileService.setupDatabases();
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }

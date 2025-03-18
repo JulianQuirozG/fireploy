@@ -22,19 +22,19 @@ export class Proyecto {
   @Column({ nullable: false, length: 50 })
   titulo: string;
 
-  @Column({ length: 512 })
+  @Column({ length: 512, nullable: true })
   descripcion: string;
 
-  @Column({ type: 'float', precision: 2, scale: 1 })
+  @Column({ type: 'float', precision: 2, scale: 1, nullable: true })
   calificacion: number;
 
-  @Column({ length: 256 })
+  @Column({ length: 256, nullable: true })
   url: string;
 
-  @Column({ length: 256 })
+  @Column({ length: 256, nullable: true })
   imagen: string;
 
-  @Column({ type: 'char', length: 1 })
+  @Column({ type: 'char', length: 1, nullable: true })
   estado_proyecto: string;
 
   @Column({ nullable: false, type: 'char', length: 1 })

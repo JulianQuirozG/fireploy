@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -9,7 +10,10 @@ import {
   MaxLength,
   IsIn,
   IsDate,
+  ValidateNested,
 } from 'class-validator';
+import { CreateBaseDeDatoDto } from 'src/modelos/base_de_datos/dto/create-base_de_dato.dto';
+import { BaseDeDato } from 'src/modelos/base_de_datos/entities/base_de_dato.entity';
 
 export class CreateProyectoDto {
   @IsNotEmpty({ message: 'El título es obligatorio' })
@@ -67,7 +71,13 @@ export class CreateProyectoDto {
 
   tutorId?: number;
 
-  baseDeDatosId?: number;
+  @IsOptional()
+  @ValidateNested({
+    message: 'La base de datos no tiene una estructura válida',
+  })
+  @Type(() => CreateBaseDeDatoDto)
+  @IsNotEmpty({ message: 'No se mando informacion de la base de datos' })
+  base_de_datos?: BaseDeDato;
 
   @IsOptional()
   @IsDate()

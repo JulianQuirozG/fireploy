@@ -7,7 +7,7 @@ export class BaseDeDato {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false, length: 50 })
+  @Column({ nullable: true, length: 50 })
   usuario: string;
 
   @Column({ nullable: false, length: 50 })
