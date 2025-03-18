@@ -26,6 +26,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { SessionTokenGuard } from './guard/sessionToken.guard';
+import { DockerfileService } from './services/docker.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -66,6 +67,7 @@ import { SessionTokenGuard } from './guard/sessionToken.guard';
   ],
   controllers: [AppController],
   providers: [
+    DockerfileService,
     AppService,
     {
       provide: APP_GUARD,

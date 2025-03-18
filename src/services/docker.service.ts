@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec } from 'child_process';
 
 @Injectable()
 export class DockerfileService {
+  private readonly logger = new Logger(DockerfileService.name);
+
   /**
    * Generates a Dockerfile template based on the specified technology and port.
    *
@@ -19,29 +21,29 @@ export class DockerfileService {
    */
   private getDockerFile(tech: string, port: number): string {
     const templates = {
-      node: `# Use Node.js 18 as the base image
+      node: `# Usa una versión estable de Node.js como base
     FROM node:18
-    
-    # Set the working directory inside the container
+
+    # Establece el directorio de trabajo dentro del contenedor
     WORKDIR /app
-    
-    # Copy dependency files first (to optimize caching)
+
+    # Copia package.json y package-lock.json antes de copiar el código fuente
     COPY package*.json ./
-    
-    # Install dependencies
-    RUN npm install
-    
-    # Copy the entire application source code
+
+    # Instala dependencias sin generar archivos innecesarios
+    RUN npm install --omit=dev
+
+    # Copia el código fuente al contenedor
     COPY . .
-    
-    # Compile TypeScript to JavaScript (if applicable)
-    RUN npm run build
-    
-    # Expose the application port
+
+    # Detecta si hay un script de build y lo ejecuta (opcional)
+    RUN if [ -f package.json ] && cat package.json | grep -q '"build"'; then npm run build; fi
+
+    # Expone el puerto definido en la variable de entorno o usa 3000 por defecto
     EXPOSE ${port}
-    
-    # Start the application
-    CMD ["node", "dist/main.js"]
+
+    # Usa un entrypoint flexible para adaptarse a cualquier framework
+    CMD ["sh", "-c", "npm start || node server.js || node index.js"]
     `,
 
       python: `# Use Python 3.9 as the base image
@@ -125,7 +127,7 @@ export class DockerfileService {
     port,
   ) {
     try {
-      const imageName = `App-${Name}`;
+      const imageName = `app-${Name}`;
       const containerName = `Container-${Name}`;
 
       await this.executeCommand(`docker rm -f ${containerName}`);
@@ -162,4 +164,78 @@ export class DockerfileService {
       });
     });
   }
+  
+  async checkAndCreateContainer(containerName: string, image: string, port: number, volume: string, envVars?: string[]) {
+    try {
+      // Verifica si el contenedor existe
+      await this.executeCommand(`docker ps -a --format "{{.Names}}" | grep -w ${containerName}`);
+      this.logger.log(`✅ El contenedor ${containerName} ya existe.`);
+    } catch {
+      this.logger.log(`🚀 Creando contenedor ${containerName}...`);
+
+      let envString = envVars ? envVars.map((env) => `-e ${env}`).join(' ') : '';
+
+      await this.executeCommand(
+        `docker run -d --name ${containerName} -p ${port}:${port} -v ${volume}:/data ${envString} ${image}`
+      );
+
+      this.logger.log(`✅ Contenedor ${containerName} creado.`);
+    }
+  }
+
+  async setupDatabases() {
+    await this.checkAndCreateContainer(
+      process.env.MYSQL_CONTAINER_NAME || 'mysql_container',
+      'mysql:latest',
+      Number(process.env.MYSQL_PORT) || 3307,
+      process.env.MYSQL_VOLUME || 'mysql_data',
+      [
+        `MYSQL_ROOT_PASSWORD=${process.env.MYSQL_ROOT_PASSWORD || 'root'}`,
+      ]
+    );
+
+    await this.checkAndCreateContainer(
+      process.env.MONGO_CONTAINER_NAME || 'mongo_container',
+      'mongo:latest',
+      Number(process.env.MONGO_PORT) || 27017,
+      process.env.MONGO_VOLUME || 'mongo_data',
+      []
+    );
+  }
+
+  /**
+   * Creates a MySQL database and user inside a running MySQL container.
+   *
+   * This method executes a command inside the specified Docker container
+   * to create a new database and a user with full privileges on it.
+   *
+   * @param containerName - The name of the running MySQL container.
+   * @param dbName - The name of the database to be created.
+   * @param dbUser - The username for the new database user.
+   * @param dbPassword - The password for the new database user.
+   * @returns A promise that resolves with the command output if successful, or rejects with an error message.
+   */
+  async createMySQLDatabaseAndUser(containerName: string, dbName: string, dbUser: string, dbPassword: string) {
+    const command = `
+      docker exec ${containerName} mysql -u root -pYOUR_ROOT_PASSWORD -e "
+      CREATE DATABASE IF NOT EXISTS ${dbName};
+      CREATE USER IF NOT EXISTS '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}';
+      GRANT ALL PRIVILEGES ON ${dbName}.* TO '${dbUser}'@'%';
+      FLUSH PRIVILEGES;"
+    `;
+  
+    return new Promise((resolve, reject) => {
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error al crear DB y usuario en MySQL:`, stderr);
+          reject(error);
+        } else {
+          console.log(`Base de datos '${dbName}' y usuario '${dbUser}' creados en MySQL`);
+          resolve(stdout);
+        }
+      });
+    });
+  }
+  
+
 }
