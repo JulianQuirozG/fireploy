@@ -4,6 +4,7 @@ import { BaseDeDatosController } from './base_de_datos.controller';
 import { BaseDeDato } from './entities/base_de_dato.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProyectoModule } from '../proyecto/proyecto.module';
+import { DockerfileService } from 'src/services/docker.service';
 
 @Module({
   imports: [
@@ -11,7 +12,9 @@ import { ProyectoModule } from '../proyecto/proyecto.module';
     forwardRef(() => ProyectoModule),
   ],
   controllers: [BaseDeDatosController],
-  providers: [BaseDeDatosService],
+  providers: [BaseDeDatosService,
+    DockerfileService
+  ],
   exports: [BaseDeDatosService],
 })
-export class BaseDeDatosModule {}
+export class BaseDeDatosModule { }

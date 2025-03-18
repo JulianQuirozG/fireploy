@@ -55,7 +55,7 @@ export class ProyectoService {
       curso.docente.id,
     );
 
-    const baseDeDatos = await this.baseDeDatosService.create({});
+    //const baseDeDatos = await this.baseDeDatosService.create({});
 
     const nuevoProyecto = this.proyectoRepository.create({
       titulo: createProyectoDto.titulo,
@@ -69,7 +69,7 @@ export class ProyectoService {
       estudiantes: estudiantes,
       seccion: seccion,
       tutor: docente,
-      base_de_datos: baseDeDatos,
+      //base_de_datos: baseDeDatos,
     });
     const guardadoProyercto = await this.proyectoRepository.save(nuevoProyecto);
     return this.findOne(guardadoProyercto.id);

@@ -4,16 +4,27 @@ import { UpdateBaseDeDatoDto } from './dto/update-base_de_dato.dto';
 import { BaseDeDato } from './entities/base_de_dato.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DockerfileService } from 'src/services/docker.service';
 
 @Injectable()
 export class BaseDeDatosService {
   constructor(
     @InjectRepository(BaseDeDato)
     private baseDeDatosRepository: Repository<BaseDeDato>,
+    private dockerfileService: DockerfileService,
   ) {}
-  create(createBaseDeDatoDto: CreateBaseDeDatoDto) {
+  async create(createBaseDeDatoDto: CreateBaseDeDatoDto) {
     //save new Base de datos
-    const baseDeDatos = this.baseDeDatosRepository.save(createBaseDeDatoDto);
+    const baseDeDatos = await this.baseDeDatosRepository.save(createBaseDeDatoDto);
+    let data;
+    if(createBaseDeDatoDto.tipo == 'N'){
+    //  data = await this.dockerfileService.createMySQLDatabaseAndUser(process.env.MYSQL_CONTAINER_NAME || 'databasesql',baseDeDatos,baseDeDatos.usuario,baseDeDatos.contrasenia);
+    }
+    else{
+   //   data = await this.dockerfileService.createMySQLDatabaseAndUser(process.env.MONGO_CONTAINER_NAME || 'databaseNosql',baseDeDatos.proyecto.id,baseDeDatos.usuario,baseDeDatos.contrasenia);
+    }
+
+    
     return baseDeDatos;
   }
 

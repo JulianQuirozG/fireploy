@@ -7,16 +7,19 @@ export class BaseDeDato {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true, length: 50 })
+  @Column({ nullable: false, length: 50 })
   usuario: string;
 
-  @Column({ nullable: true, length: 512 })
+  @Column({ nullable: false, length: 50 })
+  nombre: string;
+
+  @Column({ nullable: false, length: 512 })
   contrasenia: string;
 
   @Column({ nullable: true, length: 512 })
   url: string;
 
-  @Column({ type: 'char', nullable: true, length: 1 })
+  @Column({ type: 'char', nullable: false, length: 1 })
   @IsIn(['S', 'N'], {
     message: 'SQL (S) y NoSQL (N).',
   })

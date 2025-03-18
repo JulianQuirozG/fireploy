@@ -35,7 +35,7 @@ export class SystemService {
             .map((line) => line.trim())
             .filter((line) => line !== '')
             .map(Number)
-            .filter((port) => port > 20000); // Exclude reserved ports (0-1023)
+            .filter((port) => port > 9000); // Exclude reserved ports (0-1023)
 
           resolve(availablePorts);
         });
