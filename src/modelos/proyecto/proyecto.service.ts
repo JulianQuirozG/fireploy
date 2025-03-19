@@ -32,7 +32,7 @@ export class ProyectoService {
     private gitService: GitService,
     private dockerfileService: DockerfileService,
     private systemService: SystemService,
-  ) {}
+  ) { }
   async create(createProyectoDto: CreateProyectoDto) {
     let estudiantes: Estudiante[] = [];
     if (
@@ -155,6 +155,50 @@ export class ProyectoService {
         `El proyecto con el id ${id} no se encuentra registrado.`,
       );
     return result;
+  }
+
+/**
+ * Retrieves all projects associated with a specific student.
+ *
+ * @param estudianteId The ID of the student whose projects are to be retrieved.
+ * @returns A promise that resolves to an array of projects linked to the given student.
+ */
+  async findAllbyStudent(estudianteId: number) {
+    return this.proyectoRepository
+      .createQueryBuilder('proyecto')
+      .leftJoinAndSelect('proyecto.estudiantes', 'estudiante')
+      .leftJoinAndSelect('proyecto.seccion', 'seccion')
+      .leftJoinAndSelect('proyecto.tutor', 'tutor')
+      .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
+      .leftJoinAndSelect('proyecto.base_de_datos', 'baseDeDatos')
+      .where('estudiante.id = :id', { id: estudianteId }) // Filtro por estudiante
+      .addSelect([
+        'estudiante.id',
+        'estudiante.nombre',
+        'estudiante.apellido',
+        'estudiante.fecha_nacimiento',
+        'estudiante.sexo',
+        'estudiante.descripcion',
+        'estudiante.correo',
+        'estudiante.red_social',
+        'estudiante.foto_perfil',
+        'estudiante.tipo',
+        'estudiante.est_fecha_inicio',
+      ])
+      .addSelect([
+        'tutor.id',
+        'tutor.nombre',
+        'tutor.apellido',
+        'tutor.fecha_nacimiento',
+        'tutor.sexo',
+        'tutor.descripcion',
+        'tutor.correo',
+        'tutor.red_social',
+        'tutor.foto_perfil',
+        'tutor.tipo',
+      ])
+      .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+      .getMany();
   }
 
   update(id: number, updateProyectoDto: UpdateProyectoDto) {
