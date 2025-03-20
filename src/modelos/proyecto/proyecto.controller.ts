@@ -32,6 +32,11 @@ export class ProyectoController {
     return this.proyectoService.findAllBySection(id);
   }
 
+  @Get('/estudiante/:id')
+  findAllByEstudiante(@Param('id') id: number) {
+    return this.proyectoService.findAllbyStudent(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.proyectoService.findOne(+id);
