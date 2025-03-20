@@ -254,9 +254,6 @@ export class DockerfileService {
           console.error(`Error al crear DB y usuario en MySQL:`, stderr);
           reject(error);
         } else {
-          console.log(
-            `Base de datos '${dbName}' y usuario '${dbUser}' creados en MySQL`,
-          );
           resolve(stdout);
         }
       });

@@ -15,8 +15,14 @@ export class BaseDeDatosService {
   ) {}
   async create(createBaseDeDatoDto: CreateBaseDeDatoDto) {
     //save new Base de datos
-    const baseDeDatos =
-      await this.baseDeDatosRepository.save(createBaseDeDatoDto);
+    let baseDeDatos: CreateBaseDeDatoDto & BaseDeDato;
+    try {
+      baseDeDatos = await this.baseDeDatosRepository.save(createBaseDeDatoDto);
+    } catch (error) {
+      throw new NotFoundException(
+        `Ya existe una base de datos con ese nombre ${error}`,
+      );
+    }
 
     //Build DB in DB image
     try {
