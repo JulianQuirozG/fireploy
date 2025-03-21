@@ -1,6 +1,8 @@
+import { Solicitud } from 'src/modelos/solicitud/entities/solicitud.entity';
 import {
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   TableInheritance,
 } from 'typeorm';
@@ -45,4 +47,14 @@ export class Usuario {
 
   @Column({ type: 'varchar', name: 'tipo', nullable: false, length: 13 })
   tipo: string;
+
+  @OneToMany(() => Solicitud, (solicitud) => solicitud.usuario, {
+    cascade: true,
+  })
+  solicitudes: Solicitud[];
+
+  @OneToMany(() => Solicitud, (solicitud) => solicitud.aprobado_by, {
+    cascade: true,
+  })
+  solicitudes_pendientes: Solicitud[];
 }

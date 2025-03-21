@@ -75,6 +75,13 @@ export class UsuarioService {
     return usuario;
   }
 
+  /**
+   * Updates a user by their ID.
+   *
+   * @param id - The ID of the user to update.
+   * @param updateUsuarioDto - The data to update the user with.
+   * @returns The updated user.
+   */
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
     //Verify user exists
     await this.findOne(id);
@@ -88,9 +95,10 @@ export class UsuarioService {
         'Se debe enviar al menos un campo para actualizar',
       );
     }
+    console.log(updateUsuarioDto);
     //Update the user
     updateUsuarioDto.id = id;
-    await this.usersRepository.save(updateUsuarioDto);
+    await this.usersRepository.update(id, updateUsuarioDto);
 
     //Return the updated user
     return await this.findOne(id);
