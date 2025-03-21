@@ -27,6 +27,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { SessionTokenGuard } from './guard/sessionToken.guard';
 import { DockerfileService } from './services/docker.service';
+import { SolicitudModule } from './modelos/solicitud/solicitud.module';
+import { Solicitud } from './modelos/solicitud/entities/solicitud.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -50,6 +52,7 @@ import { DockerfileService } from './services/docker.service';
         Seccion,
         Repositorio,
         BaseDeDato,
+        Solicitud,
       ],
       synchronize: true,
     }),
@@ -64,6 +67,7 @@ import { DockerfileService } from './services/docker.service';
     RepositorioModule,
     BaseDeDatosModule,
     AuthModule,
+    SolicitudModule,
   ],
   controllers: [AppController],
   providers: [
