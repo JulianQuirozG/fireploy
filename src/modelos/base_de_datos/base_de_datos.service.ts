@@ -17,7 +17,7 @@ export class BaseDeDatosService {
     //save new Base de datos
     let baseDeDatos: CreateBaseDeDatoDto & BaseDeDato;
     try {
-      baseDeDatos = await this.baseDeDatosRepository.save(createBaseDeDatoDto);
+      baseDeDatos = await this.baseDeDatosRepository.save({...createBaseDeDatoDto, usuario : createBaseDeDatoDto.nombre});
     } catch (error) {
       throw new NotFoundException(
         `Ya existe una base de datos con ese nombre ${error}`,

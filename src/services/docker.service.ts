@@ -36,6 +36,10 @@ export class DockerfileService {
     # Copia el código fuente al contenedor
     COPY . .
 
+    ENV BD_HOST=localhost:${process.env.MYSQL_PORT}
+    ENV BD_USER=root
+    ENV BD_PASS=${process.env.MYSQL_ROOT_PASSWORD}
+
     # Detecta si hay un script de build y lo ejecuta (opcional)
     RUN if [ -f package.json ] && cat package.json | grep -q '"build"'; then npm run build; fi
 
@@ -102,7 +106,7 @@ export class DockerfileService {
   generateDockerfile(
     projectPath: string,
     language: string,
-    port: number,
+    port: number
   ): string {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
 
@@ -125,6 +129,7 @@ export class DockerfileService {
     projectPath: string,
     language: string,
     port,
+    env: string,
   ) {
     try {
       const imageName = `app-${Name}`;
@@ -139,7 +144,7 @@ export class DockerfileService {
         python: `${port}:5000`,
         php: `${port}:8080`,
       };
-      const runCmd = `docker run -d -p ${portMapping[language]} --name ${containerName} ${imageName}`;
+      const runCmd = `docker run -d -p ${portMapping[language]} --name ${containerName} ${env} ${imageName}`;
 
       await this.executeCommand(buildCmd);
       await this.executeCommand(runCmd);
