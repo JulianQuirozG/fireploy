@@ -17,7 +17,10 @@ export class BaseDeDatosService {
     //save new Base de datos
     let baseDeDatos: CreateBaseDeDatoDto & BaseDeDato;
     try {
-      baseDeDatos = await this.baseDeDatosRepository.save({...createBaseDeDatoDto, usuario : createBaseDeDatoDto.nombre});
+      baseDeDatos = await this.baseDeDatosRepository.save({
+        ...createBaseDeDatoDto,
+        usuario: createBaseDeDatoDto.nombre,
+      });
     } catch (error) {
       throw new NotFoundException(
         `Ya existe una base de datos con ese nombre ${error}`,
@@ -31,7 +34,7 @@ export class BaseDeDatosService {
         await this.dockerfileService.createMySQLDatabaseAndUser(
           process.env.MYSQL_CONTAINER_NAME as string,
           baseDeDatos.nombre,
-          baseDeDatos.id as unknown as string,
+          baseDeDatos.usuario as unknown as string,
           createBaseDeDatoDto.contrasenia,
         );
       }
