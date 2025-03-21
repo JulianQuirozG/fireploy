@@ -36,7 +36,7 @@ import { Solicitud } from './modelos/solicitud/entities/solicitud.entity';
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
+      host: process.env.BD_HOST,
       port: process.env.BD_PORT as unknown as number,
       username: process.env.BD_USER_NAME as unknown as string,
       password: process.env.BD_PASSWORD as unknown as string,

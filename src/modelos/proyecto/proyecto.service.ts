@@ -246,11 +246,16 @@ export class ProyectoService {
 
       //Generate image if is type All
       if (repositorios.length == 1) {
+        let port= process.env.MYSQL_PORT;
+        if(proyect.base_de_datos.tipo!='S'){
+          port= process.env.MONGO_PORT;
+        } 
         await this.dockerfileService.buildAndRunContainer(
           proyect.id as unknown as string,
           rute,
           repositorio.tecnologia,
           FREE_PORTS[index],
+          ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e BD_HOST=localhost -e BD_USER=${proyect.base_de_datos.usuario} -e BD_PASS=${proyect.base_de_datos.contrasenia}`
         );
       }
 
