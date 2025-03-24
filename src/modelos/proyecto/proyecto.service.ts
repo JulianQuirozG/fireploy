@@ -57,6 +57,7 @@ export class ProyectoService {
 
     if (createProyectoDto.base_de_datos)
       createProyectoDto.base_de_datos = await this.baseDeDatosService.create(
+
         createProyectoDto.base_de_datos,
       );
 
@@ -83,6 +84,8 @@ export class ProyectoService {
       .createQueryBuilder('proyecto')
       .leftJoin('proyecto.estudiantes', 'estudiante')
       .leftJoinAndSelect('proyecto.seccion', 'seccion')
+      .leftJoin('seccion.curso', 'curso')
+      .leftJoin('curso.materia', 'materia')
       .leftJoin('proyecto.tutor', 'tutor')
       .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
       .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
@@ -115,6 +118,21 @@ export class ProyectoService {
       ])
 
       .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+
+      // Seleccionar campos de curso
+      .addSelect([
+        'curso.id',
+        'curso.grupo',
+        'curso.semestre',
+        'curso.descripcion',
+      ])
+
+      // Seleccionar campos de materia
+      .addSelect([
+        'materia.id',
+        'materia.nombre',
+        'materia.semestre',
+      ])
 
       .getMany();
   }
@@ -157,12 +175,12 @@ export class ProyectoService {
     return result;
   }
 
-/**
- * Retrieves all projects associated with a specific student.
- *
- * @param estudianteId The ID of the student whose projects are to be retrieved.
- * @returns A promise that resolves to an array of projects linked to the given student.
- */
+  /**
+   * Retrieves all projects associated with a specific student.
+   *
+   * @param estudianteId The ID of the student whose projects are to be retrieved.
+   * @returns A promise that resolves to an array of projects linked to the given student.
+   */
   async findAllbyStudent(estudianteId: number) {
     return this.proyectoRepository
       .createQueryBuilder('proyecto')
@@ -246,10 +264,10 @@ export class ProyectoService {
 
       //Generate image if is type All
       if (repositorios.length == 1) {
-        let port= process.env.MYSQL_PORT;
-        if(proyect.base_de_datos.tipo!='S'){
-          port= process.env.MONGO_PORT;
-        } 
+        let port = process.env.MYSQL_PORT;
+        if (proyect.base_de_datos.tipo != 'S') {
+          port = process.env.MONGO_PORT;
+        }
         await this.dockerfileService.buildAndRunContainer(
           proyect.id as unknown as string,
           rute,
