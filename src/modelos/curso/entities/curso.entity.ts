@@ -26,7 +26,7 @@ export class Curso {
   @Column({ length: 512 })
   descripcion: string;
 
-  @ManyToOne(() => Docente, (docente) => docente.cursos, {
+  @ManyToOne(() => Docente, (docente) => docente.cursos_dirigidos, {
     onDelete: 'SET NULL',
   })
   docente: Docente;

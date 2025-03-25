@@ -22,8 +22,7 @@ export class GetSolicitudesMiddleware implements NestMiddleware {
     const session = await this.jwtService.verifyAsync(sessionToken, {
       secret: process.env.SECRETTOKEN,
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    console.log(session.tipo);
+
     // If the user is not an administrator, filter by their ID
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

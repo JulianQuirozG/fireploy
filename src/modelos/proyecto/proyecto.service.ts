@@ -32,7 +32,7 @@ export class ProyectoService {
     private gitService: GitService,
     private dockerfileService: DockerfileService,
     private systemService: SystemService,
-  ) { }
+  ) {}
   async create(createProyectoDto: CreateProyectoDto) {
     let estudiantes: Estudiante[] = [];
     if (
@@ -57,7 +57,6 @@ export class ProyectoService {
 
     if (createProyectoDto.base_de_datos)
       createProyectoDto.base_de_datos = await this.baseDeDatosService.create(
-
         createProyectoDto.base_de_datos,
       );
 
@@ -80,61 +79,59 @@ export class ProyectoService {
   }
 
   findAll() {
-    return this.proyectoRepository
-      .createQueryBuilder('proyecto')
-      .leftJoin('proyecto.estudiantes', 'estudiante')
-      .leftJoinAndSelect('proyecto.seccion', 'seccion')
-      .leftJoin('seccion.curso', 'curso')
-      .leftJoin('curso.materia', 'materia')
-      .leftJoin('proyecto.tutor', 'tutor')
-      .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
-      .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
+    return (
+      this.proyectoRepository
+        .createQueryBuilder('proyecto')
+        .leftJoin('proyecto.estudiantes', 'estudiante')
+        .leftJoinAndSelect('proyecto.seccion', 'seccion')
+        .leftJoin('seccion.curso', 'curso')
+        .leftJoin('curso.materia', 'materia')
+        .leftJoin('proyecto.tutor', 'tutor')
+        .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
+        .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
 
-      .addSelect([
-        'estudiante.id',
-        'estudiante.nombre',
-        'estudiante.apellido',
-        'estudiante.fecha_nacimiento',
-        'estudiante.sexo',
-        'estudiante.descripcion',
-        'estudiante.correo',
-        'estudiante.red_social',
-        'estudiante.foto_perfil',
-        'estudiante.tipo',
-        'estudiante.est_fecha_inicio',
-      ])
+        .addSelect([
+          'estudiante.id',
+          'estudiante.nombre',
+          'estudiante.apellido',
+          'estudiante.fecha_nacimiento',
+          'estudiante.sexo',
+          'estudiante.descripcion',
+          'estudiante.correo',
+          'estudiante.red_social',
+          'estudiante.foto_perfil',
+          'estudiante.tipo',
+          'estudiante.est_fecha_inicio',
+        ])
 
-      .addSelect([
-        'tutor.id',
-        'tutor.nombre',
-        'tutor.apellido',
-        'tutor.fecha_nacimiento',
-        'tutor.sexo',
-        'tutor.descripcion',
-        'tutor.correo',
-        'tutor.red_social',
-        'tutor.foto_perfil',
-        'tutor.tipo',
-      ])
+        .addSelect([
+          'tutor.id',
+          'tutor.nombre',
+          'tutor.apellido',
+          'tutor.fecha_nacimiento',
+          'tutor.sexo',
+          'tutor.descripcion',
+          'tutor.correo',
+          'tutor.red_social',
+          'tutor.foto_perfil',
+          'tutor.tipo',
+        ])
 
-      .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+        .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
 
-      // Seleccionar campos de curso
-      .addSelect([
-        'curso.id',
-        'curso.grupo',
-        'curso.semestre',
-        'curso.descripcion',
-      ])
+        // Seleccionar campos de curso
+        .addSelect([
+          'curso.id',
+          'curso.grupo',
+          'curso.semestre',
+          'curso.descripcion',
+        ])
 
-      // Seleccionar campos de materia
-      .addSelect([
-        'materia.id',
-        'materia.nombre',
-        'materia.semestre',
-      ])
+        // Seleccionar campos de materia
+        .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
 
-      .getMany();
+        .getMany()
+    );
   }
 
   findAllBySection(id: number) {
@@ -273,7 +270,7 @@ export class ProyectoService {
           rute,
           repositorio.tecnologia,
           FREE_PORTS[index],
-          ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e BD_HOST=localhost -e BD_USER=${proyect.base_de_datos.usuario} -e BD_PASS=${proyect.base_de_datos.contrasenia}`
+          ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e BD_HOST=localhost -e BD_USER=${proyect.base_de_datos.usuario} -e BD_PASS=${proyect.base_de_datos.contrasenia}`,
         );
       }
 
@@ -286,8 +283,6 @@ export class ProyectoService {
         language: repositorio.tecnologia,
       });
     }
-
-    console.log(dockerfiles);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return dockerfiles;
   }

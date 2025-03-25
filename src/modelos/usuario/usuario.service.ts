@@ -95,7 +95,7 @@ export class UsuarioService {
         'Se debe enviar al menos un campo para actualizar',
       );
     }
-    console.log(updateUsuarioDto);
+
     //Update the user
     updateUsuarioDto.id = id;
     await this.usersRepository.update(id, updateUsuarioDto);

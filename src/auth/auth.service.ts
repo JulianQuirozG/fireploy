@@ -26,7 +26,7 @@ export class AuthService {
       );
     }
     const answer = await this.encrypt.compare(pass, user?.contrasenia);
-    if (!answer) throw new UnauthorizedException();
+    if (!answer) throw new UnauthorizedException('La información no coincide');
     const payload = { sub: user?.id, tipo: user?.tipo };
     const response = {
       access_token: String(

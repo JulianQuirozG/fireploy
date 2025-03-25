@@ -15,7 +15,7 @@ export class Encrypt {
   async compare(text1?: string, text2?: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const isMatch: boolean = await bcrypt.compare(text1, text2);
-    if (!isMatch) throw new UnauthorizedException();
+    if (!isMatch) throw new UnauthorizedException('La información no coincide');
     else return isMatch;
   }
 }
