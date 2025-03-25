@@ -7,8 +7,8 @@ import { ChildEntity, OneToMany } from 'typeorm';
 @ChildEntity()
 export class Docente extends Usuario {
   @OneToMany(() => Curso, (curso) => curso.docente)
-  cursos: Curso[];
+  cursos_dirigidos: Curso[];
 
   @OneToMany(() => Proyecto, (proyecto) => proyecto.tutor)
-  proyectos: Proyecto[];
+  proyectos_dirigidos: Proyecto[];
 }

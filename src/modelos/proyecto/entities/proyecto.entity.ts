@@ -48,7 +48,7 @@ export class Proyecto {
   })
   seccion: Seccion;
 
-  @ManyToOne(() => Docente, (docente) => docente.proyectos, {
+  @ManyToOne(() => Docente, (docente) => docente.proyectos_dirigidos, {
     onDelete: 'SET NULL',
   })
   tutor: Docente;

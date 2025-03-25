@@ -17,14 +17,14 @@ export class DocenteService {
 
   findAll() {
     return this.docenteRepository.find({
-      relations: ['proyectos', 'cursos'],
+      relations: ['proyectos_dirigidos', 'cursos_dirigidos'],
     });
   }
 
   async findOne(id: number) {
     const docente = await this.docenteRepository.findOne({
       where: { id: id },
-      relations: ['proyectos', 'cursos'],
+      relations: ['proyectos_dirigidos', 'cursos_dirigidos'],
     });
     if (!docente) {
       throw new NotFoundException(`El docente con el id ${id} no existe`);
