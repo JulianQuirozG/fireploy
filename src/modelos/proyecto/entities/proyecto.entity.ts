@@ -1,8 +1,7 @@
 import { BaseDeDato } from 'src/modelos/base_de_datos/entities/base_de_dato.entity';
-import { Docente } from 'src/modelos/docente/entities/docente.entity';
-import { Estudiante } from 'src/modelos/estudiante/entities/estudiante.entity';
 import { Repositorio } from 'src/modelos/repositorio/entities/repositorio.entity';
 import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
+import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 import {
   Column,
   Entity,
@@ -40,18 +39,18 @@ export class Proyecto {
   @Column({ nullable: false, type: 'char', length: 1 })
   estado_ejecucion: string;
 
-  @ManyToMany(() => Estudiante, (estudiante) => estudiante.proyectos)
-  estudiantes: Estudiante[];
+  @ManyToMany(() => Usuario, (usuario) => usuario.proyectos)
+  estudiantes: Usuario[];
 
   @ManyToOne(() => Seccion, (seccion) => seccion.proyectos, {
     onDelete: 'SET NULL',
   })
   seccion: Seccion;
 
-  @ManyToOne(() => Docente, (docente) => docente.proyectos_dirigidos, {
+  @ManyToOne(() => Usuario, (usuario) => usuario.proyectos_dirigidos, {
     onDelete: 'SET NULL',
   })
-  tutor: Docente;
+  tutor: Usuario;
 
   @OneToMany(() => Repositorio, (repositorio) => repositorio.proyecto_id)
   repositorios: Repositorio[];
@@ -62,4 +61,7 @@ export class Proyecto {
 
   @Column({ nullable: false })
   fecha_creacion: Date;
+
+  @ManyToOne(() => Usuario, (usuario) => usuario.proyectosCreados, { onDelete: 'SET NULL' })
+  creador: Usuario;
 }

@@ -11,6 +11,7 @@ import { BaseDeDatosModule } from '../base_de_datos/base_de_datos.module';
 import { GitService } from 'src/services/git.service';
 import { DockerfileService } from 'src/services/docker.service';
 import { SystemService } from 'src/services/system.service';
+import { UsuarioModule } from '../usuario/usuario.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SystemService } from 'src/services/system.service';
     DocenteModule,
     CursoModule,
     SeccionModule,
+    UsuarioModule,
     forwardRef(() => BaseDeDatosModule),
   ],
   controllers: [ProyectoController],

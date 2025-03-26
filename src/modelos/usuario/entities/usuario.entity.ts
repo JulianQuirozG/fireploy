@@ -1,7 +1,11 @@
+import { Curso } from 'src/modelos/curso/entities/curso.entity';
+import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
 import { Solicitud } from 'src/modelos/solicitud/entities/solicitud.entity';
 import {
   Column,
   Entity,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   TableInheritance,
@@ -48,6 +52,9 @@ export class Usuario {
   @Column({ type: 'varchar', name: 'tipo', nullable: false, length: 13 })
   tipo: string;
 
+  @Column({ nullable: false })
+  est_fecha_inicio: Date;
+
   @OneToMany(() => Solicitud, (solicitud) => solicitud.usuario, {
     cascade: true,
   })
@@ -57,4 +64,21 @@ export class Usuario {
     cascade: true,
   })
   solicitudes_pendientes: Solicitud[];
+
+  @OneToMany(() => Proyecto, (proyecto) => proyecto.creador)
+  proyectosCreados: Proyecto[];
+
+  @ManyToMany(() => Proyecto, (proyecto) => proyecto.estudiantes)
+  @JoinTable()
+  proyectos: Proyecto[];
+
+  @ManyToMany(() => Curso, (curso) => curso.estudiantes)
+  @JoinTable()
+  cursos: Curso[];
+
+  @OneToMany(() => Curso, (curso) => curso.docente)
+  cursos_dirigidos: Curso[];
+
+  @OneToMany(() => Proyecto, (proyecto) => proyecto.tutor)
+  proyectos_dirigidos: Proyecto[];
 }
