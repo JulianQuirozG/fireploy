@@ -1,6 +1,5 @@
-console.log('2-1');
+import { Curso } from 'src/modelos/curso/entities/curso.entity';
 import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
-console.log('2-2');
 import { Solicitud } from 'src/modelos/solicitud/entities/solicitud.entity';
 import {
   Column,
@@ -53,6 +52,9 @@ export class Usuario {
   @Column({ type: 'varchar', name: 'tipo', nullable: false, length: 13 })
   tipo: string;
 
+  @Column({ nullable: false })
+  est_fecha_inicio: Date;
+
   @OneToMany(() => Solicitud, (solicitud) => solicitud.usuario, {
     cascade: true,
   })
@@ -63,7 +65,20 @@ export class Usuario {
   })
   solicitudes_pendientes: Solicitud[];
 
+  @OneToMany(() => Proyecto, (proyecto) => proyecto.creador)
+  proyectosCreados: Proyecto[];
+
   @ManyToMany(() => Proyecto, (proyecto) => proyecto.estudiantes)
   @JoinTable()
   proyectos: Proyecto[];
+
+  @ManyToMany(() => Curso, (curso) => curso.estudiantes)
+  @JoinTable()
+  cursos: Curso[];
+
+  @OneToMany(() => Curso, (curso) => curso.docente)
+  cursos_dirigidos: Curso[];
+
+  @OneToMany(() => Proyecto, (proyecto) => proyecto.tutor)
+  proyectos_dirigidos: Proyecto[];
 }

@@ -6,19 +6,30 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ProyectoService } from './proyecto.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { Public } from 'src/decorators/public.decorator';
+import { ExtractUserIdGuard } from 'src/guard/createProyect.guard';
+import { RequestWithUser } from 'src/interfaces/request.interface';
 
 @Controller('proyecto')
 export class ProyectoController {
   constructor(private readonly proyectoService: ProyectoService) {}
-
+  
   @Post()
-  create(@Body() createProyectoDto: CreateProyectoDto) {
-    return this.proyectoService.create(createProyectoDto);
+  @UseGuards(ExtractUserIdGuard)
+  create(@Body() createProyectoDto: CreateProyectoDto,  @Req() request: RequestWithUser) {
+    console.log(request);
+    if (!request.user?.id) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    console.log(request.user);
+    return this.proyectoService.create(createProyectoDto,request.user.id);
   }
 
   @Get()
@@ -33,8 +44,8 @@ export class ProyectoController {
   }
 
   @Get('/estudiante/:id')
-  findAllByEstudiante(@Param('id') id: number) {
-    return this.proyectoService.findAllbyStudent(id);
+  findAllByUser(@Param('id') id: number) {
+    return this.proyectoService.findAllbyUser(id);
   }
 
   @Get(':id')

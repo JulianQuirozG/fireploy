@@ -4,25 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
-console.log('1-1');
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
-console.log('1-2');
 import { InjectRepository } from '@nestjs/typeorm';
-console.log('1-3');
 import { Usuario } from './entities/usuario.entity';
-console.log('1-4');
 import { Repository } from 'typeorm';
-console.log('1-5');
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
-console.log('1-6');
 import { FilterUsuarioDto } from './dto/filter-usuario.dto';
-console.log('1-7');
 import { FirebaseService } from 'src/services/firebase.service';
-console.log('1-8');
 import * as xlsx from 'xlsx';
-console.log('1-9');
 import { plainToInstance } from 'class-transformer';
-console.log('1-10');
 import { validate } from 'class-validator';
 
 @Injectable()

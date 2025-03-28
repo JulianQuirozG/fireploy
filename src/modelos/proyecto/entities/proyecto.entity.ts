@@ -1,13 +1,7 @@
 import { BaseDeDato } from 'src/modelos/base_de_datos/entities/base_de_dato.entity';
-console.log('3-1');
-import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
-console.log('3-2');
-import { Docente } from 'src/modelos/docente/entities/docente.entity';
-console.log('3-3');
 import { Repositorio } from 'src/modelos/repositorio/entities/repositorio.entity';
-console.log('3-4');
 import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
-console.log('3-5');
+import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 import {
   Column,
   Entity,
@@ -45,7 +39,7 @@ export class Proyecto {
   @Column({ nullable: false, type: 'char', length: 1 })
   estado_ejecucion: string;
 
-  @ManyToMany(() => Usuario, (estudiante) => estudiante.proyectos)
+  @ManyToMany(() => Usuario, (usuario) => usuario.proyectos)
   estudiantes: Usuario[];
 
   @ManyToOne(() => Seccion, (seccion) => seccion.proyectos, {
@@ -53,10 +47,10 @@ export class Proyecto {
   })
   seccion: Seccion;
 
-  @ManyToOne(() => Docente, (docente) => docente.proyectos_dirigidos, {
+  @ManyToOne(() => Usuario, (usuario) => usuario.proyectos_dirigidos, {
     onDelete: 'SET NULL',
   })
-  tutor: Docente;
+  tutor: Usuario;
 
   @OneToMany(() => Repositorio, (repositorio) => repositorio.proyecto_id)
   repositorios: Repositorio[];
@@ -67,4 +61,7 @@ export class Proyecto {
 
   @Column({ nullable: false })
   fecha_creacion: Date;
+
+  @ManyToOne(() => Usuario, (usuario) => usuario.proyectosCreados, { onDelete: 'SET NULL' })
+  creador: Usuario;
 }

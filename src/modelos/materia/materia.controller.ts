@@ -39,11 +39,15 @@ export class MateriaController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles('Administrador')
   update(@Param('id') id: string, @Body() updateMateriaDto: UpdateMateriaDto) {
     return this.materiaService.update(+id, updateMateriaDto);
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles('Administrador')
   remove(@Param('id') id: string) {
     return this.materiaService.remove(+id);
   }

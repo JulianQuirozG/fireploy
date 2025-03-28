@@ -17,6 +17,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { GetSolicitudByIdGuard } from 'src/guard/getSolicitudById.guard';
 import { FilterSolicitudDto } from './dto/filter-solicitud.dto';
+import { GetSolicitudesGuard } from 'src/guard/getSolicitudes.guard';
 
 @Controller('solicitud')
 export class SolicitudController {
@@ -29,6 +30,7 @@ export class SolicitudController {
   }
 
   @Get()
+  @UseGuards(GetSolicitudesGuard)
   findAll(@Query() filters: FilterSolicitudDto) {
     return this.solicitudService.findAll(filters);
   }

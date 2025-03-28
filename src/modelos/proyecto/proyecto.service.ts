@@ -18,6 +18,7 @@ import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
 import { GitService } from 'src/services/git.service';
 import { DockerfileService } from 'src/services/docker.service';
 import { SystemService } from 'src/services/system.service';
+import { UsuarioService } from '../usuario/usuario.service';
 
 @Injectable()
 export class ProyectoService {
@@ -25,6 +26,7 @@ export class ProyectoService {
     @InjectRepository(Proyecto)
     private proyectoRepository: Repository<Proyecto>,
     private estudiateService: EstudianteService,
+    private usuarioService: UsuarioService,
     private seccionService: SeccionService,
     private cursoService: CursoService,
     private docenteService: DocenteService,
@@ -32,8 +34,9 @@ export class ProyectoService {
     private gitService: GitService,
     private dockerfileService: DockerfileService,
     private systemService: SystemService,
-  ) {}
-  async create(createProyectoDto: CreateProyectoDto) {
+  ) { }
+  async create(createProyectoDto: CreateProyectoDto, userId: number) {
+    const creador = await this.usuarioService.findOne(userId as number);
     let estudiantes: Estudiante[] = [];
     if (
       createProyectoDto.estudiantesIds &&
@@ -69,6 +72,7 @@ export class ProyectoService {
       estado_proyecto: createProyectoDto.estado_proyecto,
       estado_ejecucion: createProyectoDto.estado_ejecucion,
       fecha_creacion: createProyectoDto.fecha_creacion,
+      creador: creador,
       estudiantes: estudiantes,
       seccion: seccion,
       tutor: docente,
@@ -89,6 +93,7 @@ export class ProyectoService {
         .leftJoin('proyecto.tutor', 'tutor')
         .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
         .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
+        .leftJoin('proyecto.creador', 'creador')
 
         .addSelect([
           'estudiante.id',
@@ -117,6 +122,20 @@ export class ProyectoService {
           'tutor.tipo',
         ])
 
+        .addSelect([
+          'creador.id',
+          'creador.nombre',
+          'creador.apellido',
+          'creador.fecha_nacimiento',
+          'creador.sexo',
+          'creador.descripcion',
+          'creador.correo',
+          'creador.red_social',
+          'creador.foto_perfil',
+          'creador.tipo',
+          'creador.est_fecha_inicio',
+        ])
+
         .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
 
         // Seleccionar campos de curso
@@ -143,6 +162,7 @@ export class ProyectoService {
         'tutor',
         'repositorios',
         'base_de_datos',
+        'creador',
       ],
     });
   }
@@ -163,6 +183,7 @@ export class ProyectoService {
         'tutor',
         'repositorios',
         'base_de_datos',
+        'creador',
       ],
     });
     if (!result)
@@ -175,10 +196,10 @@ export class ProyectoService {
   /**
    * Retrieves all projects associated with a specific student.
    *
-   * @param estudianteId The ID of the student whose projects are to be retrieved.
+   * @param usuarioId The ID of the student whose projects are to be retrieved.
    * @returns A promise that resolves to an array of projects linked to the given student.
    */
-  async findAllbyStudent(estudianteId: number) {
+  async findAllbyUser(usuarioId: number) {
     return this.proyectoRepository
       .createQueryBuilder('proyecto')
       .leftJoinAndSelect('proyecto.estudiantes', 'estudiante')
@@ -186,7 +207,8 @@ export class ProyectoService {
       .leftJoinAndSelect('proyecto.tutor', 'tutor')
       .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
       .leftJoinAndSelect('proyecto.base_de_datos', 'baseDeDatos')
-      .where('estudiante.id = :id', { id: estudianteId }) // Filtro por estudiante
+      .leftJoin('proyecto.creador', 'creador')
+      .where('estudiante.id = :id OR creador.id = :id', { id: usuarioId }) // Filtro por estudiante
       .addSelect([
         'estudiante.id',
         'estudiante.nombre',
@@ -211,6 +233,19 @@ export class ProyectoService {
         'tutor.red_social',
         'tutor.foto_perfil',
         'tutor.tipo',
+      ])
+      .addSelect([
+        'creador.id',
+        'creador.nombre',
+        'creador.apellido',
+        'creador.fecha_nacimiento',
+        'creador.sexo',
+        'creador.descripcion',
+        'creador.correo',
+        'creador.red_social',
+        'creador.foto_perfil',
+        'creador.tipo',
+        'creador.est_fecha_inicio',
       ])
       .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
       .getMany();
@@ -270,7 +305,7 @@ export class ProyectoService {
           rute,
           repositorio.tecnologia,
           FREE_PORTS[index],
-          ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e BD_HOST=localhost -e BD_USER=${proyect.base_de_datos.usuario} -e BD_PASS=${proyect.base_de_datos.contrasenia}`,
+          ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e BD_HOST=localhost -e BD_USER=${proyect.base_de_datos.usuario} -e BD_PASS="${proyect.base_de_datos.contrasenia}"`,
         );
       }
 
