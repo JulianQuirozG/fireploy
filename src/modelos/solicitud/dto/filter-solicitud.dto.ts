@@ -12,5 +12,5 @@ export class FilterSolicitudDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'El usuario debe ser un número válido' })
-  usuario?: Usuario;
+  usuario?: Number;
 }

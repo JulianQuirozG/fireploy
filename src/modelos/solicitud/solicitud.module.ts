@@ -16,10 +16,5 @@ import { GetSolicitudesMiddleware } from 'src/middleware/getSolicitudes.middlewa
   controllers: [SolicitudController],
   providers: [SolicitudService],
 })
-export class SolicitudModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(GetSolicitudesMiddleware)
-      .forRoutes({ path: 'solicitud', method: RequestMethod.GET });
-  }
+export class SolicitudModule {
 }
