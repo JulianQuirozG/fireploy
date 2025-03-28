@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
 import { UsuarioService } from '../usuario/usuario.service';
@@ -13,7 +13,7 @@ export class SolicitudService {
     private usuarioService: UsuarioService,
     @InjectRepository(Solicitud)
     private solicitudRepository: Repository<Solicitud>,
-  ) {}
+  ) { }
 
   /**
    * Creates a new request (Solicitud) for a user.
@@ -28,6 +28,12 @@ export class SolicitudService {
 
     if (!user)
       throw new NotFoundException(`El usuario con el id ${usuario} no existe`);
+
+    const solicitudesPendientes = await this.findAll({ usuario: user.id, estado: 'P' });
+
+    if (solicitudesPendientes && solicitudesPendientes.length > 0 ){
+      throw new BadRequestException('El usuario ya tiene solicitudes pendientes.');
+    }
 
     const solicitud = this.solicitudRepository.save({
       usuario: user,
