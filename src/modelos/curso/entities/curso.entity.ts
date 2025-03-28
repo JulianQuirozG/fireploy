@@ -1,8 +1,13 @@
-//import { Docente } from 'src/modelos/docente/entities/docente.entity';
+console.log('5-0');
 import { Docente } from 'src/modelos/docente/entities/docente.entity';
+console.log('5-1');
 import { Estudiante } from 'src/modelos/estudiante/entities/estudiante.entity';
+console.log('5-2');
 import { Materia } from 'src/modelos/materia/entities/materia.entity';
+console.log('5-3');
 import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
+import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
+console.log('5-4');
 import {
   Column,
   Entity,
@@ -39,8 +44,8 @@ export class Curso {
   @OneToMany(() => Seccion, (seccion) => seccion.curso)
   secciones: Seccion[];
 
-  @ManyToMany(() => Estudiante, (estudiante) => estudiante.cursos)
-  estudiantes: Estudiante[];
+  @ManyToMany(() => Usuario, (estudiante) => estudiante.cursos)
+  estudiantes: Usuario[];
 
   @Column({ nullable: false, length: 1, type: 'char' })
   estado: string;

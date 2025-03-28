@@ -1,7 +1,12 @@
+console.log('2-1');
+import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
+console.log('2-2');
 import { Solicitud } from 'src/modelos/solicitud/entities/solicitud.entity';
 import {
   Column,
   Entity,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   TableInheritance,
@@ -57,4 +62,8 @@ export class Usuario {
     cascade: true,
   })
   solicitudes_pendientes: Solicitud[];
+
+  @ManyToMany(() => Proyecto, (proyecto) => proyecto.estudiantes)
+  @JoinTable()
+  proyectos: Proyecto[];
 }

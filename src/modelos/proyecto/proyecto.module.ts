@@ -1,9 +1,9 @@
+import { UsuarioModule } from '../usuario/usuario.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { ProyectoService } from './proyecto.service';
 import { ProyectoController } from './proyecto.controller';
 import { Proyecto } from './entities/proyecto.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EstudianteModule } from '../estudiante/estudiante.module';
 import { DocenteModule } from '../docente/docente.module';
 import { CursoModule } from '../curso/curso.module';
 import { SeccionModule } from '../seccion/seccion.module';
@@ -14,8 +14,8 @@ import { SystemService } from 'src/services/system.service';
 
 @Module({
   imports: [
+    forwardRef(() => UsuarioModule),
     TypeOrmModule.forFeature([Proyecto]),
-    EstudianteModule,
     DocenteModule,
     CursoModule,
     SeccionModule,

@@ -1,8 +1,13 @@
 import { BaseDeDato } from 'src/modelos/base_de_datos/entities/base_de_dato.entity';
+console.log('3-1');
+import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
+console.log('3-2');
 import { Docente } from 'src/modelos/docente/entities/docente.entity';
-import { Estudiante } from 'src/modelos/estudiante/entities/estudiante.entity';
+console.log('3-3');
 import { Repositorio } from 'src/modelos/repositorio/entities/repositorio.entity';
+console.log('3-4');
 import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
+console.log('3-5');
 import {
   Column,
   Entity,
@@ -40,8 +45,8 @@ export class Proyecto {
   @Column({ nullable: false, type: 'char', length: 1 })
   estado_ejecucion: string;
 
-  @ManyToMany(() => Estudiante, (estudiante) => estudiante.proyectos)
-  estudiantes: Estudiante[];
+  @ManyToMany(() => Usuario, (estudiante) => estudiante.proyectos)
+  estudiantes: Usuario[];
 
   @ManyToOne(() => Seccion, (seccion) => seccion.proyectos, {
     onDelete: 'SET NULL',

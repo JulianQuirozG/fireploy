@@ -1,7 +1,10 @@
-//import { Curso } from 'src/modelos/curso/entities/curso.entity';
+console.log('4-0');
 import { Curso } from 'src/modelos/curso/entities/curso.entity';
+console.log('4-1');
 import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
+console.log('4-2');
 import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
+console.log('4-3');
 import { ChildEntity, OneToMany } from 'typeorm';
 
 @ChildEntity()

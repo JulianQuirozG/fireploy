@@ -1,16 +1,14 @@
-import { Curso } from 'src/modelos/curso/entities/curso.entity';
-import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
+console.log('6-0');
 import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
+console.log('6-1');
+import { Curso } from 'src/modelos/curso/entities/curso.entity';
+console.log('6-2');
 import { ChildEntity, Column, JoinTable, ManyToMany } from 'typeorm';
 
 @ChildEntity()
 export class Estudiante extends Usuario {
   @Column({ nullable: false })
   est_fecha_inicio: Date;
-
-  @ManyToMany(() => Proyecto, (proyecto) => proyecto.estudiantes)
-  @JoinTable()
-  proyectos: Proyecto[];
 
   @ManyToMany(() => Curso, (curso) => curso.estudiantes)
   @JoinTable()
