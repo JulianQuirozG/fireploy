@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 
 @Injectable()
 export class SystemService {
@@ -17,32 +17,40 @@ export class SystemService {
    * @returns A promise that resolves to an array of available port numbers.
    * @throws An error if the command execution fails.
    */
-  async getAvailablePorts(): Promise<number[]> {
-    return new Promise((resolve, reject) => {
-      try {
-        const command = `bash -c "seq 0 65535 | grep -vf <(ss -tuln | awk '{print \\$4}' | awk -F':' '{print \\$NF}' | grep -E '^[0-9]+$' | sort -n | uniq)"`;
 
-        exec(command, (error, stdout, stderr) => {
-          if (error || stderr) {
-            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
-            reject(`Error executing command: ${error || stderr}`);
-            return;
-          }
+  getAvailablePorts(): number[] {
+    try {
+      // Generar lista de todos los puertos y ordenarlos
+      execSync(`seq 0 65535 | LC_ALL=C sort -n > /tmp/available_ports.txt`);
+      execSync(
+        `LC_ALL=C sort -o /tmp/available_ports.txt /tmp/available_ports.txt`,
+      );
 
-          // Convert the output into a list of numbers
-          const availablePorts = stdout
-            .split('\n')
-            .map((line) => line.trim())
-            .filter((line) => line !== '')
-            .map(Number)
-            .filter((port) => port > 9000); // Exclude reserved ports (0-1023)
+      // Obtener puertos en uso, ordenarlos y verificar
+      execSync(
+        `ss -tuln | awk '{print $5}' | awk -F ":" '{print $NF}' | grep -E "^[0-9]+$" | LC_ALL=C sort -n | LC_ALL=C sort -u > /tmp/open_ports.txt`,
+      );
+      execSync(`LC_ALL=C sort -o /tmp/open_ports.txt /tmp/open_ports.txt`);
 
-          resolve(availablePorts);
-        });
-      } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        reject(`General error: ${err}`);
-      }
-    });
+      // **Verificar que los archivos están ordenados correctamente**
+      execSync(`LC_ALL=C sort -c /tmp/available_ports.txt`);
+      execSync(`LC_ALL=C sort -c /tmp/open_ports.txt`);
+
+      // Ejecutar `comm`
+      const stdout = execSync(
+        `comm -23 /tmp/available_ports.txt /tmp/open_ports.txt`,
+        { encoding: 'utf-8' },
+      );
+
+      return stdout
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line !== '')
+        .map(Number)
+        .filter((port) => port > 9000); // Excluir puertos bajos
+    } catch (error) {
+      console.error(`Error ejecutando el comando:`, error);
+      return [];
+    }
   }
 }
