@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
@@ -34,9 +33,9 @@ export class ProyectoService {
     private gitService: GitService,
     private dockerfileService: DockerfileService,
     private systemService: SystemService,
-  ) { }
+  ) {}
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
-    const creador = await this.usuarioService.findOne(userId as number);
+    const creador = await this.usuarioService.findOne(userId);
     let estudiantes: Estudiante[] = [];
     if (
       createProyectoDto.estudiantesIds &&
@@ -273,7 +272,7 @@ export class ProyectoService {
       );
 
     //get free ports
-    const FREE_PORTS = await this.systemService.getAvailablePorts();
+    const FREE_PORTS = this.systemService.getAvailablePorts();
 
     //Rutes of dockerfiles
     const dockerfiles: any[] = [];
