@@ -8,9 +8,6 @@ import {
 
 export class UpdateUsuarioDto {
   @IsOptional()
-  id: number;
-
-  @IsOptional()
   @IsString({ message: 'El nombre debe ser una cadena de texto' })
   @MaxLength(50, { message: 'El nombre no puede tener más de 50 caracteres' })
   readonly nombre?: string;
@@ -64,4 +61,8 @@ export class UpdateUsuarioDto {
     message: 'La foto de perfil no puede tener más de 256 caracteres',
   })
   readonly foto_perfil?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida' })
+  est_fecha_inicio?: Date;
 }

@@ -137,7 +137,6 @@ export class UsuarioService {
     }
 
     //Update the user
-    updateUsuarioDto.id = id;
     await this.usersRepository.update(id, updateUsuarioDto);
 
     //Return the updated user
