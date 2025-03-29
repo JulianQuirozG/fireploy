@@ -1,6 +1,5 @@
 import { IsIn, IsOptional, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 
 export class FilterSolicitudDto {
   @IsOptional()
@@ -12,5 +11,5 @@ export class FilterSolicitudDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'El usuario debe ser un número válido' })
-  usuario?: Number;
+  usuario?: number;
 }

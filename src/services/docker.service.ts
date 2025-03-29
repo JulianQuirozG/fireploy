@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 
 @Injectable()
 export class DockerfileService {
@@ -106,7 +109,7 @@ export class DockerfileService {
   generateDockerfile(
     projectPath: string,
     language: string,
-    port: number
+    port: number,
   ): string {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
 
@@ -118,7 +121,7 @@ export class DockerfileService {
     }
 
     // Create and write the Dockerfile
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     fs.writeFileSync(dockerfilePath, dockerFile);
 
     return dockerfilePath;
@@ -132,6 +135,7 @@ export class DockerfileService {
     env: string,
   ) {
     try {
+      const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
       const imageName = `app-${Name}`;
       const containerName = `Container-${Name}`;
 
@@ -144,14 +148,13 @@ export class DockerfileService {
         python: `${port}:5000`,
         php: `${port}:8080`,
       };
-      const runCmd = `docker run -d -p ${portMapping[language]} --name ${containerName} ${env} ${imageName}`;
+      const runCmd = `docker run -d --network ${networkName} -p ${portMapping[language]} --name ${containerName} ${env} ${imageName} `;
 
       await this.executeCommand(buildCmd);
       await this.executeCommand(runCmd);
 
       return `Contenedor ${containerName} corriendo en el puerto ${portMapping[language]}`;
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new Error(`Error al ejecutar Docker: ${error.message}`);
     }
   }
@@ -175,6 +178,7 @@ export class DockerfileService {
     image: string,
     port: number,
     volume: string,
+    network: string,
     envVars?: string[],
   ) {
     try {
@@ -199,22 +203,24 @@ export class DockerfileService {
         const envString = envVars
           ? envVars.map((env) => `-e ${env}`).join(' ')
           : '';
-        console.log(
-          `docker run -d --name ${containerName} -p ${port}:${port} -v ${volume}:/data ${envString} ${image}`,
-        );
-        await this.executeCommand(
-          `docker run -d --name ${containerName} -p ${port}:${port} -v ${volume}:/data ${envString} ${image}`,
-        );
+
+        const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}:/data ${envString} ${image} --port=${port}`;
+
+        console.log(command);
+        await this.executeCommand(command);
       }
     }
   }
 
   async setupDatabases() {
+    const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
+    this.createNetwork(networkName);
     await this.checkAndCreateContainer(
       process.env.MYSQL_CONTAINER_NAME || 'mysql_container',
       'mysql:latest',
       Number(process.env.MYSQL_PORT) || 3307,
       process.env.MYSQL_VOLUME || 'mysql_data',
+      networkName,
       [`MYSQL_ROOT_PASSWORD=${process.env.MYSQL_ROOT_PASSWORD || 'root'}`],
     );
 
@@ -223,6 +229,7 @@ export class DockerfileService {
       'mongo:latest',
       Number(process.env.MONGO_PORT) || 27017,
       process.env.MONGO_VOLUME || 'mongo_data',
+      networkName,
       [],
     );
   }
@@ -263,5 +270,35 @@ export class DockerfileService {
         }
       });
     });
+  }
+
+  /**
+   * Creates a Docker network if it does not already exist.
+   *
+   * @param networkName The name of the network to create.
+   * @returns The name of the created network or undefined if it already exists.
+   */
+  createNetwork(networkName: string): string | undefined {
+    try {
+      // Execute the command to list existing Docker networks
+      const stdout = execSync(`docker network ls --format "{{.Name}}"`)
+        .toString()
+        .trim();
+
+      if (!stdout) {
+        console.error('Error: Failed to retrieve the list of Docker networks.');
+        return;
+      }
+
+      const networks = stdout.split('\n');
+
+      if (!networks.includes(networkName)) {
+        console.log(`Creating Docker network: ${networkName}`);
+        execSync(`docker network create ${networkName}`);
+        return networkName;
+      }
+    } catch (error) {
+      console.error('Error executing Docker command:', error);
+    }
   }
 }
