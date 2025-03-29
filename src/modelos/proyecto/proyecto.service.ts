@@ -78,7 +78,11 @@ export class ProyectoService {
       base_de_datos: createProyectoDto.base_de_datos,
     });
     const guardadoProyecto = await this.proyectoRepository.save(nuevoProyecto);
-    return this.findOne(guardadoProyecto.id);
+    const proyectoCreado = await this.findOne(guardadoProyecto.id);
+    let puertos: number = ((proyectoCreado.id * 2) + 9998);
+    await this.proyectoRepository.update({id:proyectoCreado.id},{puerto : puertos})
+
+    return await this.findOne(proyectoCreado.id);
   }
 
   findAll() {
@@ -271,9 +275,6 @@ export class ProyectoService {
         `El proyecto con el id ${id} no tiene repositorios asignados.`,
       );
 
-    //get free ports
-    const FREE_PORTS = this.systemService.getAvailablePorts();
-
     //Rutes of dockerfiles
     const dockerfiles: any[] = [];
 
@@ -285,12 +286,15 @@ export class ProyectoService {
         proyect.id as unknown as string,
         repositorio.tipo,
       );
-
+      let puertos: number = proyect.puerto;
+      if(repositorio.tipo === 'B'){
+        puertos++;
+      }
       // Create Dockerfile
       const dockerfilePath = this.dockerfileService.generateDockerfile(
         rute,
         repositorio.tecnologia,
-        FREE_PORTS[index],
+        puertos,
       );
 
       //Generate image if is type All
@@ -306,7 +310,7 @@ export class ProyectoService {
           proyect.id as unknown as string,
           rute,
           repositorio.tecnologia,
-          FREE_PORTS[index],
+          puertos,
           ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e DB_HOST=${host} -e DB_USER=${proyect.base_de_datos.usuario} -e DB_PASS="${proyect.base_de_datos.contrasenia}"`,
         );
       }
@@ -316,7 +320,7 @@ export class ProyectoService {
         proyect_id: proyect.id,
         rute,
         type: repositorio.tipo,
-        port: FREE_PORTS[index],
+        port: puertos,
         language: repositorio.tecnologia,
       });
     }

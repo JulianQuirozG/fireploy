@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUrl, Length, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl, Length, IsNumber, IsIn } from 'class-validator';
 
 export class CreateRepositorioDto {
   @IsNotEmpty({ message: 'url es obligatorio' })
@@ -9,6 +9,9 @@ export class CreateRepositorioDto {
   @IsNotEmpty({ message: 'tipo es obligatorio' })
   @IsString()
   @Length(1, 1)
+  @IsIn(['B', 'F', 'I'], {
+    message: 'estado debe ser Backend (B), Frontend (F), Monolito (I)',
+  })
   tipo: string;
 
   @IsNotEmpty({ message: 'tecnologia es obligatoria' })
