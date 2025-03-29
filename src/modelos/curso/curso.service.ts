@@ -36,10 +36,13 @@ export class CursoService {
     }
     let docente;
     if (createCursoDto.docenteId) {
-      const docentes = await this.usuarioService.findAll({
-        id: +createCursoDto.docenteId,
-        tipo: 'Docente',
-      });
+      const docentes = await this.usuarioService.findAll(
+        {
+          id: +createCursoDto.docenteId,
+          tipo: 'Docente',
+        },
+        true,
+      );
       if (!docentes || docentes.length === 0) {
         throw new NotFoundException(
           `El docente con el ID: ${createCursoDto.docenteId} no encontrado o no es docente`,
@@ -122,10 +125,13 @@ export class CursoService {
 
     //If docente change verify docente exists
     if (updateCursoDto.docente) {
-      const tutor = await this.usuarioService.findAll({
-        id: +updateCursoDto.docente,
-        tipo: 'Docente',
-      });
+      const tutor = await this.usuarioService.findAll(
+        {
+          id: +updateCursoDto.docente,
+          tipo: 'Docente',
+        },
+        true,
+      );
       if (!tutor) {
         throw new NotFoundException('No existe un docente con ese id');
       }

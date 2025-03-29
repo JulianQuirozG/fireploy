@@ -45,19 +45,59 @@ export class UsuarioService {
   }
 
   //
-  async findAll(filters: FilterUsuarioDto) {
-    return await this.usersRepository.find({ where: filters });
+  async findAll(
+    filters: FilterUsuarioDto,
+    all_info: boolean,
+  ): Promise<Usuario[]> {
+    const query = this.usersRepository
+      .createQueryBuilder('usuario')
+      .where(filters);
+
+    if (!all_info) {
+      query.select([
+        'usuario.id',
+        'usuario.nombre',
+        'usuario.apellido',
+        'usuario.fecha_nacimiento',
+        'usuario.sexo',
+        'usuario.descripcion',
+        'usuario.correo',
+        'usuario.red_social',
+        'usuario.foto_perfil',
+        'usuario.est_fecha_inicio',
+      ]);
+    }
+
+    return await query.getMany();
   }
 
-  async findOne(id: number): Promise<Usuario | undefined> {
-    const usuario = await this.usersRepository.findOne({
-      where: { id: id },
-    });
+  async findOne(id: number, all_info: boolean): Promise<Usuario | undefined> {
+    const query = this.usersRepository
+      .createQueryBuilder('usuario')
+      .where('usuario.id = :id', { id });
 
-    if (!usuario)
+    if (!all_info) {
+      query.select([
+        'usuario.id',
+        'usuario.nombre',
+        'usuario.apellido',
+        'usuario.fecha_nacimiento',
+        'usuario.sexo',
+        'usuario.descripcion',
+        'usuario.correo',
+        'usuario.red_social',
+        'usuario.foto_perfil',
+        'usuario.est_fecha_inicio',
+      ]);
+    }
+
+    const usuario = await query.getOne();
+
+    if (!usuario) {
       throw new NotFoundException(
-        `El usuario con el id ${id}, no se encontra en la base de datos.`,
+        `El usuario con el id ${id} no se encuentra en la base de datos.`,
       );
+    }
 
     return usuario;
   }
@@ -84,7 +124,7 @@ export class UsuarioService {
    */
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
     //Verify user exists
-    await this.findOne(id);
+    await this.findOne(id, true);
 
     //Verify update data
     if (
@@ -101,7 +141,7 @@ export class UsuarioService {
     await this.usersRepository.update(id, updateUsuarioDto);
 
     //Return the updated user
-    return await this.findOne(id);
+    return await this.findOne(id, false);
   }
 
   remove(id: number) {

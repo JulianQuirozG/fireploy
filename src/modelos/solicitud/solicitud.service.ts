@@ -28,7 +28,7 @@ export class SolicitudService {
    */
   async create(createSolicitudDto: CreateSolicitudDto) {
     const { usuario } = createSolicitudDto;
-    const user = await this.usuarioService.findOne(usuario);
+    const user = await this.usuarioService.findOne(usuario, true);
 
     if (!user)
       throw new NotFoundException(`El usuario con el id ${usuario} no existe`);
@@ -120,6 +120,7 @@ export class SolicitudService {
     //verify user apporoved exists
     const user_approver = await this.usuarioService.findOne(
       updateSolicitudDto.aprobado_by,
+      true,
     );
 
     //Update solicitud

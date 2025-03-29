@@ -36,15 +36,13 @@ export class UsuarioController {
   }
 
   @Get()
-  @UseGuards(GetUserPermissionGuard)
   findAll(@Query() filters: FilterUsuarioDto) {
-    return this.usuarioService.findAll(filters);
+    return this.usuarioService.findAll(filters, false);
   }
 
   @Get(':id')
-  @UseGuards(GetUserPermissionGuard)
   findOne(@Param('id') id: string) {
-    return this.usuarioService.findOne(+id);
+    return this.usuarioService.findOne(+id, false);
   }
 
   @Patch(':id')

@@ -35,7 +35,7 @@ export class ProyectoService {
     private systemService: SystemService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
-    const creador = await this.usuarioService.findOne(userId);
+    const creador = await this.usuarioService.findOne(userId, true);
     let estudiantes: Estudiante[] = [];
     if (
       createProyectoDto.estudiantesIds &&

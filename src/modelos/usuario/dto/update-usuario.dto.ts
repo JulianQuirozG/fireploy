@@ -64,11 +64,4 @@ export class UpdateUsuarioDto {
     message: 'La foto de perfil no puede tener más de 256 caracteres',
   })
   readonly foto_perfil?: string;
-
-  @IsOptional()
-  @IsString({ message: 'El tipo debe ser un string' })
-  @IsIn(['Docente'], {
-    message: 'El tipo debe ser docente',
-  })
-  readonly tipo;
 }
