@@ -305,7 +305,6 @@ export class ProyectoService {
           port = 3307;
           host = process.env.MONGO_CONTAINER_NAME;
         }
-        console.log(proyect.base_de_datos);
         await this.dockerfileService.buildAndRunContainer(
           proyect.id as unknown as string,
           rute,

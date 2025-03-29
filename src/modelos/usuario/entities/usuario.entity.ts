@@ -52,7 +52,7 @@ export class Usuario {
   @Column({ type: 'varchar', name: 'tipo', nullable: false, length: 13 })
   tipo: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   est_fecha_inicio: Date;
 
   @OneToMany(() => Solicitud, (solicitud) => solicitud.usuario, {
