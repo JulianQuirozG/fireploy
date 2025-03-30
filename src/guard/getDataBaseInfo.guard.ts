@@ -53,7 +53,9 @@ export class GetDataBaseGuard implements CanActivate {
         (estudiante) => estudiante.id == session.sub,
       ) &&
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      proyecto?.tutor.id != session.sub
+      proyecto?.tutor.id != session.sub &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      proyecto.creador.id != session.sub
     ) {
       throw new UnauthorizedException(
         'El usuario no tiene permiso para realizar esta acción',
