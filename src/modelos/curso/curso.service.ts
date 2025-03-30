@@ -36,10 +36,13 @@ export class CursoService {
     }
     let docente;
     if (createCursoDto.docenteId) {
-      const docentes = await this.usuarioService.findAll({
-        id: +createCursoDto.docenteId,
-        tipo: 'Docente',
-      });
+      const docentes = await this.usuarioService.findAll(
+        {
+          id: +createCursoDto.docenteId,
+          tipo: 'Docente',
+        },
+        true,
+      );
       if (!docentes || docentes.length === 0) {
         throw new NotFoundException(
           `El docente con el ID: ${createCursoDto.docenteId} no encontrado o no es docente`,
@@ -56,46 +59,93 @@ export class CursoService {
       estado: createCursoDto.estado,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       docente,
-      materia, // Aquí asignamos la relación correctamente
+      materia,
     });
 
-    return this.cursoRepository.save(nuevoCurso);
+    await this.cursoRepository.save(nuevoCurso);
+    return this.findOne(id);
   }
 
   async findAll(filters?: FilterCursoDto) {
+    const query = this.cursoRepository
+      .createQueryBuilder('curso')
+      .leftJoinAndSelect('curso.materia', 'materia')
+      .leftJoinAndSelect('curso.docente', 'docente')
+      .leftJoinAndSelect('curso.secciones', 'seccion')
+      .leftJoinAndSelect('curso.estudiantes', 'estudiante')
+      .select([
+        'curso.id',
+        'curso.grupo',
+        'curso.semestre',
+        'curso.descripcion',
+        'curso.estado',
+        'materia.id',
+        'materia.nombre',
+        'materia.semestre',
+        'materia.estado',
+        'docente.id',
+        'docente.nombre',
+        'docente.apellido',
+        'docente.fecha_nacimiento',
+        'docente.sexo',
+        'docente.descripcion',
+        'docente.correo',
+        'docente.red_social',
+        'docente.foto_perfil',
+        'docente.tipo',
+        'docente.est_fecha_inicio',
+        'docente.estado',
+        'seccion.id',
+        'seccion.titulo',
+        'seccion.descripcion',
+        'seccion.fecha_inicio',
+        'seccion.fecha_fin',
+        'seccion.estado',
+        'estudiante.id',
+        'estudiante.nombre',
+        'estudiante.apellido',
+        'estudiante.fecha_nacimiento',
+        'estudiante.sexo',
+        'estudiante.descripcion',
+        'estudiante.correo',
+        'estudiante.red_social',
+        'estudiante.foto_perfil',
+        'estudiante.tipo',
+        'estudiante.est_fecha_inicio',
+        'estudiante.estado',
+      ]);
+
     if (filters) {
-      const { materia, docente } = filters;
-      const materiaId = materia as unknown as string;
-      const docenteId = docente as unknown as string;
-
-      //verify curso exists
-      if (materiaId) {
-        const exist = await this.materiaService.findOne(+materiaId);
-
-        if (!exist)
+      if (filters.materia) {
+        const existMateria = await this.materiaService.findOne(
+          +filters.materia,
+        );
+        if (!existMateria) {
           throw new BadRequestException(
-            `La materia con id ${materiaId} No existe`,
+            `La materia con id ${filters.materia} no existe`,
           );
-
-        filters.materia = exist;
+        }
+        query.andWhere('materia.id = :materiaId', {
+          materiaId: filters.materia,
+        });
       }
 
-      //verify docente exists
-      if (docenteId) {
-        const exist = await this.docenteService.findOne(+docenteId);
-
-        if (!exist)
+      if (filters.docente) {
+        const existDocente = await this.docenteService.findOne(
+          +filters.docente,
+        );
+        if (!existDocente) {
           throw new BadRequestException(
-            `El docente con id ${docenteId} No existe`,
+            `El docente con id ${filters.docente} no existe`,
           );
-
-        filters.docente = exist;
+        }
+        query.andWhere('docente.id = :docenteId', {
+          docenteId: filters.docente,
+        });
       }
     }
-    return await this.cursoRepository.find({
-      where: filters,
-      relations: ['materia', 'docente'],
-    });
+
+    return await query.getMany();
   }
 
   async findAllByMateria(id: number) {
@@ -106,13 +156,61 @@ export class CursoService {
   }
 
   async findOne(id: string) {
-    const curso = await this.cursoRepository.findOne({
-      where: { id: id },
-      relations: ['materia', 'docente', 'estudiantes'],
-    });
+    const query = this.cursoRepository
+      .createQueryBuilder('curso')
+      .leftJoinAndSelect('curso.materia', 'materia')
+      .leftJoinAndSelect('curso.docente', 'docente')
+      .leftJoinAndSelect('curso.secciones', 'seccion')
+      .leftJoinAndSelect('curso.estudiantes', 'estudiante')
+      .select([
+        'curso.id',
+        'curso.grupo',
+        'curso.semestre',
+        'curso.descripcion',
+        'curso.estado',
+        'materia.id',
+        'materia.nombre',
+        'materia.semestre',
+        'materia.estado',
+        'docente.id',
+        'docente.nombre',
+        'docente.apellido',
+        'docente.fecha_nacimiento',
+        'docente.sexo',
+        'docente.descripcion',
+        'docente.correo',
+        'docente.red_social',
+        'docente.foto_perfil',
+        'docente.tipo',
+        'docente.est_fecha_inicio',
+        'docente.estado',
+        'seccion.id',
+        'seccion.titulo',
+        'seccion.descripcion',
+        'seccion.fecha_inicio',
+        'seccion.fecha_fin',
+        'seccion.estado',
+        'estudiante.id',
+        'estudiante.nombre',
+        'estudiante.apellido',
+        'estudiante.fecha_nacimiento',
+        'estudiante.sexo',
+        'estudiante.descripcion',
+        'estudiante.correo',
+        'estudiante.red_social',
+        'estudiante.foto_perfil',
+        'estudiante.tipo',
+        'estudiante.est_fecha_inicio',
+        'estudiante.estado',
+      ])
+      .where('curso.id = :id', { id });
+
+    const curso = await query.getOne();
+
     if (!curso) {
       throw new NotFoundException('El curso que está buscando no existe');
     }
+
     return curso;
   }
 
@@ -122,10 +220,13 @@ export class CursoService {
 
     //If docente change verify docente exists
     if (updateCursoDto.docente) {
-      const tutor = await this.usuarioService.findAll({
-        id: +updateCursoDto.docente,
-        tipo: 'Docente',
-      });
+      const tutor = await this.usuarioService.findAll(
+        {
+          id: +updateCursoDto.docente,
+          tipo: 'Docente',
+        },
+        true,
+      );
       if (!tutor) {
         throw new NotFoundException('No existe un docente con ese id');
       }

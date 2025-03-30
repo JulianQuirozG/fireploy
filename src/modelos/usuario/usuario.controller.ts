@@ -17,7 +17,6 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { FilterUsuarioDto } from './dto/filter-usuario.dto';
 import { CreateUserGuard } from 'src/guard/createUser.guard';
 import { Public } from 'src/decorators/public.decorator';
-import { GetUserPermissionGuard } from 'src/guard/getUserInfo.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateUserPermissionGuard } from 'src/guard/updateUserPermission.guard';
 import { UpdateUserImageGuard } from 'src/guard/updateUserImage.guard';
@@ -36,15 +35,13 @@ export class UsuarioController {
   }
 
   @Get()
-  @UseGuards(GetUserPermissionGuard)
   findAll(@Query() filters: FilterUsuarioDto) {
-    return this.usuarioService.findAll(filters);
+    return this.usuarioService.findAll(filters, false);
   }
 
   @Get(':id')
-  @UseGuards(GetUserPermissionGuard)
   findOne(@Param('id') id: string) {
-    return this.usuarioService.findOne(+id);
+    return this.usuarioService.findOne(+id, false);
   }
 
   @Patch(':id')
@@ -71,7 +68,7 @@ export class UsuarioController {
   @Post('carga_masiva')
   @UseInterceptors(FileInterceptor('file'))
   @UseGuards(RolesGuard)
-  @Roles('Administrador', 'Docente')
+  @Roles('Administrador')
   createUsers(@UploadedFile() file: Express.Multer.File) {
     return this.usuarioService.UploadUsers(file);
   }

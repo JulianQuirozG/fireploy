@@ -39,7 +39,7 @@ export class CursoController {
   findOne(@Param('id') id: string) {
     return this.cursoService.findOne(id);
   }
-  //Falta el middelware
+
   @Patch(':id')
   @UseGuards(RolesGuard, CreateCursoPermissionGuard)
   @Roles('Administrador', 'Docente')

@@ -8,9 +8,6 @@ import {
 
 export class UpdateUsuarioDto {
   @IsOptional()
-  id: number;
-
-  @IsOptional()
   @IsString({ message: 'El nombre debe ser una cadena de texto' })
   @MaxLength(50, { message: 'El nombre no puede tener más de 50 caracteres' })
   readonly nombre?: string;
@@ -66,9 +63,14 @@ export class UpdateUsuarioDto {
   readonly foto_perfil?: string;
 
   @IsOptional()
-  @IsString({ message: 'El tipo debe ser un string' })
-  @IsIn(['Docente'], {
-    message: 'El tipo debe ser docente',
+  @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida' })
+  est_fecha_inicio?: Date;
+
+  @IsOptional()
+  @IsString({ message: 'tipo debe ser una cadena de texto' })
+  @MaxLength(13, { message: 'tipo debe tener maximo 13 carácteres' })
+  @IsIn(['Administrador', 'Docente', 'Estudiante'], {
+    message: `tipo debe ser (Docente) Docente, (Estudiante) Estudiante`,
   })
-  readonly tipo;
+  readonly tipo: string;
 }

@@ -38,7 +38,7 @@ export class CreateCursoPermissionGuard implements CanActivate {
 
     const curso = await this.cursoService.findOne(id as string);
 
-    // Verificar permisos del estudiante
+    // Verificar permisos del usuario
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (session.tipo === 'Administrador' || curso.docente.id == session.sub) {
       return true;

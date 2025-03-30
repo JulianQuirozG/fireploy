@@ -20,16 +20,17 @@ import { RequestWithUser } from 'src/interfaces/request.interface';
 @Controller('proyecto')
 export class ProyectoController {
   constructor(private readonly proyectoService: ProyectoService) {}
-  
+
   @Post()
   @UseGuards(ExtractUserIdGuard)
-  create(@Body() createProyectoDto: CreateProyectoDto,  @Req() request: RequestWithUser) {
-    console.log(request);
+  create(
+    @Body() createProyectoDto: CreateProyectoDto,
+    @Req() request: RequestWithUser,
+  ) {
     if (!request.user?.id) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
-    console.log(request.user);
-    return this.proyectoService.create(createProyectoDto,request.user.id);
+    return this.proyectoService.create(createProyectoDto, request.user.id);
   }
 
   @Get()

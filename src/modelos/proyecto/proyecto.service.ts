@@ -35,7 +35,7 @@ export class ProyectoService {
     private systemService: SystemService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
-    const creador = await this.usuarioService.findOne(userId);
+    const creador = await this.usuarioService.findOne(userId, true);
     let estudiantes: Estudiante[] = [];
     if (
       createProyectoDto.estudiantesIds &&
@@ -305,7 +305,6 @@ export class ProyectoService {
           port = 3307;
           host = process.env.MONGO_CONTAINER_NAME;
         }
-        console.log(proyect.base_de_datos);
         await this.dockerfileService.buildAndRunContainer(
           proyect.id as unknown as string,
           rute,
