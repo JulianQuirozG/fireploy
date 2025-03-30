@@ -1,4 +1,13 @@
-import { IsNotEmpty, IsString, IsUrl, Length, IsNumber, IsIn } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsUrl,
+  Length,
+  IsNumber,
+  IsIn,
+  MaxLength,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateRepositorioDto {
   @IsNotEmpty({ message: 'url es obligatorio' })
@@ -27,4 +36,14 @@ export class CreateRepositorioDto {
   @IsNotEmpty({ message: 'El id del proyecto es obligatorio' }) // Puede ser opcional si se permite repos sin un proyecto asociado
   @IsNumber()
   proyecto_id: number;
+
+  @IsOptional()
+  @IsNotEmpty({ message: 'Las variables de entorno no puede estar vacía' })
+  @IsString({
+    message: 'Las variables de entorno debe ser una cadena de texto',
+  })
+  @MaxLength(1024, {
+    message: 'Las variables de entorno no puede tener más de 1024 caracteres',
+  })
+  readonly variables_de_entorno: string;
 }

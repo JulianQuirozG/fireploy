@@ -76,11 +76,15 @@ export class ProyectoService {
       seccion: seccion,
       tutor: docente,
       base_de_datos: createProyectoDto.base_de_datos,
+      tipo_proyecto: createProyectoDto.tipo_proyecto,
     });
     const guardadoProyecto = await this.proyectoRepository.save(nuevoProyecto);
     const proyectoCreado = await this.findOne(guardadoProyecto.id);
-    let puertos: number = ((proyectoCreado.id * 2) + 9998);
-    await this.proyectoRepository.update({id:proyectoCreado.id},{puerto : puertos})
+    const puertos: number = proyectoCreado.id * 2 + 9998;
+    await this.proyectoRepository.update(
+      { id: proyectoCreado.id },
+      { puerto: puertos },
+    );
 
     return await this.findOne(proyectoCreado.id);
   }
@@ -287,7 +291,7 @@ export class ProyectoService {
         repositorio.tipo,
       );
       let puertos: number = proyect.puerto;
-      if(repositorio.tipo === 'B'){
+      if (repositorio.tipo === 'B') {
         puertos++;
       }
       // Create Dockerfile

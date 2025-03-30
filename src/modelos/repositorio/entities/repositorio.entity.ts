@@ -15,6 +15,9 @@ export class Repositorio {
   @Column({ nullable: false, length: 50 })
   tecnologia: string;
 
+  @Column({ nullable: true, length: 1024 })
+  variables_de_entorno: string;
+
   @Column({ nullable: false, length: 20 })
   version: string;
 

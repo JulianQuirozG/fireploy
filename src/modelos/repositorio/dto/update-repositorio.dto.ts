@@ -1,5 +1,10 @@
-import { IsOptional, IsString, IsUrl } from 'class-validator';
-import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateRepositorioDto {
   id?: number;
@@ -9,16 +14,19 @@ export class UpdateRepositorioDto {
 
   @IsOptional()
   @IsString()
-  tipo?: string;
-
-  @IsOptional()
-  @IsString()
   tecnologia?: string;
 
   @IsOptional()
   @IsString()
   version?: string;
 
-  @IsOptional() // Puede ser opcional si se permite repos sin un proyecto asociado
-  proyecto_id?: Proyecto;
+  @IsOptional()
+  @IsNotEmpty({ message: 'Las variables de entorno no puede estar vacía' })
+  @IsString({
+    message: 'Las variables de entorno debe ser una cadena de texto',
+  })
+  @MaxLength(1024, {
+    message: 'Las variables de entorno no puede tener más de 1024 caracteres',
+  })
+  readonly variables_de_entorno: string;
 }

@@ -82,4 +82,15 @@ export class CreateProyectoDto {
   @IsOptional()
   @IsDate()
   fecha_creacion: Date = new Date(Date.now());
+
+  @IsNotEmpty({ message: 'El tipo de proyecto es obligatorio' })
+  @IsString({ message: 'El tipo de proyecto debe ser una cadena de texto' })
+  @MaxLength(1, {
+    message: 'El tipo del proyecto debe tener un solo carácter',
+  })
+  @IsIn(['S', 'M'], {
+    message:
+      'Tipo de proyecto debe ser S (Fronted y backend separados) o M (Arquitecturas monoliticas)',
+  })
+  tipo_proyecto: string;
 }

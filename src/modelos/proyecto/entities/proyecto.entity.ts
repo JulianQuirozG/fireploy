@@ -39,7 +39,7 @@ export class Proyecto {
   @Column({ nullable: false, type: 'char', length: 1 })
   estado_ejecucion: string;
 
-  @Column({ nullable: true, unique:true })
+  @Column({ nullable: true, unique: true })
   puerto: number;
 
   @ManyToMany(() => Usuario, (usuario) => usuario.proyectos)
@@ -67,4 +67,7 @@ export class Proyecto {
 
   @ManyToOne(() => Usuario, (usuario) => usuario.proyectosCreados, { onDelete: 'SET NULL' })
   creador: Usuario;
+
+  @Column({ nullable: false, type: 'char', length: 1 })
+  tipo_proyecto: string;
 }

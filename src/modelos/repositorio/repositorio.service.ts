@@ -10,7 +10,6 @@ import { Repositorio } from './entities/repositorio.entity';
 import { Repository } from 'typeorm';
 import { FilterRepositorioDto } from './dto/filter-repositorio.dto';
 import { ProyectoService } from '../proyecto/proyecto.service';
-import { Proyecto } from '../proyecto/entities/proyecto.entity';
 
 @Injectable()
 export class RepositorioService {
@@ -35,7 +34,9 @@ export class RepositorioService {
       tecnologia: createRepositorioDto.tecnologia,
       proyecto_id: proyecto,
     });
-    return this.repositorioRepository.save(nuevorepositorio);
+    await this.repositorioRepository.save(nuevorepositorio);
+
+    return await this.findOne(nuevorepositorio.id);
   }
 
   async findAll(filters?: FilterRepositorioDto) {
@@ -63,6 +64,7 @@ export class RepositorioService {
   async findOne(id: number) {
     const repo = await this.repositorioRepository.findOne({
       where: { id: id },
+      relations: ['proyecto_id'],
     });
     if (!repo) {
       throw new NotFoundException(`El repositorio con el id: ${id}, no existe`);
@@ -71,16 +73,10 @@ export class RepositorioService {
   }
 
   async update(id: number, updateRepositorioDto: UpdateRepositorioDto) {
+    //Verify repositorio exists
     const repo = await this.findOne(id);
-    let projec;
-    if (updateRepositorioDto.proyecto_id) {
-      const project = await this.proyectoRepository.findOne(
-        +updateRepositorioDto.proyecto_id,
-      );
-      projec = project;
-    }
     updateRepositorioDto.id = repo.id;
-    updateRepositorioDto.proyecto_id = projec as Proyecto;
+    //update repository
     await this.repositorioRepository.save(updateRepositorioDto);
     return this.findOne(id);
   }
