@@ -59,10 +59,11 @@ export class CursoService {
       estado: createCursoDto.estado,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       docente,
-      materia, // Aquí asignamos la relación correctamente
+      materia,
     });
 
-    return this.cursoRepository.save(nuevoCurso);
+    await this.cursoRepository.save(nuevoCurso);
+    return this.findOne(id);
   }
 
   async findAll(filters?: FilterCursoDto) {
