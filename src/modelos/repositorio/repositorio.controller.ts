@@ -6,16 +6,20 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { RepositorioService } from './repositorio.service';
 import { CreateRepositorioDto } from './dto/create-repositorio.dto';
 import { UpdateRepositorioDto } from './dto/update-repositorio.dto';
+import { CreateRepositorioGuard } from 'src/guard/createRepositorio.guard';
+import { updateRepositorioGuard } from 'src/guard/updateRepositorio.guard';
 
 @Controller('repositorio')
 export class RepositorioController {
   constructor(private readonly repositorioService: RepositorioService) {}
 
   @Post()
+  @UseGuards(CreateRepositorioGuard)
   create(@Body() createRepositorioDto: CreateRepositorioDto) {
     return this.repositorioService.create(createRepositorioDto);
   }
@@ -31,6 +35,7 @@ export class RepositorioController {
   }
 
   @Patch(':id')
+  @UseGuards(updateRepositorioGuard)
   update(
     @Param('id') id: string,
     @Body() updateRepositorioDto: UpdateRepositorioDto,
