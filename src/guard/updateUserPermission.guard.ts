@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   CanActivate,
@@ -31,16 +32,18 @@ export class UpdateUserPermissionGuard implements CanActivate {
     if (path.length > 0) {
       id = path[1];
     }
-
     // Verify estudiante or docente permissions
     if (
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       (session.tipo == 'Estudiante' || session.tipo == 'Docente') &&
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       (!id || id != session.sub)
     )
       throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esta acción`,
+      );
+
+    if (req.body.tipo && session.tipo != 'Administrador')
+      throw new ForbiddenException(
+        `El usuario no tiene permiso para modificar el tipo`,
       );
 
     return true;

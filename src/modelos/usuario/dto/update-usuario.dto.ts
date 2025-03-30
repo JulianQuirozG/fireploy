@@ -65,4 +65,12 @@ export class UpdateUsuarioDto {
   @IsOptional()
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida' })
   est_fecha_inicio?: Date;
+
+  @IsOptional()
+  @IsString({ message: 'tipo debe ser una cadena de texto' })
+  @MaxLength(13, { message: 'tipo debe tener maximo 13 carácteres' })
+  @IsIn(['Administrador', 'Docente', 'Estudiante'], {
+    message: `tipo debe ser (Docente) Docente, (Estudiante) Estudiante`,
+  })
+  readonly tipo: string;
 }
