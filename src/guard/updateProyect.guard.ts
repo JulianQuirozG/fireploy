@@ -11,19 +11,23 @@ import { JwtService } from '@nestjs/jwt';
 import { RequestWithUser } from 'src/interfaces/request.interface';
 import { CursoService } from 'src/modelos/curso/curso.service';
 import { CreateProyectoDto } from 'src/modelos/proyecto/dto/create-proyecto.dto';
+import { UpdateProyectoDto } from 'src/modelos/proyecto/dto/update-proyecto.dto';
+import { ProyectoService } from 'src/modelos/proyecto/proyecto.service';
 import { SeccionService } from 'src/modelos/seccion/seccion.service';
 
 @Injectable()
-export class ExtractUserIdGuard implements CanActivate {
+export class updateProyectoGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService,
     private seccionService: SeccionService,
     private cursoService: CursoService,
+    private proyectoService: ProyectoService,
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
     const token = request.headers['sessiontoken'] as string;
-    const { seccionId, tutorId, estudiantesIds } = request.body as unknown as CreateProyectoDto;
+    const { estudiantesIds } = request.body as unknown as UpdateProyectoDto;
+    const { id } = request.params;
 
     if (!token) {
       throw new UnauthorizedException('No se ha suministrado el token');
@@ -36,23 +40,21 @@ export class ExtractUserIdGuard implements CanActivate {
 
       request.user = { id: payload.sub };
 
-      if (payload.tipo === 'Administrador') {
-        return true;
-      }
-
-      const seccion = await this.seccionService.findOne(seccionId);
+      const proyecto = await this.proyectoService.findOne(+id)
+      const seccion = await this.seccionService.findOne(proyecto.seccion.id);
       const curso = await this.cursoService.findOne(seccion.curso.id);
 
-      if ((tutorId && curso.docente.id) && curso.docente.id === tutorId) {
-        return true;
+
+      if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
+        throw new UnauthorizedException('El docente no es tutor del proyecto');
       }
 
-      if (!curso.estudiantes || curso.estudiantes.length === 0) {
+      if (payload.tipo === 'Estudiante' && !curso.estudiantes || curso.estudiantes.length === 0) {
         throw new UnauthorizedException('El curso no tiene estudiantes registrados');
       }
 
       const estudianteEncontrado = curso.estudiantes.some((estudiante) => estudiante.id === payload.sub);
-      if (!estudianteEncontrado) {
+      if ( payload.tipo==='Estudiante' && !estudianteEncontrado) {
         throw new UnauthorizedException('El usuario no pertenece a este curso');
       }
 

@@ -12,6 +12,7 @@ import { GitService } from 'src/services/git.service';
 import { DockerfileService } from 'src/services/docker.service';
 import { SystemService } from 'src/services/system.service';
 import { EstudianteModule } from '../estudiante/estudiante.module';
+import { RepositorioModule } from '../repositorio/repositorio.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Proyecto]),
@@ -21,6 +22,7 @@ import { EstudianteModule } from '../estudiante/estudiante.module';
     SeccionModule,
     EstudianteModule,
     forwardRef(() => BaseDeDatosModule),
+    forwardRef(() => RepositorioModule),
   ],
   controllers: [ProyectoController],
   providers: [ProyectoService, GitService, DockerfileService, SystemService],

@@ -16,6 +16,7 @@ import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { Public } from 'src/decorators/public.decorator';
 import { ExtractUserIdGuard } from 'src/guard/createProyect.guard';
 import { RequestWithUser } from 'src/interfaces/request.interface';
+import { updateProyectoGuard } from 'src/guard/updateProyect.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -55,6 +56,7 @@ export class ProyectoController {
   }
 
   @Patch(':id')
+  @UseGuards(updateProyectoGuard)
   update(
     @Param('id') id: string,
     @Body() updateProyectoDto: UpdateProyectoDto,

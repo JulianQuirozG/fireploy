@@ -18,13 +18,15 @@ import { RolesGuard } from 'src/guard/roles.guard';
 import { GetSolicitudByIdGuard } from 'src/guard/getSolicitudById.guard';
 import { FilterSolicitudDto } from './dto/filter-solicitud.dto';
 import { GetSolicitudesGuard } from 'src/guard/getSolicitudes.guard';
+import { CreateSolicitudGuard } from 'src/guard/createSolicitud.guard';
 
 @Controller('solicitud')
 export class SolicitudController {
   constructor(private readonly solicitudService: SolicitudService) {}
 
   @Post()
-  @Public()
+  @UseGuards(RolesGuard,CreateSolicitudGuard)
+  @Roles('Estudiante')
   create(@Body() createSolicitudDto: CreateSolicitudDto) {
     return this.solicitudService.create(createSolicitudDto);
   }
