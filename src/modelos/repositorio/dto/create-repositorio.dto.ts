@@ -10,10 +10,11 @@ import {
 } from 'class-validator';
 
 export class CreateRepositorioDto {
+  @IsOptional()
   @IsNotEmpty({ message: 'url es obligatorio' })
   @IsUrl()
   @Length(1, 256)
-  url: string;
+  url?: string;
 
   @IsNotEmpty({ message: 'tipo es obligatorio' })
   @IsString()
@@ -23,15 +24,17 @@ export class CreateRepositorioDto {
   })
   tipo: string;
 
+  @IsOptional()
   @IsNotEmpty({ message: 'tecnologia es obligatoria' })
   @IsString()
   @Length(1, 50)
-  tecnologia: string;
+  tecnologia?: string;
 
+  @IsOptional()
   @IsNotEmpty({ message: 'version es obligatorio' })
   @IsString()
   @Length(1, 20)
-  version: string;
+  version?: string;
 
   @IsNotEmpty({ message: 'El id del proyecto es obligatorio' }) // Puede ser opcional si se permite repos sin un proyecto asociado
   @IsNumber()
@@ -45,5 +48,5 @@ export class CreateRepositorioDto {
   @MaxLength(1024, {
     message: 'Las variables de entorno no puede tener más de 1024 caracteres',
   })
-  readonly variables_de_entorno: string;
+  readonly variables_de_entorno?: string;
 }

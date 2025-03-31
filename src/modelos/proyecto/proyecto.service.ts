@@ -18,6 +18,7 @@ import { GitService } from 'src/services/git.service';
 import { DockerfileService } from 'src/services/docker.service';
 import { SystemService } from 'src/services/system.service';
 import { UsuarioService } from '../usuario/usuario.service';
+import { RepositorioService } from '../repositorio/repositorio.service';
 
 @Injectable()
 export class ProyectoService {
@@ -33,7 +34,8 @@ export class ProyectoService {
     private gitService: GitService,
     private dockerfileService: DockerfileService,
     private systemService: SystemService,
-  ) {}
+    private repositoryService: RepositorioService,
+  ) { }
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
     const creador = await this.usuarioService.findOne(userId, true);
     let estudiantes: Estudiante[] = [];
@@ -85,6 +87,13 @@ export class ProyectoService {
       { id: proyectoCreado.id },
       { puerto: puertos },
     );
+
+    if (proyectoCreado.tipo_proyecto === 'S') {
+      await this.repositoryService.create({ tipo: "F", proyecto_id: proyectoCreado.id });
+      await this.repositoryService.create({ tipo: "B", proyecto_id: proyectoCreado.id });
+    } else {
+      await this.repositoryService.create({ tipo: "I", proyecto_id: proyectoCreado.id });
+    }
 
     return await this.findOne(proyectoCreado.id);
   }
@@ -258,8 +267,51 @@ export class ProyectoService {
       .getMany();
   }
 
-  update(id: number, updateProyectoDto: UpdateProyectoDto) {
-    return `This action updates a #${id} proyecto`;
+  async update(id: number, updateProyectoDto: UpdateProyectoDto) {
+    const proyecto = await this.findOne(id);
+    if (updateProyectoDto.tipo_proyecto && updateProyectoDto.tipo_proyecto === 'M' && proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto) {
+      await this.repositoryService.remove(proyecto.repositorios[1].id);
+      await this.repositoryService.remove(proyecto.repositorios[0].id);
+      await this.repositoryService.create({ tipo: "I", proyecto_id: proyecto.id });
+    } else if (updateProyectoDto.tipo_proyecto && updateProyectoDto.tipo_proyecto === 'S' && proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto) {
+      await this.repositoryService.remove(proyecto.repositorios[0].id);
+      await this.repositoryService.create({ tipo: "F", proyecto_id: proyecto.id });
+      await this.repositoryService.create({ tipo: "B", proyecto_id: proyecto.id });
+    }
+
+    if (updateProyectoDto.estudiantesIds) {
+      const estudiantesActualesIds = proyecto.estudiantes.map((e) => e.id);
+  
+      // Filtrar estudiantes a agregar
+      const estudiantesParaAgregar = updateProyectoDto.estudiantesIds.filter(
+        (id) => !estudiantesActualesIds.includes(id),
+      );
+  
+      // Filtrar estudiantes a eliminar
+      const estudiantesParaEliminar = estudiantesActualesIds.filter(
+        (id) => !updateProyectoDto.estudiantesIds?.includes(id),
+      );
+  
+      // Agregar nuevos estudiantes
+      for (const estudianteId of estudiantesParaAgregar) {
+        const estudiante = await this.estudiateService.findOne(estudianteId);
+        if (estudiante) {
+          proyecto.estudiantes.push(estudiante);
+        }
+      }
+  
+      // Eliminar estudiantes que ya no están en la nueva lista
+      proyecto.estudiantes = proyecto.estudiantes.filter(
+        (e) => !estudiantesParaEliminar.includes(e.id),
+      );
+    }
+  
+    // **Actualizar los demás datos del proyecto**
+    Object.assign(proyecto, updateProyectoDto); 
+  
+    await this.proyectoRepository.save(proyecto);
+    const proyectoActualizado = await this.findOne(id);
+    return proyectoActualizado;
   }
 
   remove(id: number) {

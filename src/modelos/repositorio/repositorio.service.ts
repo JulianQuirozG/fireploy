@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,8 +18,9 @@ export class RepositorioService {
   constructor(
     @InjectRepository(Repositorio)
     private repositorioRepository: Repository<Repositorio>,
+    @Inject(forwardRef(() => ProyectoService))
     private proyectoRepository: ProyectoService,
-  ) {}
+  ) { }
   async create(createRepositorioDto: CreateRepositorioDto) {
     const proyecto = await this.proyectoRepository.findOne(
       +createRepositorioDto.proyecto_id,
@@ -81,7 +84,9 @@ export class RepositorioService {
     return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} repositorio`;
+  async remove(id: number) {
+    const repository = await this.findOne(id);
+    await this.repositorioRepository.delete(repository.id)
+    return `repositorio con el #${id} ha sido eliminado, con referencia al proyecto ${repository.proyecto_id} ha sido elimnado correctamente`;
   }
 }

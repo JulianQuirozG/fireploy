@@ -6,19 +6,19 @@ export class Repositorio {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false, length: 256 })
+  @Column({ nullable: true, length: 256 })
   url: string;
 
   @Column({ type: 'char', length: 1 })
   tipo: string;
 
-  @Column({ nullable: false, length: 50 })
+  @Column({ nullable: true, length: 50 })
   tecnologia: string;
 
   @Column({ nullable: true, length: 1024 })
   variables_de_entorno: string;
 
-  @Column({ nullable: false, length: 20 })
+  @Column({ nullable: true, length: 20 })
   version: string;
 
   @ManyToOne(() => Proyecto, (proyecto) => proyecto.repositorios, {
