@@ -6,11 +6,15 @@ import { Repository } from 'typeorm';
 import { Solicitud } from './entities/solicitud.entity';
 import { InjectRepository } from '@nestjs/typeorm/dist';
 import { FilterSolicitudDto } from './dto/filter-solicitud.dto';
+import { CursoService } from '../curso/curso.service';
+import { Docente } from '../docente/entities/docente.entity';
+import { Usuario } from '../usuario/entities/usuario.entity';
 
 @Injectable()
 export class SolicitudService {
   constructor(
     private usuarioService: UsuarioService,
+    private cursoService: CursoService,
     @InjectRepository(Solicitud)
     private solicitudRepository: Repository<Solicitud>,
   ) {}
@@ -111,6 +115,7 @@ export class SolicitudService {
         'solicitud.id',
         'solicitud.estado',
         'solicitud.fecha_solicitud',
+        'solicitud.tipo_solicitud',
         'solicitud.fecha_respuesta',
         'solicitud.tipo_solicitud',
         'usuario.id',
@@ -135,7 +140,6 @@ export class SolicitudService {
         .addSelect('curso.id');
 
       const solicitudConCurso = await queryCurso.getOne();
-      console.log(1);
       return { ...solicitud, curso: solicitudConCurso?.curso };
     }
 
@@ -151,7 +155,7 @@ export class SolicitudService {
    */
   async update(id: number, updateSolicitudDto: UpdateSolicitudDto) {
     //verify solicitud exists
-    const solicitud = await this.findOne(id);
+    let solicitud = await this.findOne(id);
 
     if (solicitud.estado != process.env.IN_WAIT_STATE_SOLICITUD) {
       throw new NotFoundException(
@@ -164,23 +168,43 @@ export class SolicitudService {
       updateSolicitudDto.aprobado_by,
       true,
     );
-
     //Update solicitud
-    const solcitud = await this.solicitudRepository.save({
+    solicitud = await this.solicitudRepository.save({
       id: id,
       fecha_respuesta: new Date(),
       estado: updateSolicitudDto.estado,
       aprobado_by: user_approver,
     });
-
-    const response = await this.findOne(solcitud.id);
-
-    //Update user State
-    const user = response.usuario;
-    if (response.estado == process.env.APPROVED_STATE_SOLICITUD) {
+    const response = await this.findOne(solicitud.id);
+    if (response.estado == 'R') return response;
+    if (response.tipo_solicitud == 1) {
+      //Update user State
+      const user = response.usuario;
       user.tipo = 'Docente';
       await this.usuarioService.update(user.id, user);
+    } else {
+      const solicitudesRelacionadas = await this.findAll({
+        tipo_solicitud: 2,
+        curso: response.curso?.id,
+        estado: process.env.IN_WAIT_STATE_SOLICITUD,
+      });
+      if (solicitudesRelacionadas.length > 0) {
+        for (const solicitud of solicitudesRelacionadas) {
+          solicitud.estado = 'R';
+          solicitud.fecha_respuesta = new Date();
+          solicitud.aprobado_by = user_approver as Usuario;
+        }
+        await this.solicitudRepository.save(solicitudesRelacionadas);
+      }
+      //Update docente curso
+      const user = response.usuario;
+      const curso = await this.cursoService.findOne(
+        response.curso?.id as string,
+      );
+      curso.docente = user.id as unknown as Docente;
+      await this.cursoService.update(curso.id, curso);
     }
+
     return response;
   }
 
