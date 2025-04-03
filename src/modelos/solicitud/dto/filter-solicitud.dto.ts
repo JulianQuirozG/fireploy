@@ -12,4 +12,14 @@ export class FilterSolicitudDto {
   @Type(() => Number)
   @IsNumber({}, { message: 'El usuario debe ser un número válido' })
   usuario?: number;
+
+  @IsOptional()
+  @IsIn([1, 2], {
+    message:
+      'El tipo de solicitud debe ser 1 (Cambio de rol) o 2 (Solicitud de tutor)',
+  })
+  tipo_solicitud?: number;
+
+  @IsOptional()
+  curso?: string;
 }

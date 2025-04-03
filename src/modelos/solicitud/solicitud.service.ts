@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
 import { UsuarioService } from '../usuario/usuario.service';
@@ -27,28 +23,24 @@ export class SolicitudService {
    * @throws NotFoundException if the user does not exist.
    */
   async create(createSolicitudDto: CreateSolicitudDto) {
-    const { usuario } = createSolicitudDto;
+    const { usuario, cursoId, tipo_solicitud } = createSolicitudDto;
     const user = await this.usuarioService.findOne(usuario, true);
 
-    if (!user)
-      throw new NotFoundException(`El usuario con el id ${usuario} no existe`);
-
-    const solicitudesPendientes = await this.findAll({
-      usuario: user.id,
-      estado: 'P',
-    });
-
-    if (solicitudesPendientes && solicitudesPendientes.length > 0) {
-      throw new BadRequestException(
-        'El usuario ya tiene solicitudes pendientes.',
-      );
+    let solicitud: Solicitud;
+    if (tipo_solicitud == 1) {
+      solicitud = await this.solicitudRepository.save({
+        usuario: user,
+        tipo_solicitud: 1,
+      });
+    } else {
+      solicitud = await this.solicitudRepository.save({
+        usuario: user,
+        tipo_solicitud: 2,
+        curso: { id: cursoId },
+      });
     }
 
-    const solicitud = this.solicitudRepository.save({
-      usuario: user,
-    });
-
-    return solicitud;
+    return await this.findOne(solicitud.id);
   }
 
   // Return a solicitud filter list
@@ -56,24 +48,46 @@ export class SolicitudService {
     const query = this.solicitudRepository
       .createQueryBuilder('solicitud')
       .leftJoinAndSelect('solicitud.usuario', 'usuario')
-      .leftJoinAndSelect('solicitud.aprobado_by', 'aprobado_by')
-      .select([
-        'solicitud.id',
-        'solicitud.estado',
-        'solicitud.fecha_solicitud',
-        'solicitud.fecha_respuesta',
-        'usuario.id',
-        'usuario.nombre',
-        'aprobado_by.id',
-        'aprobado_by.nombre',
-      ]);
+      .leftJoinAndSelect('solicitud.aprobado_by', 'aprobado_by');
 
+    // Unir curso SOLO si tipo_solicitud es 2
+    if (filters?.tipo_solicitud === 2 || !filters?.tipo_solicitud) {
+      query.leftJoinAndSelect('solicitud.curso', 'curso');
+    }
+
+    query.select([
+      'solicitud.id',
+      'solicitud.estado',
+      'solicitud.fecha_solicitud',
+      'solicitud.fecha_respuesta',
+      'solicitud.tipo_solicitud',
+      'usuario.id',
+      'usuario.nombre',
+      'aprobado_by.id',
+      'aprobado_by.nombre',
+    ]);
+
+    if (filters?.tipo_solicitud === 2 || !filters?.tipo_solicitud) {
+      query.addSelect('curso.id');
+    }
+
+    // Aplicar filtros
     if (filters?.usuario) {
       query.andWhere('usuario.id = :usuarioId', { usuarioId: filters.usuario });
     }
 
     if (filters?.estado) {
       query.andWhere('solicitud.estado = :estado', { estado: filters.estado });
+    }
+
+    if (filters?.tipo_solicitud) {
+      query.andWhere('solicitud.tipo_solicitud = :tipo', {
+        tipo: filters.tipo_solicitud,
+      });
+    }
+
+    if (filters?.curso && filters.tipo_solicitud === 2) {
+      query.andWhere('curso.id = :cursoId', { cursoId: filters.curso });
     }
 
     return await query.getMany();
@@ -87,15 +101,43 @@ export class SolicitudService {
    * @throws NotFoundException if the solicitud is not found.
    */
   async findOne(id: number) {
-    const solicitud = await this.solicitudRepository.findOne({
-      where: { id: id },
-      relations: ['usuario', 'aprobado_by'],
-    });
+    // Obtener la solicitud sin curso
+    const query = this.solicitudRepository
+      .createQueryBuilder('solicitud')
+      .leftJoinAndSelect('solicitud.usuario', 'usuario')
+      .leftJoinAndSelect('solicitud.aprobado_by', 'aprobado_by')
+      .where('solicitud.id = :id', { id })
+      .select([
+        'solicitud.id',
+        'solicitud.estado',
+        'solicitud.fecha_solicitud',
+        'solicitud.fecha_respuesta',
+        'solicitud.tipo_solicitud',
+        'usuario.id',
+        'usuario.nombre',
+        'aprobado_by.id',
+        'aprobado_by.nombre',
+      ]);
 
-    if (!solicitud)
+    // Verificar si la solicitud es tipo 2 antes de unir `curso`
+    const solicitud = await query.getOne();
+    if (!solicitud) {
       throw new NotFoundException(
         `La solicitud con el id ${id} no se encuentra en la base de datos.`,
       );
+    }
+
+    if (solicitud.tipo_solicitud === 2) {
+      const queryCurso = this.solicitudRepository
+        .createQueryBuilder('solicitud')
+        .leftJoinAndSelect('solicitud.curso', 'curso')
+        .where('solicitud.id = :id', { id })
+        .addSelect('curso.id');
+
+      const solicitudConCurso = await queryCurso.getOne();
+      console.log(1);
+      return { ...solicitud, curso: solicitudConCurso?.curso };
+    }
 
     return solicitud;
   }
@@ -124,14 +166,14 @@ export class SolicitudService {
     );
 
     //Update solicitud
-    let response = await this.solicitudRepository.save({
+    const solcitud = await this.solicitudRepository.save({
       id: id,
       fecha_respuesta: new Date(),
       estado: updateSolicitudDto.estado,
       aprobado_by: user_approver,
     });
 
-    response = await this.findOne(response.id);
+    const response = await this.findOne(solcitud.id);
 
     //Update user State
     const user = response.usuario;

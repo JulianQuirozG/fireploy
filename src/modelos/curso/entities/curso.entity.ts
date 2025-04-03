@@ -1,5 +1,6 @@
 import { Materia } from 'src/modelos/materia/entities/materia.entity';
 import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
+import { Solicitud } from 'src/modelos/solicitud/entities/solicitud.entity';
 import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 import {
   Column,
@@ -36,6 +37,9 @@ export class Curso {
 
   @OneToMany(() => Seccion, (seccion) => seccion.curso)
   secciones: Seccion[];
+
+  @OneToMany(() => Solicitud, (solicitud) => solicitud.curso)
+  solicitudes: Solicitud[];
 
   @ManyToMany(() => Usuario, (usuario) => usuario.cursos)
   estudiantes: Usuario[];
