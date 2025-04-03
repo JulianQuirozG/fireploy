@@ -11,7 +11,7 @@ import { DocenteModule } from '../docente/docente.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Curso, Usuario]),
+    TypeOrmModule.forFeature([Curso]),
     MateriaModule,
     forwardRef(() => UsuarioModule),
     EstudianteModule,

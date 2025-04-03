@@ -1,3 +1,4 @@
+import { Curso } from 'src/modelos/curso/entities/curso.entity';
 import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -15,6 +16,15 @@ export class Solicitud {
     onDelete: 'CASCADE',
   })
   aprobado_by: Usuario;
+
+  @Column({ nullable: false })
+  tipo_solicitud: number;
+
+  @ManyToOne(() => Curso, (curso) => curso.solicitudes, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  curso: Curso;
 
   @Column({ default: 'P', nullable: false, length: 10 })
   estado: string = 'P';

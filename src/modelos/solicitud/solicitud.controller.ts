@@ -12,7 +12,6 @@ import {
 import { SolicitudService } from './solicitud.service';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
-import { Public } from 'src/decorators/public.decorator';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { GetSolicitudByIdGuard } from 'src/guard/getSolicitudById.guard';
@@ -25,8 +24,8 @@ export class SolicitudController {
   constructor(private readonly solicitudService: SolicitudService) {}
 
   @Post()
-  @UseGuards(RolesGuard,CreateSolicitudGuard)
-  @Roles('Estudiante')
+  @UseGuards(RolesGuard, CreateSolicitudGuard)
+  @Roles('Estudiante', 'Docente')
   create(@Body() createSolicitudDto: CreateSolicitudDto) {
     return this.solicitudService.create(createSolicitudDto);
   }
