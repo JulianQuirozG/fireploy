@@ -22,6 +22,7 @@ import { UpdateUserPermissionGuard } from 'src/guard/updateUserPermission.guard'
 import { UpdateUserImageGuard } from 'src/guard/updateUserImage.guard';
 import { RolesGuard } from 'src/guard/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -72,4 +73,11 @@ export class UsuarioController {
   createUsers(@UploadedFile() file: Express.Multer.File) {
     return this.usuarioService.UploadUsers(file);
   }
+
+  @Post('changepassword/:id')
+  @Public()
+  password(@Param('id') id: string, @Body() createUsuarioDto: UpdatePasswordDto) {
+    return this.usuarioService.changePassword(+id, createUsuarioDto);
+  }
+    
 }
