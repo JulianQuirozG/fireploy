@@ -29,6 +29,7 @@ import { SessionTokenGuard } from './guard/sessionToken.guard';
 import { DockerfileService } from './services/docker.service';
 import { SolicitudModule } from './modelos/solicitud/solicitud.module';
 import { Solicitud } from './modelos/solicitud/entities/solicitud.entity';
+import { MailModule } from './mail/mail.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -68,6 +69,7 @@ import { Solicitud } from './modelos/solicitud/entities/solicitud.entity';
     BaseDeDatosModule,
     AuthModule,
     SolicitudModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

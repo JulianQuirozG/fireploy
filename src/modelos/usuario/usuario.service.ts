@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,6 +16,8 @@ import { FirebaseService } from 'src/services/firebase.service';
 import * as xlsx from 'xlsx';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsuarioService {
@@ -22,7 +26,8 @@ export class UsuarioService {
     private usersRepository: Repository<Usuario>,
     private encrypt: Encrypt,
     private firebaseService: FirebaseService,
-  ) {}
+    private mailService: MailService,
+  ) { }
 
   async create(createUsuarioDto: CreateUsuarioDto) {
     //verify user exists
@@ -231,4 +236,9 @@ export class UsuarioService {
       return { mensaje: 'Usuarios cargados con exito' };
     }
   }
+
+  async changePassword(id: number, updateUsuarioDto: UpdatePasswordDto) {
+    return this.mailService.enviarCorreo(updateUsuarioDto.correo, 'Prueba de correo', '¡Hola! Este es un correo de prueba desde NestJS.')
+  }
+  
 }
