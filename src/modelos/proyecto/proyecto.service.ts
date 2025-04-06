@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { Proyecto } from './entities/proyecto.entity';
@@ -19,6 +19,7 @@ import { DockerfileService } from 'src/services/docker.service';
 import { SystemService } from 'src/services/system.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { RepositorioService } from '../repositorio/repositorio.service';
+import { BaseDeDato } from '../base_de_datos/entities/base_de_dato.entity';
 
 @Injectable()
 export class ProyectoService {
@@ -35,7 +36,7 @@ export class ProyectoService {
     private dockerfileService: DockerfileService,
     private systemService: SystemService,
     private repositoryService: RepositorioService,
-  ) { }
+  ) {}
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
     const creador = await this.usuarioService.findOne(userId, true);
     let estudiantes: Estudiante[] = [];
@@ -59,10 +60,16 @@ export class ProyectoService {
       curso.docente.id,
     );
 
-    if (createProyectoDto.base_de_datos)
-      createProyectoDto.base_de_datos = await this.baseDeDatosService.create(
-        createProyectoDto.base_de_datos,
-      );
+    if (createProyectoDto.base_de_datos) {
+      const db = await this.baseDeDatosService.findAll({
+        nombre: createProyectoDto.base_de_datos.nombre,
+      });
+      console.log(db);
+      if (db.length > 0)
+        throw new BadRequestException(
+          `Ya se encuentra registrada una base de datos con el nombre ${createProyectoDto.base_de_datos.nombre}`,
+        );
+    }
 
     const nuevoProyecto = this.proyectoRepository.create({
       titulo: createProyectoDto.titulo,
@@ -77,10 +84,16 @@ export class ProyectoService {
       estudiantes: estudiantes,
       seccion: seccion,
       tutor: docente,
-      base_de_datos: createProyectoDto.base_de_datos,
       tipo_proyecto: createProyectoDto.tipo_proyecto,
     });
+
     const guardadoProyecto = await this.proyectoRepository.save(nuevoProyecto);
+
+    if (createProyectoDto.base_de_datos)
+      createProyectoDto.base_de_datos = await this.baseDeDatosService.create({
+        ...createProyectoDto.base_de_datos,
+        proyecto_id: guardadoProyecto.id,
+      });
     const proyectoCreado = await this.findOne(guardadoProyecto.id);
     const puertos: number = proyectoCreado.id * 2 + 9998;
     await this.proyectoRepository.update(
@@ -89,10 +102,19 @@ export class ProyectoService {
     );
 
     if (proyectoCreado.tipo_proyecto === 'S') {
-      await this.repositoryService.create({ tipo: "F", proyecto_id: proyectoCreado.id });
-      await this.repositoryService.create({ tipo: "B", proyecto_id: proyectoCreado.id });
+      await this.repositoryService.create({
+        tipo: 'F',
+        proyecto_id: proyectoCreado.id,
+      });
+      await this.repositoryService.create({
+        tipo: 'B',
+        proyecto_id: proyectoCreado.id,
+      });
     } else {
-      await this.repositoryService.create({ tipo: "I", proyecto_id: proyectoCreado.id });
+      await this.repositoryService.create({
+        tipo: 'I',
+        proyecto_id: proyectoCreado.id,
+      });
     }
 
     return await this.findOne(proyectoCreado.id);
@@ -269,29 +291,46 @@ export class ProyectoService {
 
   async update(id: number, updateProyectoDto: UpdateProyectoDto) {
     const proyecto = await this.findOne(id);
-    if (updateProyectoDto.tipo_proyecto && updateProyectoDto.tipo_proyecto === 'M' && proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto) {
+    if (
+      updateProyectoDto.tipo_proyecto &&
+      updateProyectoDto.tipo_proyecto === 'M' &&
+      proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto
+    ) {
       await this.repositoryService.remove(proyecto.repositorios[1].id);
       await this.repositoryService.remove(proyecto.repositorios[0].id);
-      await this.repositoryService.create({ tipo: "I", proyecto_id: proyecto.id });
-    } else if (updateProyectoDto.tipo_proyecto && updateProyectoDto.tipo_proyecto === 'S' && proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto) {
+      await this.repositoryService.create({
+        tipo: 'I',
+        proyecto_id: proyecto.id,
+      });
+    } else if (
+      updateProyectoDto.tipo_proyecto &&
+      updateProyectoDto.tipo_proyecto === 'S' &&
+      proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto
+    ) {
       await this.repositoryService.remove(proyecto.repositorios[0].id);
-      await this.repositoryService.create({ tipo: "F", proyecto_id: proyecto.id });
-      await this.repositoryService.create({ tipo: "B", proyecto_id: proyecto.id });
+      await this.repositoryService.create({
+        tipo: 'F',
+        proyecto_id: proyecto.id,
+      });
+      await this.repositoryService.create({
+        tipo: 'B',
+        proyecto_id: proyecto.id,
+      });
     }
 
     if (updateProyectoDto.estudiantesIds) {
       const estudiantesActualesIds = proyecto.estudiantes.map((e) => e.id);
-  
+
       // Filtrar estudiantes a agregar
       const estudiantesParaAgregar = updateProyectoDto.estudiantesIds.filter(
         (id) => !estudiantesActualesIds.includes(id),
       );
-  
+
       // Filtrar estudiantes a eliminar
       const estudiantesParaEliminar = estudiantesActualesIds.filter(
         (id) => !updateProyectoDto.estudiantesIds?.includes(id),
       );
-  
+
       // Agregar nuevos estudiantes
       for (const estudianteId of estudiantesParaAgregar) {
         const estudiante = await this.estudiateService.findOne(estudianteId);
@@ -299,16 +338,16 @@ export class ProyectoService {
           proyecto.estudiantes.push(estudiante);
         }
       }
-  
+
       // Eliminar estudiantes que ya no están en la nueva lista
       proyecto.estudiantes = proyecto.estudiantes.filter(
         (e) => !estudiantesParaEliminar.includes(e.id),
       );
     }
-  
+
     // **Actualizar los demás datos del proyecto**
-    Object.assign(proyecto, updateProyectoDto); 
-  
+    Object.assign(proyecto, updateProyectoDto);
+
     await this.proyectoRepository.save(proyecto);
     const proyectoActualizado = await this.findOne(id);
     return proyectoActualizado;
@@ -335,6 +374,11 @@ export class ProyectoService {
     const dockerfiles: any[] = [];
 
     for (const [index, repositorio] of repositorios.entries()) {
+      if (!repositorio.tecnologia || !repositorio.url || !repositorio.version)
+        throw new NotFoundException(
+          `El repositorio con id ${repositorio.id} no posee 'tecnologia', 'url' o 'version'`,
+        );
+
       // Clone repository
       const rute = await this.gitService.cloneRepositorio(
         repositorio.url,
@@ -357,16 +401,22 @@ export class ProyectoService {
       if (repositorios.length == 1) {
         let port = 3307;
         let host = process.env.MYSQL_CONTAINER_NAME;
-        if (proyect.base_de_datos.tipo != 'S') {
-          port = 3307;
-          host = process.env.MONGO_CONTAINER_NAME;
+        let env_DB = ``;
+
+        if (proyect.base_de_datos) {
+          if (proyect.base_de_datos.tipo != 'S') {
+            port = 3307;
+            host = process.env.MONGO_CONTAINER_NAME;
+          }
+          env_DB = ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e DB_HOST=${host} -e DB_USER=${proyect.base_de_datos.usuario} -e DB_PASSWORD=${proyect.base_de_datos.contrasenia}`;
         }
+
         await this.dockerfileService.buildAndRunContainer(
           proyect.id as unknown as string,
           rute,
           repositorio.tecnologia,
           puertos,
-          ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e DB_HOST=${host} -e DB_USER=${proyect.base_de_datos.usuario} -e DB_PASS="${proyect.base_de_datos.contrasenia}"`,
+          env_DB,
         );
       }
 

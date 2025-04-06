@@ -12,7 +12,7 @@ import {
   IsDate,
   ValidateNested,
 } from 'class-validator';
-import { CreateBaseDeDatoDto } from 'src/modelos/base_de_datos/dto/create-base_de_dato.dto';
+import { CreateBaseDeDatoPartialDto } from 'src/modelos/base_de_datos/dto/create-base_de_dato_partial.dto';
 import { BaseDeDato } from 'src/modelos/base_de_datos/entities/base_de_dato.entity';
 
 export class CreateProyectoDto {
@@ -75,7 +75,7 @@ export class CreateProyectoDto {
   @ValidateNested({
     message: 'La base de datos no tiene una estructura válida',
   })
-  @Type(() => CreateBaseDeDatoDto)
+  @Type(() => CreateBaseDeDatoPartialDto)
   @IsNotEmpty({ message: 'No se mando informacion de la base de datos' })
   base_de_datos?: BaseDeDato;
 

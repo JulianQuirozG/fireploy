@@ -253,12 +253,12 @@ export class DockerfileService {
     dbPassword: string,
   ) {
     const command = `
-      docker exec ${containerName} mysql -u root -p${process.env.MYSQL_ROOT_PASSWORD} -e "
-      CREATE DATABASE IF NOT EXISTS ${dbName};
-      CREATE USER IF NOT EXISTS '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}';
-      GRANT ALL PRIVILEGES ON ${dbName}.* TO '${dbUser}'@'%';
-      FLUSH PRIVILEGES;"
-    `;
+  docker exec ${containerName} mysql -u root -p'${process.env.MYSQL_ROOT_PASSWORD}' -e "
+    CREATE DATABASE IF NOT EXISTS \\\`${dbName}\\\`;
+    CREATE USER IF NOT EXISTS '${dbUser}'@'%' IDENTIFIED BY '${dbPassword}';
+    GRANT ALL PRIVILEGES ON \\\`${dbName}\\\`.* TO '${dbUser}'@'%';
+    FLUSH PRIVILEGES;"
+`;
 
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {

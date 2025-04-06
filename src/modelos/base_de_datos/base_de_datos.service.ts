@@ -1,10 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateBaseDeDatoDto } from './dto/create-base_de_dato.dto';
 import { UpdateBaseDeDatoDto } from './dto/update-base_de_dato.dto';
 import { BaseDeDato } from './entities/base_de_dato.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DockerfileService } from 'src/services/docker.service';
+import { ProyectoService } from '../proyecto/proyecto.service';
+import { FilterBaseDeDatoDto } from './dto/filter-base_de_dato.dto';
 
 @Injectable()
 export class BaseDeDatosService {
@@ -12,6 +19,8 @@ export class BaseDeDatosService {
     @InjectRepository(BaseDeDato)
     private baseDeDatosRepository: Repository<BaseDeDato>,
     private dockerfileService: DockerfileService,
+    @Inject(forwardRef(() => ProyectoService))
+    private proyectoService: ProyectoService,
   ) {}
   async create(createBaseDeDatoDto: CreateBaseDeDatoDto) {
     //save new Base de datos
@@ -26,6 +35,14 @@ export class BaseDeDatosService {
         `Ya existe una base de datos con ese nombre ${error}`,
       );
     }
+
+    //assign database to proyect
+    const project = await this.proyectoService.findOne(
+      createBaseDeDatoDto.proyecto_id,
+    );
+    project.base_de_datos = baseDeDatos;
+
+    await this.proyectoService.update(createBaseDeDatoDto.proyecto_id, project);
 
     //Build DB in DB image
     try {
@@ -45,8 +62,30 @@ export class BaseDeDatosService {
     return baseDeDatos;
   }
 
-  findAll() {
-    return this.baseDeDatosRepository.find();
+  async findAll(filters: FilterBaseDeDatoDto) {
+    const query =
+      this.baseDeDatosRepository.createQueryBuilder('base_de_datos');
+
+    query.select([
+      'base_de_datos.id',
+      'base_de_datos.nombre',
+      'base_de_datos.usuario',
+      'base_de_datos.tipo',
+      'base_de_datos.contrasenia',
+    ]);
+
+    // Aplicar filtros
+    if (filters?.nombre) {
+      query.andWhere('base_de_datos.nombre = :nombre', {
+        nombre: filters.nombre,
+      });
+    }
+
+    if (filters?.tipo) {
+      query.andWhere('base_de_datos.tipo = :tipo', { tipo: filters.tipo });
+    }
+
+    return await query.getMany();
   }
 
   async findOne(id: number) {
