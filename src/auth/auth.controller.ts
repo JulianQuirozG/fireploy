@@ -15,7 +15,7 @@ export class AuthController {
   signIn(@Body() signInDto: Record<string, any>) {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
-
+ 
   @Post('recover')
   @Public()
   async recoverPassword(@Body() updateUsuarioDto: EmailUpdatePasswordDto) {
