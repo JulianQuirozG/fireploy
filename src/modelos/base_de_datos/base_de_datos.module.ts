@@ -12,9 +12,7 @@ import { DockerfileService } from 'src/services/docker.service';
     forwardRef(() => ProyectoModule),
   ],
   controllers: [BaseDeDatosController],
-  providers: [BaseDeDatosService,
-    DockerfileService
-  ],
+  providers: [BaseDeDatosService, DockerfileService],
   exports: [BaseDeDatosService],
 })
-export class BaseDeDatosModule { }
+export class BaseDeDatosModule {}

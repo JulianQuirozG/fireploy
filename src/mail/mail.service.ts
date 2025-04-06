@@ -5,11 +5,15 @@ import { MailerService } from '@nestjs-modules/mailer';
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async enviarCorreo(destinatario: string, asunto: string, mensajeHtml:string) {
+  async enviarCorreo(
+    destinatario: string,
+    asunto: string,
+    mensajeHtml: string,
+  ) {
     await this.mailerService.sendMail({
       to: destinatario,
       subject: asunto,
-      html: mensajeHtml
+      html: mensajeHtml,
     });
     return { message: 'Correo enviado con éxito' };
   }
