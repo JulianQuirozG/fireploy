@@ -10,7 +10,7 @@ import { EmailUpdatePasswordDto } from 'src/modelos/usuario/dto/email-update-pas
 import { UpdatePasswordDto } from 'src/modelos/usuario/dto/update-password.dto';
 import { UsuarioService } from 'src/modelos/usuario/usuario.service';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
-console.log("13")
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -32,7 +32,7 @@ export class AuthService {
     }
     const answer = await this.encrypt.compare(pass, user?.contrasenia);
     if (!answer) throw new UnauthorizedException('La información no coincide');
-    const payload = { sub: user?.id, tipo: user?.tipo };
+    const payload = { sub: user?.id, tipo: user?.tipo, correo: user?.correo };
     const response = {
       access_token: String(
         await this.jwtService.signAsync(payload, {
