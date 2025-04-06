@@ -4,6 +4,7 @@ import { Public } from 'src/decorators/public.decorator';
 import { EmailUpdatePasswordDto } from 'src/modelos/usuario/dto/email-update-password';
 import { UpdatePasswordDto } from 'src/modelos/usuario/dto/update-password.dto';
 import { ForGetPasswordGuard } from 'src/guard/forgetPassword.guard';
+import { RecoverPasswordGuard } from 'src/guard/recoverPassword.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -22,10 +23,16 @@ export class AuthController {
     return this.authService.changepasswordEmail(updateUsuarioDto);
   }  
   
-  @Post('changePassword')
+  @Post('changePassword/:token')
   @Public()
   @UseGuards(ForGetPasswordGuard)
-  async forgetPassword(@Param('token') id: string, @Body() updateUsuarioDto: UpdatePasswordDto) {
+  async forgetPassword(@Param('token') token: string, @Body() updateUsuarioDto: UpdatePasswordDto) {
+    return this.authService.changepassword(updateUsuarioDto);
+  }
+
+  @Post('updatePassword')
+  @UseGuards(RecoverPasswordGuard)
+  async updatePassword(@Body() updateUsuarioDto: UpdatePasswordDto) {
     return this.authService.changepassword(updateUsuarioDto);
   }
 }

@@ -75,7 +75,7 @@ export class CreateSolicitudGuard implements CanActivate {
           );
 
         const curso = await this.cursoService.findOne(cursoId);
-        console.log(cursoId);
+
         if (!curso)
           throw new NotFoundException(
             `El curso del que solicita ser docente no existe.`,
