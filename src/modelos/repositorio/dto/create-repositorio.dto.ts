@@ -6,10 +6,10 @@ import {
   Length,
   IsNumber,
   IsIn,
-  MaxLength,
   IsOptional,
+  ValidateNested,
 } from 'class-validator';
-import { VariablesDeEntorno } from 'src/interfaces/variables_entorno.interface';
+import { VariablesDeEntornoDto } from './variables_de_entorno.dto';
 
 export class CreateRepositorioDto {
   @IsOptional()
@@ -38,17 +38,15 @@ export class CreateRepositorioDto {
   @Length(1, 20)
   version?: string;
 
-  @IsNotEmpty({ message: 'El id del proyecto es obligatorio' }) // Puede ser opcional si se permite repos sin un proyecto asociado
+  @IsNotEmpty({ message: 'El id del proyecto es obligatorio' })
   @IsNumber()
   proyecto_id: number;
 
   @IsOptional()
   @IsNotEmpty({ message: 'Las variables de entorno no puede estar vacía' })
-  @IsString({
-    message: 'Las variables de entorno debe ser una cadena de texto',
+  @ValidateNested({
+    message: 'Las variables de entorno no tiene una estructura válida',
   })
-  @MaxLength(1024, {
-    message: 'Las variables de entorno no puede tener más de 1024 caracteres',
-  })
-  readonly variables_de_entorno?: VariablesDeEntorno[];
+  @Type(() => VariablesDeEntornoDto)
+  readonly variables_de_entorno?: VariablesDeEntornoDto[];
 }

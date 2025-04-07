@@ -1,11 +1,15 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 import { VariablesDeEntorno } from 'src/interfaces/variables_entorno.interface';
+import { CreateBaseDeDatoPartialDto } from 'src/modelos/base_de_datos/dto/create-base_de_dato_partial.dto';
+import { VariablesDeEntornoDto } from './variables_de_entorno.dto';
 
 export class UpdateRepositorioDto {
   id?: number;
@@ -23,11 +27,9 @@ export class UpdateRepositorioDto {
 
   @IsOptional()
   @IsNotEmpty({ message: 'Las variables de entorno no puede estar vacía' })
-  @IsString({
-    message: 'Las variables de entorno debe ser una cadena de texto',
+  @ValidateNested({
+    message: 'Las variables de entorno no tiene una estructura válida',
   })
-  @MaxLength(1024, {
-    message: 'Las variables de entorno no puede tener más de 1024 caracteres',
-  })
+  @Type(() => VariablesDeEntornoDto)
   readonly variables_de_entorno?: VariablesDeEntorno[];
 }
