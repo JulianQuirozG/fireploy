@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { Proyecto } from './entities/proyecto.entity';
@@ -402,6 +406,14 @@ export class ProyectoService {
         let port = 3307;
         let host = process.env.MYSQL_CONTAINER_NAME;
         let env_DB = ``;
+        let custom_env = ``;
+
+        custom_env = repositorios[index].variables_de_entorno
+          .split('\n')
+          .map((variable_de_entorno) => {
+            return `-e ${variable_de_entorno}`;
+          })
+          .join(' ');
 
         if (proyect.base_de_datos) {
           if (proyect.base_de_datos.tipo != 'S') {
@@ -416,7 +428,7 @@ export class ProyectoService {
           rute,
           repositorio.tecnologia,
           puertos,
-          env_DB,
+          custom_env + ' ' + env_DB,
         );
       }
 
