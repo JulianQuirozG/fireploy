@@ -143,6 +143,20 @@ export class CursoService {
           docenteId: filters.docente,
         });
       }
+
+      if (filters.estudiantes) {
+        const existEstudiante = await this.estudianteService.findOne(
+          +filters.estudiantes,
+        );
+        if (!existEstudiante) {
+          throw new BadRequestException(
+            `El estudiante con id ${filters.estudiantes} no existe`,
+          );
+        }
+        query.andWhere('estudiante.id = :estudianteId', {
+          estudianteId: filters.estudiantes,
+        });
+      }
     }
 
     return await query.getMany();

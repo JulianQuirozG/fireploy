@@ -1,6 +1,7 @@
 import { IsIn, IsOptional, IsString, Length, MaxLength } from 'class-validator';
 import { Docente } from 'src/modelos/docente/entities/docente.entity';
 import { Materia } from 'src/modelos/materia/entities/materia.entity';
+import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 
 export class FilterCursoDto {
   @IsOptional()
@@ -29,4 +30,7 @@ export class FilterCursoDto {
 
   @IsOptional()
   materia?: Materia;
+
+  @IsOptional({ message: `Debes enviar al menos un id de estudiante` })
+  estudiantes?: Usuario;
 }
