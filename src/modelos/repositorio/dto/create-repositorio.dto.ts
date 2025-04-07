@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -8,6 +9,7 @@ import {
   MaxLength,
   IsOptional,
 } from 'class-validator';
+import { VariablesDeEntorno } from 'src/interfaces/variables_entorno.interface';
 
 export class CreateRepositorioDto {
   @IsOptional()
@@ -48,5 +50,5 @@ export class CreateRepositorioDto {
   @MaxLength(1024, {
     message: 'Las variables de entorno no puede tener más de 1024 caracteres',
   })
-  readonly variables_de_entorno?: string;
+  readonly variables_de_entorno?: VariablesDeEntorno[];
 }

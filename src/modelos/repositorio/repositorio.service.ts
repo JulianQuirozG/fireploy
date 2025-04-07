@@ -12,6 +12,9 @@ import { Repositorio } from './entities/repositorio.entity';
 import { Repository } from 'typeorm';
 import { FilterRepositorioDto } from './dto/filter-repositorio.dto';
 import { ProyectoService } from '../proyecto/proyecto.service';
+import { stringify } from 'querystring';
+import { VariablesDeEntorno } from 'src/interfaces/variables_entorno.interface';
+import { concat } from 'rxjs';
 
 @Injectable()
 export class RepositorioService {
@@ -30,6 +33,7 @@ export class RepositorioService {
         `El proyecto con el id, ${createRepositorioDto.proyecto_id} no existe`,
       );
     }
+
     const nuevorepositorio = this.repositorioRepository.create({
       version: createRepositorioDto.version,
       url: createRepositorioDto.url,
@@ -37,6 +41,13 @@ export class RepositorioService {
       tecnologia: createRepositorioDto.tecnologia,
       proyecto_id: proyecto,
     });
+
+    if(createRepositorioDto.variables_de_entorno && createRepositorioDto.variables_de_entorno.length>0){
+      nuevorepositorio.variables_de_entorno = createRepositorioDto.variables_de_entorno.map((variable_entorno: VariablesDeEntorno)=>{
+        return variable_entorno.clave+`=`+variable_entorno.valor; 
+      }).join('\n');
+    }
+
     await this.repositorioRepository.save(nuevorepositorio);
 
     return await this.findOne(nuevorepositorio.id);
@@ -77,10 +88,22 @@ export class RepositorioService {
 
   async update(id: number, updateRepositorioDto: UpdateRepositorioDto) {
     //Verify repositorio exists
-    const repo = await this.findOne(id);
+    let repo = await this.findOne(id);
     updateRepositorioDto.id = repo.id;
     //update repository
-    await this.repositorioRepository.save(updateRepositorioDto);
+    if(updateRepositorioDto.variables_de_entorno && updateRepositorioDto.variables_de_entorno.length>0){
+      repo.variables_de_entorno = updateRepositorioDto.variables_de_entorno.map((variable_entorno: VariablesDeEntorno)=>{
+        return variable_entorno.clave+`=`+variable_entorno.valor; 
+      }).join('\n');
+    }
+    const { variables_de_entorno, ...restoDto } = updateRepositorioDto;
+    
+    repo = {
+      ...repo,
+      ...restoDto,
+    };
+
+    await this.repositorioRepository.save(repo);
     return this.findOne(id);
   }
 
