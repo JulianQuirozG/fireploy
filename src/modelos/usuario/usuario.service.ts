@@ -144,10 +144,10 @@ export class UsuarioService {
     }
 
     //Update the user
-    await this.usersRepository.update(id, updateUsuarioDto);
-
+    const result = await this.usersRepository.update(id,updateUsuarioDto);
+    
     //Return the updated user
-    return await this.findOne(id, false);
+    return await this.findOne(id,true);
   }
 
   remove(id: number) {

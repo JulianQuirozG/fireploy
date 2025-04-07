@@ -46,7 +46,7 @@ export class UpdateUsuarioDto {
   @IsIn(['A', 'I'], {
     message: 'estado debe ser "A" para activo o "I" para inactivo',
   })
-  readonly estado?: string;
+  estado?: string;
 
   @IsOptional()
   @IsString({ message: 'La red social debe ser una cadena de texto' })
