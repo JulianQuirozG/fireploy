@@ -45,16 +45,16 @@ export class DockerfileService {
     # Copia el código fuente al contenedor
     COPY . .
 
+    ${envLines}
+
     # Detecta si hay un script de build y lo ejecuta (opcional)
     RUN if [ -f package.json ] && cat package.json | grep -q '"build"'; then npm run build; fi
-
-    ${envLines}
     
     # Expone el puerto definido en la variable de entorno o usa 3000 por defecto
     EXPOSE ${port}
 
     # Usa un entrypoint flexible para adaptarse a cualquier framework
-CMD ["npm", "run", "dev"]    `,
+CMD ["npm", "run", "dev"] `,
 
       python: `# Use Python 3.9 as the base image
     FROM python:3.9
@@ -74,7 +74,7 @@ CMD ["npm", "run", "dev"]    `,
     COPY . .
     
     # Expose the application port
-    EXPOSE ${port}
+    EXPOSE 3000
     
     # Start the application
     CMD ["python", "app.py"]`,
@@ -139,7 +139,6 @@ CMD ["npm", "run", "dev"]    `,
     projectPath: string,
     language: string,
     port,
-    env: string,
   ) {
     try {
       const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
@@ -155,7 +154,7 @@ CMD ["npm", "run", "dev"]    `,
         python: `${port}:5000`,
         php: `${port}:8080`,
       };
-      const runCmd = `docker run -d --network ${networkName} -p ${portMapping[language]} --name ${containerName} ${env} ${imageName} `;
+      const runCmd = `docker run -d --network ${networkName} -p ${portMapping[language]} --name ${containerName}  ${imageName} `;
 
       await this.executeCommand(buildCmd);
       await this.executeCommand(runCmd);
@@ -319,29 +318,30 @@ CMD ["npm", "run", "dev"]    `,
 
     const composeContent = `
 services:
-  backend:
-    build:
-      context: ./Backend
-      dockerfile: Dockerfile
-    container_name: backend_${id}
-    ports:
-      - "${port + 1}:3000"
-    networks:
-      - default
-      - ${process.env.DOCKER_NETWORK}
   frontend:
     build:
       context: ./Frontend
       dockerfile: Dockerfile
     container_name: frontend_${id}
     ports:
-      - "${port}:3000"
+      - "${port}:${port}"
     depends_on:
       - backend
     environment:
-      - NEXT_PUBLIC_URL_BACKEND=localhost:${port + 1}
+      - NEXT_PUBLIC_URL_BACKEND=http://backend:${port + 1}
     networks:
       - default
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: backend_${id}
+    ports:
+      - "${port + 1}:${port + 1}"
+    networks:
+      - default
+      - ${process.env.DOCKER_NETWORK}
+    
 networks:
   ${process.env.DOCKER_NETWORK}:
     external: true
@@ -354,12 +354,14 @@ networks:
     } catch (error) {
       console.log('Error creando el docker compose' + error);
     }
-    const command = `docker-compose -f ${composePath} up`;
 
     try {
-      await this.executeCommand(command);
+      await this.executeCommand(
+        `docker compose -f ${composePath} build --no-cache`,
+      );
+      await this.executeCommand(`docker compose -f ${composePath} up -d`);
     } catch (error) {
-      console.log('Error ejecutando el docker compose' + error);
+      console.log('Error ejecutando el docker compose: ' + error);
     }
     return composePath;
   }
