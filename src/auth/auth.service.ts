@@ -13,17 +13,21 @@ import { Encrypt } from 'src/utilities/hash/hash.encryption';
 import { OAuth2Client } from 'google-auth-library';
 import { CreateUsuarioDto } from 'src/modelos/usuario/dto/create-usuario.dto';
 import { CreateEstudianteDto } from 'src/modelos/estudiante/dto/create-estudiante.dto';
+import { LoginGoogleDto } from './dto/auth-google.dto';
 
 
 @Injectable()
 export class AuthService {
+  private client: OAuth2Client;
   constructor(
     private usuarioService: UsuarioService,
     private encrypt: Encrypt,
     private jwtService: JwtService,
     private mailService: MailService,
-    private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
-  ) { }
+
+  ) {
+    this.client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
 
   async signIn(
     correo: string,
@@ -154,46 +158,71 @@ export class AuthService {
     throw new BadRequestException("El usuario no existe");
   }
 
-  async loginWithGoogle(idToken: string) {
-    // 1. Verificamos el token
-    const ticket = await this.client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    if (!payload) {
-      throw new Error('Token inválido de Google');
-    }
-
-    const { sub: googleId, email, name } = payload;
-
-    if (!email) {
-      throw new BadRequestException('No trae el correo correctamente')
-    }
-    // 2. Verificamos si el usuario ya existe
+  async loginWithGoogle({ idToken }: LoginGoogleDto) {
     try {
-      await this.usuarioService.findOneCorreo(email);
-    }
-    catch (error) {
-      // 3. Si no existe, lo registramos
-      const user = await this.usuarioService.create({
-        nombre: name as string,
-        apellido: '',
-        fecha_nacimiento: new Date(),
-        sexo: '',
-        descripcion: '',
-        correo: email,
-        contrasenia: email,
-        tipo: 'Estudiante',
-        estado: '',
-        red_social: '',
-        foto_perfil: ''
+      const ticket = await this.client.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
       });
+
+      const payload = ticket.getPayload();
+      if (!payload) {
+        throw new UnauthorizedException('Token sin payload válido.');
+      }
+
+      const { sub: googleId, email, name } = payload;
+
+      if (!email) {
+        throw new BadRequestException('El token de Google no contiene el correo electrónico.');
+      }
+
+      // 1. Buscar usuario existente
+      let user,mensaje;
+      try {
+        user = await this.usuarioService.findOneCorreo(email);
+        mensaje="Usario logueado con exito"
+      } catch (error) {
+        // 2. Si no existe, lo creamos
+        user = await this.usuarioService.create({
+          nombre: name ?? '',
+          apellido: '',
+          fecha_nacimiento: new Date(), // Esto lo puedes mejorar si tienes forma de obtenerla
+          sexo: '',
+          descripcion: '',
+          correo: email,
+          contrasenia: email, // Idealmente deberías tener otro sistema para evitar contraseñas visibles
+          tipo: 'Estudiante',
+          estado: '',
+          red_social: 'Google',
+          foto_perfil: payload.picture ?? '',
+        });
+        mensaje="Usario Registrado con exito"
+        user = await this.usuarioService.findOneCorreo(email);
+      }
+
+      const payload2 = { sub: user?.id, tipo: user?.tipo, correo: user?.correo };
+      const response = {
+        message:mensaje,
+        access_token: String(
+          await this.jwtService.signAsync(payload2, {
+            secret: process.env.SECRETTOKEN,
+          }),
+        ),
+        nombre: user?.nombre + ' ' + user?.apellido,
+        tipo: user?.tipo,
+        foto: user?.foto_perfil,
+        id: user?.id,
+      };
+      return response;
+      // 3. Aquí podrías generar y retornar un JWT si usas autenticación por token
+
+    } catch (error) {
+      // Manejo específico del error del tiempo del token
+      if (error.message?.includes('Token used too late')) {
+        throw new UnauthorizedException('El token de Google ha expirado o tu reloj del sistema está desincronizado.');
+      }
+      throw new BadRequestException('Error al validar el token de Google.');
     }
-
-
-
   }
 
 }
