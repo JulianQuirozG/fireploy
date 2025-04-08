@@ -10,6 +10,10 @@ import { EmailUpdatePasswordDto } from 'src/modelos/usuario/dto/email-update-pas
 import { UpdatePasswordDto } from 'src/modelos/usuario/dto/update-password.dto';
 import { UsuarioService } from 'src/modelos/usuario/usuario.service';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
+import { OAuth2Client } from 'google-auth-library';
+import { CreateUsuarioDto } from 'src/modelos/usuario/dto/create-usuario.dto';
+import { CreateEstudianteDto } from 'src/modelos/estudiante/dto/create-estudiante.dto';
+
 
 @Injectable()
 export class AuthService {
@@ -18,6 +22,7 @@ export class AuthService {
     private encrypt: Encrypt,
     private jwtService: JwtService,
     private mailService: MailService,
+    private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
   ) { }
 
   async signIn(
@@ -148,4 +153,47 @@ export class AuthService {
     }
     throw new BadRequestException("El usuario no existe");
   }
+
+  async loginWithGoogle(idToken: string) {
+    // 1. Verificamos el token
+    const ticket = await this.client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      throw new Error('Token inválido de Google');
+    }
+
+    const { sub: googleId, email, name } = payload;
+
+    if (!email) {
+      throw new BadRequestException('No trae el correo correctamente')
+    }
+    // 2. Verificamos si el usuario ya existe
+    try {
+      await this.usuarioService.findOneCorreo(email);
+    }
+    catch (error) {
+      // 3. Si no existe, lo registramos
+      const user = await this.usuarioService.create({
+        nombre: name as string,
+        apellido: '',
+        fecha_nacimiento: new Date(),
+        sexo: '',
+        descripcion: '',
+        correo: email,
+        contrasenia: email,
+        tipo: 'Estudiante',
+        estado: '',
+        red_social: '',
+        foto_perfil: ''
+      });
+    }
+
+
+
+  }
+
 }
