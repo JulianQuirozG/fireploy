@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -22,7 +24,11 @@ export class DockerfileService {
    * @param port The port number that the container should expose.
    * @returns A string containing the corresponding Dockerfile content.
    */
-  private getDockerFile(tech: string, port: number): string {
+  private getDockerFile(tech: string, port: number, env: any[]): string {
+    const envLines = Object.entries(env[0])
+      .map(([key, value]) => `ENV ${key}=${value}`)
+      .join('\n');
+
     const templates = {
       node: `# Usa una versión estable de Node.js como base
     FROM node:18
@@ -34,24 +40,21 @@ export class DockerfileService {
     COPY package*.json ./
 
     # Instala dependencias sin generar archivos innecesarios
-    RUN npm install --omit=dev
+    RUN npm install 
 
     # Copia el código fuente al contenedor
     COPY . .
 
-    ENV BD_HOST=localhost:${process.env.MYSQL_PORT}
-    ENV BD_USER=root
-    ENV BD_PASS=${process.env.MYSQL_ROOT_PASSWORD}
-
     # Detecta si hay un script de build y lo ejecuta (opcional)
     RUN if [ -f package.json ] && cat package.json | grep -q '"build"'; then npm run build; fi
 
+    ${envLines}
+    
     # Expone el puerto definido en la variable de entorno o usa 3000 por defecto
     EXPOSE ${port}
 
     # Usa un entrypoint flexible para adaptarse a cualquier framework
-    CMD ["sh", "-c", "npm start || node server.js || node index.js"]
-    `,
+CMD ["npm", "run", "dev"]    `,
 
       python: `# Use Python 3.9 as the base image
     FROM python:3.9
@@ -65,6 +68,8 @@ export class DockerfileService {
     # Install dependencies
     RUN pip install -r requirements.txt
     
+    ${envLines}
+
     # Copy the entire application source code
     COPY . .
     
@@ -80,6 +85,8 @@ export class DockerfileService {
     # Copy application files to the Apache server directory
     COPY . /var/www/html/
     
+    ${envLines}
+
     # Expose the application port
     EXPOSE ${port}
     
@@ -110,11 +117,11 @@ export class DockerfileService {
     projectPath: string,
     language: string,
     port: number,
+    env: any[],
   ): string {
     const dockerfilePath = path.join(projectPath, 'Dockerfile');
-
     // Retrieve the corresponding Dockerfile template
-    const dockerFile = this.getDockerFile(language, port);
+    const dockerFile = this.getDockerFile(language, port, env);
 
     if (!dockerFile) {
       throw new Error(`Language ${language} is not supported.`);
@@ -300,5 +307,60 @@ export class DockerfileService {
     } catch (error) {
       console.error('Error executing Docker command:', error);
     }
+  }
+
+  async createDockerCompose(id: number, port: number) {
+    const composePath = path.join(
+      process.env.FOLDER_ROUTE + `/${id}`,
+      'docker-compose.yml',
+    );
+    await this.executeCommand(`docker rm -f frontend_${id}`);
+    await this.executeCommand(`docker rm -f backend_${id}`);
+
+    const composeContent = `
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: backend_${id}
+    ports:
+      - "${port + 1}:3000"
+    networks:
+      - default
+      - ${process.env.DOCKER_NETWORK}
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: frontend_${id}
+    ports:
+      - "${port}:3000"
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_URL_BACKEND=localhost:${port + 1}
+    networks:
+      - default
+networks:
+  ${process.env.DOCKER_NETWORK}:
+    external: true
+  default:
+    driver: bridge
+`.trim();
+
+    try {
+      fs.writeFileSync(composePath, composeContent);
+    } catch (error) {
+      console.log('Error creando el docker compose' + error);
+    }
+    const command = `docker-compose -f ${composePath} up`;
+
+    try {
+      await this.executeCommand(command);
+    } catch (error) {
+      console.log('Error ejecutando el docker compose' + error);
+    }
+    return composePath;
   }
 }

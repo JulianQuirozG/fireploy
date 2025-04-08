@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { Proyecto } from './entities/proyecto.entity';
@@ -372,7 +376,12 @@ export class ProyectoService {
 
     //Rutes of dockerfiles
     const dockerfiles: any[] = [];
-
+    let port = 3307;
+    let host = process.env.MYSQL_CONTAINER_NAME;
+    if (proyect.base_de_datos.tipo && proyect.base_de_datos.tipo != 'S') {
+      port = 3307;
+      host = process.env.MONGO_CONTAINER_NAME;
+    }
     for (const [index, repositorio] of repositorios.entries()) {
       if (!repositorio.tecnologia || !repositorio.url || !repositorio.version)
         throw new NotFoundException(
@@ -395,30 +404,16 @@ export class ProyectoService {
         rute,
         repositorio.tecnologia,
         puertos,
+        [
+          {
+            DB_DATABASE: proyect.base_de_datos.nombre,
+            DB_PORT: port,
+            DB_HOST: host,
+            DB_USER: proyect.base_de_datos.usuario,
+            DB_PASSWORD: proyect.base_de_datos.contrasenia,
+          },
+        ],
       );
-
-      //Generate image if is type All
-      if (repositorios.length == 1) {
-        let port = 3307;
-        let host = process.env.MYSQL_CONTAINER_NAME;
-        let env_DB = ``;
-
-        if (proyect.base_de_datos) {
-          if (proyect.base_de_datos.tipo != 'S') {
-            port = 3307;
-            host = process.env.MONGO_CONTAINER_NAME;
-          }
-          env_DB = ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e DB_HOST=${host} -e DB_USER=${proyect.base_de_datos.usuario} -e DB_PASSWORD=${proyect.base_de_datos.contrasenia}`;
-        }
-
-        await this.dockerfileService.buildAndRunContainer(
-          proyect.id as unknown as string,
-          rute,
-          repositorio.tecnologia,
-          puertos,
-          env_DB,
-        );
-      }
 
       // Add dockerfiles
       dockerfiles.push({
@@ -428,7 +423,39 @@ export class ProyectoService {
         port: puertos,
         language: repositorio.tecnologia,
       });
+
+      //Generate image if is type All
+      if (proyect.tipo_proyecto == 'M') {
+        let env_DB = ``;
+        let custom_env = ``;
+
+        custom_env = repositorios[index].variables_de_entorno
+          .split('\n')
+          .map((variable_de_entorno) => {
+            return `-e ${variable_de_entorno}`;
+          })
+          .join(' ');
+
+        if (proyect.base_de_datos) {
+          env_DB = ` -e DB_DATABASE=${proyect.base_de_datos.nombre} -e DB_PORT=${port}  -e DB_HOST=${host} -e DB_USER=${proyect.base_de_datos.usuario} -e DB_PASSWORD=${proyect.base_de_datos.contrasenia}`;
+        }
+
+        await this.dockerfileService.buildAndRunContainer(
+          proyect.id as unknown as string,
+          rute,
+          repositorio.tecnologia,
+          puertos,
+          custom_env + ' ' + env_DB,
+        );
+      }
     }
+
+    const doker_compose_file = this.dockerfileService.createDockerCompose(
+      proyect.id,
+      proyect.puerto,
+    );
+
+    console.log(doker_compose_file);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return dockerfiles;
   }
