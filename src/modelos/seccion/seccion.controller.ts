@@ -41,7 +41,8 @@ export class SeccionController {
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard, updateSeccionGuard)
+  @UseGuards(RolesGuard)
+  @UseGuards(updateSeccionGuard)
   @Roles('Administrador', 'Docente')
   update(@Param('id') id: string, @Body() updateSeccionDto: UpdateSeccionDto) {
     return this.seccionService.update(+id, updateSeccionDto);
