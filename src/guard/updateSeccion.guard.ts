@@ -72,9 +72,11 @@ export class updateSeccionGuard implements CanActivate {
       );
 
     //Verify docente is the curso'tutor
-    if (
-      !curso.docente.id ||
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if(session.tipo=='Administrador')
+      return true
+
+    if (!curso.docente ||
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       (session.tipo == 'Docente' && curso.docente.id != session.sub)
     )
       throw new BadRequestException(
