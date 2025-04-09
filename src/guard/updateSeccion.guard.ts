@@ -44,10 +44,11 @@ export class updateSeccionGuard implements CanActivate {
     }
 
     let id: number | undefined;
+    
     if (path.length > 0) {
       id = path[1] as unknown as number;
     }
-
+    console.log(id);
     //Verify valid id
     if (isNaN(Number(id)))
       throw new BadRequestException(
