@@ -60,6 +60,8 @@ export class updateSeccionGuard implements CanActivate {
     if (!seccion)
       throw new BadRequestException(`La sección a editar no existe`);
 
+    console.log(seccion.curso);
+    console.log(seccion.curso.id);
     const curso = await this.cursoService.findOne(seccion.curso.id);
 
     //Verify user is an estudiante
