@@ -17,7 +17,6 @@ export class SystemService {
    * @returns A promise that resolves to an array of available port numbers.
    * @throws An error if the command execution fails.
    */
-
   getAvailablePorts(): number[] {
     try {
       // Generar lista de todos los puertos y ordenarlos
