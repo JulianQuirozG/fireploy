@@ -125,75 +125,79 @@ export class ProyectoService {
     return await this.findOne(proyectoCreado.id);
   }
 
-  findAll() {
-    return (
-      this.proyectoRepository
-        .createQueryBuilder('proyecto')
-        .leftJoin('proyecto.estudiantes', 'estudiante')
-        .leftJoinAndSelect('proyecto.seccion', 'seccion')
-        .leftJoin('seccion.curso', 'curso')
-        .leftJoin('curso.materia', 'materia')
-        .leftJoin('proyecto.tutor', 'tutor')
-        .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
-        .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
-        .leftJoin('proyecto.creador', 'creador')
+  async findAll() {
+    return await this.proyectoRepository
+      .createQueryBuilder('proyecto')
+      .leftJoin('proyecto.estudiantes', 'estudiante')
+      .leftJoinAndSelect('proyecto.seccion', 'seccion')
+      .leftJoin('seccion.curso', 'curso')
+      .leftJoin('curso.materia', 'materia')
+      .leftJoin('proyecto.tutor', 'tutor')
+      .leftJoin('proyecto.repositorios', 'repositorio')
+      .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
+      .leftJoin('proyecto.creador', 'creador')
 
-        .addSelect([
-          'estudiante.id',
-          'estudiante.nombre',
-          'estudiante.apellido',
-          'estudiante.fecha_nacimiento',
-          'estudiante.sexo',
-          'estudiante.descripcion',
-          'estudiante.correo',
-          'estudiante.red_social',
-          'estudiante.foto_perfil',
-          'estudiante.tipo',
-          'estudiante.est_fecha_inicio',
-        ])
+      .addSelect([
+        'repositorio.id',
+        'repositorio.url',
+        'repositorio.tipo',
+        'repositorio.tecnologia',
+        'repositorio.version',
+      ])
 
-        .addSelect([
-          'tutor.id',
-          'tutor.nombre',
-          'tutor.apellido',
-          'tutor.fecha_nacimiento',
-          'tutor.sexo',
-          'tutor.descripcion',
-          'tutor.correo',
-          'tutor.red_social',
-          'tutor.foto_perfil',
-          'tutor.tipo',
-        ])
+      .addSelect([
+        'estudiante.id',
+        'estudiante.nombre',
+        'estudiante.apellido',
+        'estudiante.fecha_nacimiento',
+        'estudiante.sexo',
+        'estudiante.descripcion',
+        'estudiante.correo',
+        'estudiante.red_social',
+        'estudiante.foto_perfil',
+        'estudiante.tipo',
+        'estudiante.est_fecha_inicio',
+      ])
 
-        .addSelect([
-          'creador.id',
-          'creador.nombre',
-          'creador.apellido',
-          'creador.fecha_nacimiento',
-          'creador.sexo',
-          'creador.descripcion',
-          'creador.correo',
-          'creador.red_social',
-          'creador.foto_perfil',
-          'creador.tipo',
-          'creador.est_fecha_inicio',
-        ])
+      .addSelect([
+        'tutor.id',
+        'tutor.nombre',
+        'tutor.apellido',
+        'tutor.fecha_nacimiento',
+        'tutor.sexo',
+        'tutor.descripcion',
+        'tutor.correo',
+        'tutor.red_social',
+        'tutor.foto_perfil',
+        'tutor.tipo',
+      ])
 
-        .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+      .addSelect([
+        'creador.id',
+        'creador.nombre',
+        'creador.apellido',
+        'creador.fecha_nacimiento',
+        'creador.sexo',
+        'creador.descripcion',
+        'creador.correo',
+        'creador.red_social',
+        'creador.foto_perfil',
+        'creador.tipo',
+        'creador.est_fecha_inicio',
+      ])
 
-        // Seleccionar campos de curso
-        .addSelect([
-          'curso.id',
-          'curso.grupo',
-          'curso.semestre',
-          'curso.descripcion',
-        ])
+      .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
 
-        // Seleccionar campos de materia
-        .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
+      .addSelect([
+        'curso.id',
+        'curso.grupo',
+        'curso.semestre',
+        'curso.descripcion',
+      ])
 
-        .getMany()
-    );
+      .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
+
+      .getMany();
   }
 
   findAllBySection(id: number) {
@@ -218,21 +222,86 @@ export class ProyectoService {
    * @throws NotFoundException if the project is not found.
    */
   async findOne(id: number) {
-    const result = await this.proyectoRepository.findOne({
-      where: { id: id },
-      relations: [
-        'estudiantes',
-        'seccion',
-        'tutor',
-        'repositorios',
-        'base_de_datos',
-        'creador',
-      ],
-    });
+    const result = await this.proyectoRepository
+      .createQueryBuilder('proyecto')
+      .leftJoin('proyecto.estudiantes', 'estudiante')
+      .leftJoinAndSelect('proyecto.seccion', 'seccion')
+      .leftJoin('seccion.curso', 'curso')
+      .leftJoin('curso.materia', 'materia')
+      .leftJoin('proyecto.tutor', 'tutor')
+      .leftJoin('proyecto.repositorios', 'repositorio')
+      .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
+      .leftJoin('proyecto.creador', 'creador')
+
+      // Select repositorio excepto variables_de_entorno
+      .addSelect([
+        'repositorio.id',
+        'repositorio.url',
+        'repositorio.tipo',
+        'repositorio.tecnologia',
+        'repositorio.version',
+      ])
+
+      .addSelect([
+        'estudiante.id',
+        'estudiante.nombre',
+        'estudiante.apellido',
+        'estudiante.fecha_nacimiento',
+        'estudiante.sexo',
+        'estudiante.descripcion',
+        'estudiante.correo',
+        'estudiante.red_social',
+        'estudiante.foto_perfil',
+        'estudiante.tipo',
+        'estudiante.est_fecha_inicio',
+      ])
+
+      .addSelect([
+        'tutor.id',
+        'tutor.nombre',
+        'tutor.apellido',
+        'tutor.fecha_nacimiento',
+        'tutor.sexo',
+        'tutor.descripcion',
+        'tutor.correo',
+        'tutor.red_social',
+        'tutor.foto_perfil',
+        'tutor.tipo',
+      ])
+
+      .addSelect([
+        'creador.id',
+        'creador.nombre',
+        'creador.apellido',
+        'creador.fecha_nacimiento',
+        'creador.sexo',
+        'creador.descripcion',
+        'creador.correo',
+        'creador.red_social',
+        'creador.foto_perfil',
+        'creador.tipo',
+        'creador.est_fecha_inicio',
+      ])
+
+      .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+
+      .addSelect([
+        'curso.id',
+        'curso.grupo',
+        'curso.semestre',
+        'curso.descripcion',
+      ])
+
+      .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
+
+      .where('proyecto.id = :id', { id })
+      .getOne();
+
     if (!result)
       throw new NotFoundException(
         `El proyecto con el id ${id} no se encuentra registrado.`,
       );
+
     return result;
   }
 
