@@ -7,10 +7,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec, execSync } from 'child_process';
-
+import { SystemService } from './system.service';
 @Injectable()
 export class DockerfileService {
   private readonly logger = new Logger(DockerfileService.name);
+  private readonly systemService = new SystemService();
 
   /**
    * Generates a Dockerfile template based on the specified technology and port.
@@ -328,7 +329,7 @@ services:
     depends_on:
       - backend
     environment:
-      - NEXT_PUBLIC_URL_BACKEND=http://backend:${port + 1}
+      - NEXT_PUBLIC_URL_BACKEND=http://${process.env.IP}:${port + 1}
     networks:
       - default
   backend:
