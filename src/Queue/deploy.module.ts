@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { DeployService } from './deploy.service';
+import { DeployQueueService } from './Services/deploy.service';
 import { DeployController } from './deploy.controller';
 import { BullModule } from '@nestjs/bull';
+import { SystemQueueService } from './Services/system.service';
 
 @Module({
   imports: [
@@ -11,11 +12,12 @@ import { BullModule } from '@nestjs/bull';
         port: 6380,
       },
     }),
-    BullModule.registerQueue({
-      name: 'deploy',
-    }),
+    BullModule.registerQueue(
+      { name: 'deploy' },
+      { name: 'system' },
+    ),
   ],
   controllers: [DeployController],
-  providers: [DeployService],
+  providers: [DeployQueueService, SystemQueueService],
 })
 export class DeployModule { }

@@ -30,7 +30,7 @@ import { DockerfileService } from './services/docker.service';
 import { SolicitudModule } from './modelos/solicitud/solicitud.module';
 import { Solicitud } from './modelos/solicitud/entities/solicitud.entity';
 import { MailModule } from './mail/mail.module';
-import { DeployModule } from './deploy/deploy.module';
+import { DeployModule } from './Queue/deploy.module';
 @Module({
   imports: [
     ConfigModule.forRoot({

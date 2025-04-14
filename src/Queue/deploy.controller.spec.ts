@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeployController } from './deploy.controller';
-import { DeployService } from './deploy.service';
+import { DeployService } from './Services/deploy.service';
 
 describe('DeployController', () => {
   let controller: DeployController;
