@@ -25,6 +25,7 @@ import { SystemService } from 'src/services/system.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { RepositorioService } from '../repositorio/repositorio.service';
 import { BaseDeDato } from '../base_de_datos/entities/base_de_dato.entity';
+import { SystemQueueService } from 'src/Queue/Services/system.service';
 
 @Injectable()
 export class ProyectoService {
@@ -41,6 +42,7 @@ export class ProyectoService {
     private dockerfileService: DockerfileService,
     private systemService: SystemService,
     private repositoryService: RepositorioService,
+    private systemQueueService: SystemQueueService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
     const creador = await this.usuarioService.findOne(userId, true);
@@ -451,7 +453,7 @@ export class ProyectoService {
       port = process.env.MONGO_PORT;
       host = process.env.MONGO_CONTAINER_NAME;
     }
-
+    console.log(repositorios)
     //up repositorios
     for (const [index, repositorio] of repositorios.entries()) {
       if (!repositorio.tecnologia || !repositorio.url || !repositorio.version)
@@ -459,13 +461,23 @@ export class ProyectoService {
           `El repositorio con id ${repositorio.id} no posee 'tecnologia', 'url' o 'version'`,
         );
 
+      
       // Clone repository
+      const { rute } = await this.systemQueueService.enqueSystem('cloneRepository',{
+        url  : repositorio.url,
+        ruta :process.env.FOLDER_ROUTE as string,
+        projectId: proyect.id as unknown as string,
+        tipo: repositorio.tipo,
+      });
+      
+      /*
       const rute = await this.gitService.cloneRepositorio(
         repositorio.url,
         process.env.FOLDER_ROUTE as string,
         proyect.id as unknown as string,
         repositorio.tipo,
-      );
+      );  
+      */
       let puertos: number = proyect.puerto;
       let env_repositorio = {};
       if (repositorio.tipo === 'B') {
