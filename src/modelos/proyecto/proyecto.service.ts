@@ -69,7 +69,6 @@ export class ProyectoService {
       const db = await this.baseDeDatosService.findAll({
         nombre: createProyectoDto.base_de_datos.nombre,
       });
-      console.log(db);
       if (db.length > 0)
         throw new BadRequestException(
           `Ya se encuentra registrada una base de datos con el nombre ${createProyectoDto.base_de_datos.nombre}`,
@@ -493,27 +492,29 @@ export class ProyectoService {
       }
 
       //Formating the variables de entorno of repositorio
-      const custom_varaibles_de_entorno = repositorios[
-        index
-      ].variables_de_entorno
-        .split('\n')
-        .filter(Boolean)
-        .reduce(
-          (acc, line) => {
-            const [key, ...valueParts] = line.split('=');
-            if (key && valueParts.length > 0) {
-              acc[key.trim()] = valueParts.join('=').trim();
-            }
-            return acc;
-          },
-          {} as Record<string, string>,
-        );
+      if (repositorios[index].variables_de_entorno) {
+        const custom_varaibles_de_entorno = repositorios[
+          index
+        ].variables_de_entorno
+          .split('\n')
+          .filter(Boolean)
+          .reduce(
+            (acc, line) => {
+              const [key, ...valueParts] = line.split('=');
+              if (key && valueParts.length > 0) {
+                acc[key.trim()] = valueParts.join('=').trim();
+              }
+              return acc;
+            },
+            {} as Record<string, string>,
+          );
 
-      //add variables de entorno
-      env_repositorio = {
-        ...env_repositorio,
-        ...custom_varaibles_de_entorno,
-      };
+        //add variables de entorno
+        env_repositorio = {
+          ...env_repositorio,
+          ...custom_varaibles_de_entorno,
+        };
+      }
 
       const dockerfilePath = this.dockerfileService.generateDockerfile(
         rute,

@@ -9,18 +9,20 @@ import { UpdateBaseDeDatoDto } from './dto/update-base_de_dato.dto';
 import { BaseDeDato } from './entities/base_de_dato.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DockerfileService } from 'src/services/docker.service';
+//import { DockerfileService } from 'src/services/docker.service';
 import { ProyectoService } from '../proyecto/proyecto.service';
 import { FilterBaseDeDatoDto } from './dto/filter-base_de_dato.dto';
+import { SystemQueueService } from 'src/Queue/Services/system.service';
 
 @Injectable()
 export class BaseDeDatosService {
   constructor(
     @InjectRepository(BaseDeDato)
     private baseDeDatosRepository: Repository<BaseDeDato>,
-    private dockerfileService: DockerfileService,
+    //private dockerfileService: DockerfileService,
     @Inject(forwardRef(() => ProyectoService))
     private proyectoService: ProyectoService,
+    private systemQueueService: SystemQueueService,
   ) {}
   async create(createBaseDeDatoDto: CreateBaseDeDatoDto) {
     //save new Base de datos
@@ -48,12 +50,13 @@ export class BaseDeDatosService {
     try {
       //Verify DB Type
       if (createBaseDeDatoDto.tipo == process.env.SQL_DB) {
-        await this.dockerfileService.createMySQLDatabaseAndUser(
-          process.env.MYSQL_CONTAINER_NAME as string,
-          baseDeDatos.nombre,
-          baseDeDatos.usuario,
-          createBaseDeDatoDto.contrasenia,
-        );
+        const db = await this.systemQueueService.enqueSystem('create_DB', {
+          containerName: process.env.MYSQL_CONTAINER_NAME as string,
+          nombre: baseDeDatos.nombre,
+          usuario: baseDeDatos.usuario,
+          contrasenia: createBaseDeDatoDto.contrasenia,
+        });
+        //await this.dockerfileService.createMySQLDatabaseAndUser();
       }
     } catch (error) {
       throw new NotFoundException(`Error al generar la base de datos ${error}`);

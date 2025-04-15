@@ -19,5 +19,6 @@ import { SystemQueueService } from './Services/system.service';
   ],
   controllers: [DeployController],
   providers: [DeployQueueService, SystemQueueService],
+  exports: [DeployQueueService, SystemQueueService],
 })
 export class DeployModule { }
