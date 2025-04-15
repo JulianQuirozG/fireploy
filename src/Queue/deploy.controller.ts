@@ -1,7 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { DeployQueueService } from './Services/deploy.service';
-import { CreateDeployDto } from './dto/create-deploy.dto';
-import { UpdateDeployDto } from './dto/update-deploy.dto';
 import { Public } from 'src/decorators/public.decorator';
 import { SystemQueueService } from './Services/system.service';
 
@@ -15,12 +13,12 @@ export class DeployController {
   @Post('/encolarProyecto')
   @Public()
   enqueueDeploy(@Body() body: any) {
-    return this.deployService.enqueDeploy(body);
+    return this.deployService.enqueDeploy('desplegar', body);
   }
 
   @Post('/encolarSystem')
   @Public()
   enqueueSystem(@Body() body: any) {
-    return this.SystemService.enqueSystem(body);
+    return this.SystemService.enqueSystem('deploy-system', body);
   }
 }

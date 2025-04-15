@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { DockerfileService } from './services/docker.service';
+//import { DockerfileService } from './services/docker.service';
 
 async function bootstrap() {
   //const dockerfileService = new DockerfileService();
