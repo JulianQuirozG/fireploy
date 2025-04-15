@@ -13,6 +13,7 @@ import { DockerfileService } from 'src/services/docker.service';
 import { SystemService } from 'src/services/system.service';
 import { EstudianteModule } from '../estudiante/estudiante.module';
 import { RepositorioModule } from '../repositorio/repositorio.module';
+import { DeployModule } from 'src/Queue/deploy.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Proyecto]),
@@ -23,6 +24,7 @@ import { RepositorioModule } from '../repositorio/repositorio.module';
     EstudianteModule,
     forwardRef(() => BaseDeDatosModule),
     forwardRef(() => RepositorioModule),
+    DeployModule,
   ],
   controllers: [ProyectoController],
   providers: [ProyectoService, GitService, DockerfileService, SystemService],
