@@ -284,7 +284,7 @@ export class ProyectoService {
         'creador.est_fecha_inicio',
       ])
 
-      .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+      .addSelect(['baseDeDatos.id', 'baseDeDatos.usuario', 'baseDeDatos.nombre', 'baseDeDatos.contrasenia' , 'baseDeDatos.tipo'])
 
       .addSelect([
         'curso.id',
