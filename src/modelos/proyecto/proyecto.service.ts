@@ -444,7 +444,7 @@ export class ProyectoService {
       throw new NotFoundException(
         `El proyecto con el id ${id} no tiene repositorios asignados.`,
       );
-
+/*
     //Rutes of dockerfiles
     const dockerfiles: any[] = [];
     let port = process.env.MYSQL_PORT;
@@ -453,7 +453,6 @@ export class ProyectoService {
       port = process.env.MONGO_PORT;
       host = process.env.MONGO_CONTAINER_NAME;
     }
-    console.log(repositorios)
     //up repositorios
     for (const [index, repositorio] of repositorios.entries()) {
       if (!repositorio.tecnologia || !repositorio.url || !repositorio.version)
@@ -463,21 +462,25 @@ export class ProyectoService {
 
       
       // Clone repository
+      
       const { rute } = await this.systemQueueService.enqueSystem('cloneRepository',{
         url  : repositorio.url,
         ruta :process.env.FOLDER_ROUTE as string,
         projectId: proyect.id as unknown as string,
         tipo: repositorio.tipo,
+        proyect: proyect,
+        repositorios: repositorios,
+        port: port,
+        host: host
       });
-      
-      /*
+       
       const rute = await this.gitService.cloneRepositorio(
         repositorio.url,
         process.env.FOLDER_ROUTE as string,
         proyect.id as unknown as string,
         repositorio.tipo,
       );  
-      */
+      
       let puertos: number = proyect.puerto;
       let env_repositorio = {};
       if (repositorio.tipo === 'B') {
@@ -560,8 +563,13 @@ export class ProyectoService {
       proyect.id,
       proyect.puerto,
     );
+    */
+    const { dockerfiles } = await this.systemQueueService.enqueSystem('cloneRepository',{
+      proyect: proyect,
+      repositorios: repositorios,
+    });
 
-    console.log(doker_compose_file);
+    console.log(dockerfiles);
     return dockerfiles;
   }
 }
