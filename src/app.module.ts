@@ -31,6 +31,7 @@ import { SolicitudModule } from './modelos/solicitud/solicitud.module';
 import { Solicitud } from './modelos/solicitud/entities/solicitud.entity';
 import { MailModule } from './mail/mail.module';
 import { DeployModule } from './Queue/deploy.module';
+import { DockerRequestModule } from './modelos/dockerRequest/dockerRequest.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -72,6 +73,7 @@ import { DeployModule } from './Queue/deploy.module';
     SolicitudModule,
     MailModule,
     DeployModule,
+    DockerRequestModule
   ],
   controllers: [AppController],
   providers: [
