@@ -1,7 +1,5 @@
 import {
   BadRequestException,
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -27,7 +25,7 @@ export class UsuarioService {
     private encrypt: Encrypt,
     private firebaseService: FirebaseService,
     private mailService: MailService,
-  ) { }
+  ) {}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
     //verify user exists
@@ -77,7 +75,7 @@ export class UsuarioService {
     return await query.getMany();
   }
 
-  async findOne(id: number, all_info: boolean): Promise<Usuario | undefined> {
+  async findOne(id: number, all_info: boolean): Promise<Usuario> {
     const query = this.usersRepository
       .createQueryBuilder('usuario')
       .where('usuario.id = :id', { id });
@@ -144,10 +142,10 @@ export class UsuarioService {
     }
 
     //Update the user
-    const result = await this.usersRepository.update(id,updateUsuarioDto);
-    
+    const result = await this.usersRepository.update(id, updateUsuarioDto);
+
     //Return the updated user
-    return await this.findOne(id,true);
+    return await this.findOne(id, true);
   }
 
   remove(id: number) {
@@ -238,7 +236,10 @@ export class UsuarioService {
   }
 
   async changePassword(id: number, updateUsuarioDto: UpdatePasswordDto) {
-    return this.mailService.enviarCorreo(updateUsuarioDto.correo, 'Prueba de correo', '¡Hola! Este es un correo de prueba desde NestJS.')
+    return this.mailService.enviarCorreo(
+      updateUsuarioDto.correo,
+      'Prueba de correo',
+      '¡Hola! Este es un correo de prueba desde NestJS.',
+    );
   }
-  
 }
