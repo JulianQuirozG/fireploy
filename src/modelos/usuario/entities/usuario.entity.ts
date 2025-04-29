@@ -81,4 +81,8 @@ export class Usuario {
 
   @OneToMany(() => Proyecto, (proyecto) => proyecto.tutor)
   proyectos_dirigidos: Proyecto[];
+
+  @ManyToMany(() => Proyecto, (proyecto) => proyecto.fav_usuarios)
+  @JoinTable()
+  proyectos_fav: Proyecto[];
 }
