@@ -18,6 +18,7 @@ import { Public } from 'src/decorators/public.decorator';
 import { ExtractUserIdGuard } from 'src/guard/createProyect.guard';
 import { RequestWithUser } from 'src/interfaces/request.interface';
 import { updateProyectoGuard } from 'src/guard/updateProyect.guard';
+import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -76,11 +77,13 @@ export class ProyectoController {
   }
 
   @Post('/puntuarProyecto/:id')
+  @UseGuards(AddFavoriteProject)
   puntuarProyecto(@Param('id') id: string, @Req() req: Request) {
     return this.proyectoService.puntuarProyecto(id, req);
   }
 
   @Post('/despuntuarProyecto/:id')
+  @UseGuards(AddFavoriteProject)
   despuntuarProyecto(@Param('id') id: string, @Req() req: Request) {
     return this.proyectoService.despuntuarProyecto(id, req);
   }
