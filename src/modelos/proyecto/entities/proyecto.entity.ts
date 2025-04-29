@@ -24,9 +24,6 @@ export class Proyecto {
   @Column({ length: 512, nullable: true })
   descripcion: string;
 
-  @Column({ type: 'float', precision: 2, scale: 1, nullable: true })
-  calificacion: number;
-
   @Column({ length: 256, nullable: true })
   url: string;
 
@@ -44,6 +41,9 @@ export class Proyecto {
 
   @ManyToMany(() => Usuario, (usuario) => usuario.proyectos)
   estudiantes: Usuario[];
+
+  @ManyToMany(() => Usuario, (usuario) => usuario.proyectos_fav)
+  fav_usuarios: Usuario[];
 
   @ManyToOne(() => Seccion, (seccion) => seccion.proyectos, {
     onDelete: 'SET NULL',

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
@@ -26,6 +29,7 @@ import { UsuarioService } from '../usuario/usuario.service';
 import { RepositorioService } from '../repositorio/repositorio.service';
 import { BaseDeDato } from '../base_de_datos/entities/base_de_dato.entity';
 import { SystemQueueService } from 'src/Queue/Services/system.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class ProyectoService {
@@ -43,6 +47,7 @@ export class ProyectoService {
     private systemService: SystemService,
     private repositoryService: RepositorioService,
     private systemQueueService: SystemQueueService,
+    private jwtService: JwtService,
   ) {}
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
     const creador = await this.usuarioService.findOne(userId, true);
@@ -80,7 +85,6 @@ export class ProyectoService {
     const nuevoProyecto = this.proyectoRepository.create({
       titulo: createProyectoDto.titulo,
       descripcion: createProyectoDto.descripcion,
-      calificacion: createProyectoDto.calificacion,
       url: createProyectoDto.url,
       imagen: createProyectoDto.imagen,
       estado_proyecto: createProyectoDto.estado_proyecto,
@@ -233,6 +237,7 @@ export class ProyectoService {
       .leftJoin('proyecto.repositorios', 'repositorio')
       .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
       .leftJoin('proyecto.creador', 'creador')
+      .leftJoin('proyecto.fav_usuarios', 'favorito')
 
       // Select repositorio excepto variables_de_entorno
       .addSelect([
@@ -284,7 +289,13 @@ export class ProyectoService {
         'creador.est_fecha_inicio',
       ])
 
-      .addSelect(['baseDeDatos.id', 'baseDeDatos.usuario', 'baseDeDatos.nombre', 'baseDeDatos.contrasenia' , 'baseDeDatos.tipo'])
+      .addSelect([
+        'baseDeDatos.id',
+        'baseDeDatos.usuario',
+        'baseDeDatos.nombre',
+        'baseDeDatos.contrasenia',
+        'baseDeDatos.tipo',
+      ])
 
       .addSelect([
         'curso.id',
@@ -292,6 +303,10 @@ export class ProyectoService {
         'curso.semestre',
         'curso.descripcion',
       ])
+
+      .addSelect(['favorito.id', 'favorito.nombre'])
+
+      .addSelect(['favorito.id', 'favorito.nombre'])
 
       .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
 
@@ -444,7 +459,7 @@ export class ProyectoService {
       throw new NotFoundException(
         `El proyecto con el id ${id} no tiene repositorios asignados.`,
       );
-/*
+    /*
     //Rutes of dockerfiles
     const dockerfiles: any[] = [];
     let port = process.env.MYSQL_PORT;
@@ -564,12 +579,53 @@ export class ProyectoService {
       proyect.puerto,
     );
     */
-    const { dockerfiles } = await this.systemQueueService.enqueSystem('cloneRepository',{
-      proyect: proyect,
-      repositorios: repositorios,
-    });
+    const { dockerfiles } = await this.systemQueueService.enqueSystem(
+      'cloneRepository',
+      {
+        proyect: proyect,
+        repositorios: repositorios,
+      },
+    );
 
     console.log(dockerfiles);
     return dockerfiles;
+  }
+
+  async puntuarProyecto(id: string, req: Request) {
+    //Get project
+    const project = await this.findOne(+id);
+
+    //Get User
+    const sessionToken = (req.headers as any).sessiontoken;
+    const payload = await this.jwtService.verifyAsync(sessionToken, {
+      secret: process.env.SECRETTOKEN,
+    });
+
+    //add project to favorites
+    const userId = payload.sub;
+    const user = await this.usuarioService.findOne(userId, true);
+    project.fav_usuarios.push(user);
+    await this.update(project.id, project);
+
+    return await this.findOne(+id);
+  }
+
+  async despuntuarProyecto(id: string, req: Request) {
+    //Get project
+    const project = await this.findOne(+id);
+
+    //Get User
+    const sessionToken = (req.headers as any).sessiontoken;
+    const payload = await this.jwtService.verifyAsync(sessionToken, {
+      secret: process.env.SECRETTOKEN,
+    });
+
+    //add project to favorites
+    const userId = payload.sub;
+    const user = await this.usuarioService.findOne(userId, true);
+    project.fav_usuarios = project.fav_usuarios.filter((u) => u.id !== user.id);
+    await this.update(project.id, project);
+
+    return await this.findOne(+id);
   }
 }

@@ -9,6 +9,7 @@ import {
   UseGuards,
   Req,
   UnauthorizedException,
+  Request,
 } from '@nestjs/common';
 import { ProyectoService } from './proyecto.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
@@ -72,5 +73,15 @@ export class ProyectoController {
   @Post(':id')
   cargarProyecto(@Param('id') id: string) {
     return this.proyectoService.cargarProyecto(id);
+  }
+
+  @Post('/puntuarProyecto/:id')
+  puntuarProyecto(@Param('id') id: string, @Req() req: Request) {
+    return this.proyectoService.puntuarProyecto(id, req);
+  }
+
+  @Post('/despuntuarProyecto/:id')
+  despuntuarProyecto(@Param('id') id: string, @Req() req: Request) {
+    return this.proyectoService.despuntuarProyecto(id, req);
   }
 }
