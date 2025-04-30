@@ -15,7 +15,7 @@ import { ProyectoService } from 'src/modelos/proyecto/proyecto.service';
 import { SeccionService } from 'src/modelos/seccion/seccion.service';
 
 @Injectable()
-export class updateProyectoGuard implements CanActivate {
+export class DeployProyectoGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService,
     private seccionService: SeccionService,
     private cursoService: CursoService,
@@ -25,7 +25,7 @@ export class updateProyectoGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
     const token = request.headers['sessiontoken'] as string;
-    const { estudiantesIds } = request.body as unknown as UpdateProyectoDto;
+    //const { estudiantesIds } = request.body as unknown as UpdateProyectoDto;
     const { id } = request.params;
 
     if (!token) {
@@ -48,25 +48,17 @@ export class updateProyectoGuard implements CanActivate {
         throw new UnauthorizedException('El docente no es tutor del proyecto');
       }
 
-      if (payload.tipo === 'Estudiante' && !curso.estudiantes || curso.estudiantes.length === 0) {
+      if (payload.tipo === 'Estudiante' && (!curso.estudiantes || curso.estudiantes.length === 0)) {
         throw new UnauthorizedException('El curso no tiene estudiantes registrados');
       }
 
-      if (estudiantesIds?.length && estudiantesIds?.length > 0) {
-        const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
-        const estudiantesInvalidos = estudiantesIds.filter((id) => !estudiantesCursoIds.includes(id));
-        if (estudiantesInvalidos.length > 0) {
-          throw new UnauthorizedException(
-            `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`
-          );
-        }
+      const estudiantesIds = proyecto.estudiantes.map((estudiante) => estudiante.id);
+      const estudiantesValidos = estudiantesIds.some((id) => id == payload.sub)
+      if (payload.tipo === 'Estudiante' && (!estudiantesValidos || proyecto.creador.id != payload.sub)) {
+        throw new UnauthorizedException(
+          `El estudiante no pertenece al proyecto `
+        );
       }
-
-      const estudianteEncontrado = proyecto.estudiantes.some((estudiante) => estudiante.id === payload.sub);
-      if ( payload.tipo==='Estudiante' && (!estudianteEncontrado && proyecto.creador.id != payload.sub)) {
-        throw new UnauthorizedException('El usuario no pertenece a este proyecto');
-      }
-
 
       return true;
     } catch (error) {

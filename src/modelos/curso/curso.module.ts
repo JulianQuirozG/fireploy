@@ -5,7 +5,6 @@ import { Curso } from './entities/curso.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MateriaModule } from '../materia/materia.module';
 import { UsuarioModule } from '../usuario/usuario.module';
-import { Usuario } from '../usuario/entities/usuario.entity';
 import { EstudianteModule } from '../estudiante/estudiante.module';
 import { DocenteModule } from '../docente/docente.module';
 
