@@ -19,6 +19,7 @@ import { ExtractUserIdGuard } from 'src/guard/createProyect.guard';
 import { RequestWithUser } from 'src/interfaces/request.interface';
 import { updateProyectoGuard } from 'src/guard/updateProyect.guard';
 import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
+import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -72,6 +73,7 @@ export class ProyectoController {
   }
 
   @Post(':id')
+  @UseGuards(DeployProyectoGuard)
   cargarProyecto(@Param('id') id: string) {
     return this.proyectoService.cargarProyecto(id);
   }
