@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   forwardRef,
@@ -23,7 +26,7 @@ export class RepositorioService {
     private repositorioRepository: Repository<Repositorio>,
     @Inject(forwardRef(() => ProyectoService))
     private proyectoRepository: ProyectoService,
-  ) { }
+  ) {}
   async create(createRepositorioDto: CreateRepositorioDto) {
     const proyecto = await this.proyectoRepository.findOne(
       +createRepositorioDto.proyecto_id,
@@ -39,13 +42,20 @@ export class RepositorioService {
       url: createRepositorioDto.url,
       tipo: createRepositorioDto.tipo,
       tecnologia: createRepositorioDto.tecnologia,
+      framework: createRepositorioDto.framework,
       proyecto_id: proyecto,
     });
 
-    if(createRepositorioDto.variables_de_entorno && createRepositorioDto.variables_de_entorno.length>0){
-      nuevorepositorio.variables_de_entorno = createRepositorioDto.variables_de_entorno.map((variable_entorno: VariablesDeEntorno)=>{
-        return variable_entorno.clave+`=`+variable_entorno.valor; 
-      }).join('\n');
+    if (
+      createRepositorioDto.variables_de_entorno &&
+      createRepositorioDto.variables_de_entorno.length > 0
+    ) {
+      nuevorepositorio.variables_de_entorno =
+        createRepositorioDto.variables_de_entorno
+          .map((variable_entorno: VariablesDeEntorno) => {
+            return variable_entorno.clave + `=` + variable_entorno.valor;
+          })
+          .join('\n');
     }
 
     await this.repositorioRepository.save(nuevorepositorio);
@@ -91,13 +101,18 @@ export class RepositorioService {
     let repo = await this.findOne(id);
     updateRepositorioDto.id = repo.id;
     //update repository
-    if(updateRepositorioDto.variables_de_entorno && updateRepositorioDto.variables_de_entorno.length>0){
-      repo.variables_de_entorno = updateRepositorioDto.variables_de_entorno.map((variable_entorno: VariablesDeEntorno)=>{
-        return variable_entorno.clave+`=`+variable_entorno.valor; 
-      }).join('\n');
+    if (
+      updateRepositorioDto.variables_de_entorno &&
+      updateRepositorioDto.variables_de_entorno.length > 0
+    ) {
+      repo.variables_de_entorno = updateRepositorioDto.variables_de_entorno
+        .map((variable_entorno: VariablesDeEntorno) => {
+          return variable_entorno.clave + `=` + variable_entorno.valor;
+        })
+        .join('\n');
     }
     const { variables_de_entorno, ...restoDto } = updateRepositorioDto;
-    
+
     repo = {
       ...repo,
       ...restoDto,
@@ -109,7 +124,7 @@ export class RepositorioService {
 
   async remove(id: number) {
     const repository = await this.findOne(id);
-    await this.repositorioRepository.delete(repository.id)
+    await this.repositorioRepository.delete(repository.id);
     return `repositorio con el #${id} ha sido eliminado, con referencia al proyecto ${repository.proyecto_id} ha sido elimnado correctamente`;
   }
 }

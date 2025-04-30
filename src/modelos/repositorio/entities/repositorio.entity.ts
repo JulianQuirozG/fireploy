@@ -19,6 +19,9 @@ export class Repositorio {
   variables_de_entorno: string;
 
   @Column({ nullable: true, length: 20 })
+  framework: string;
+
+  @Column({ nullable: true, length: 20 })
   version: string;
 
   @ManyToOne(() => Proyecto, (proyecto) => proyecto.repositorios, {

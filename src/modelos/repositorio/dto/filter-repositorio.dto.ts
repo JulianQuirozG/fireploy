@@ -22,6 +22,10 @@ export class FilterRepositorioDto {
   @IsString()
   version?: string;
 
+  @IsOptional()
+  @IsString()
+  framework: string;
+
   @IsOptional() // Puede ser opcional si se permite repos sin un proyecto asociado
   proyecto_id?: Proyecto;
 }

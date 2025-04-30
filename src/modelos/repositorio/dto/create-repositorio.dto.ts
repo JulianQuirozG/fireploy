@@ -38,6 +38,12 @@ export class CreateRepositorioDto {
   @Length(1, 20)
   version?: string;
 
+  @IsOptional()
+  @IsNotEmpty({ message: 'version es obligatorio' })
+  @IsString()
+  @Length(1, 20)
+  framework?: string;
+
   @IsNotEmpty({ message: 'El id del proyecto es obligatorio' })
   @IsNumber()
   proyecto_id: number;
