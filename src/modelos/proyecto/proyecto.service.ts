@@ -244,6 +244,7 @@ export class ProyectoService {
         'repositorio.id',
         'repositorio.url',
         'repositorio.tipo',
+        'repositorio.variables_de_entorno',
         'repositorio.tecnologia',
         'repositorio.version',
       ])
