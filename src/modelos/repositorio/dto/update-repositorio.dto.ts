@@ -23,6 +23,10 @@ export class UpdateRepositorioDto {
 
   @IsOptional()
   @IsString()
+  framework?: string;
+
+  @IsOptional()
+  @IsString()
   version?: string;
 
   @IsOptional()

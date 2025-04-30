@@ -148,6 +148,7 @@ export class ProyectoService {
         'repositorio.tipo',
         'repositorio.tecnologia',
         'repositorio.version',
+        'repositorio.framework',
       ])
 
       .addSelect([
@@ -247,6 +248,7 @@ export class ProyectoService {
         'repositorio.variables_de_entorno',
         'repositorio.tecnologia',
         'repositorio.version',
+        'repositorio.framework',
       ])
 
       .addSelect([
