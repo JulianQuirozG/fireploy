@@ -462,133 +462,22 @@ export class ProyectoService {
       throw new NotFoundException(
         `El proyecto con el id ${id} no tiene repositorios asignados.`,
       );
-    /*
-    //Rutes of dockerfiles
-    const dockerfiles: any[] = [];
-    let port = process.env.MYSQL_PORT;
-    let host = process.env.MYSQL_CONTAINER_NAME;
-    if (proyect.base_de_datos.tipo && proyect.base_de_datos.tipo != 'S') {
-      port = process.env.MONGO_PORT;
-      host = process.env.MONGO_CONTAINER_NAME;
-    }
-    //up repositorios
-    for (const [index, repositorio] of repositorios.entries()) {
-      if (!repositorio.tecnologia || !repositorio.url || !repositorio.version)
-        throw new NotFoundException(
-          `El repositorio con id ${repositorio.id} no posee 'tecnologia', 'url' o 'version'`,
-        );
 
-      
-      // Clone repository
-      
-      const { rute } = await this.systemQueueService.enqueSystem('cloneRepository',{
-        url  : repositorio.url,
-        ruta :process.env.FOLDER_ROUTE as string,
-        projectId: proyect.id as unknown as string,
-        tipo: repositorio.tipo,
-        proyect: proyect,
-        repositorios: repositorios,
-        port: port,
-        host: host
-      });
-       
-      const rute = await this.gitService.cloneRepositorio(
-        repositorio.url,
-        process.env.FOLDER_ROUTE as string,
-        proyect.id as unknown as string,
-        repositorio.tipo,
-      );  
-      
-      let puertos: number = proyect.puerto;
-      let env_repositorio = {};
-      if (repositorio.tipo === 'B') {
-        puertos++;
-      }
-      // Create Dockerfile
-      // Set env repositorio
-      if (
-        proyect.base_de_datos &&
-        (proyect.tipo_proyecto == 'M' || repositorio.tipo === 'B')
-      ) {
-        env_repositorio = {
-          DB_DATABASE: proyect.base_de_datos.nombre,
-          DB_PORT: port,
-          DB_HOST: host,
-          DB_USER: proyect.base_de_datos.usuario,
-          DB_PASSWORD: proyect.base_de_datos.contrasenia,
-          PORT: puertos,
-        };
-      } else if (repositorio.tipo == 'F') {
-        env_repositorio = {
-          PORT: puertos,
-        };
-      }
-
-      //Formating the variables de entorno of repositorio
-      if (repositorios[index].variables_de_entorno) {
-        const custom_varaibles_de_entorno = repositorios[
-          index
-        ].variables_de_entorno
-          .split('\n')
-          .filter(Boolean)
-          .reduce(
-            (acc, line) => {
-              const [key, ...valueParts] = line.split('=');
-              if (key && valueParts.length > 0) {
-                acc[key.trim()] = valueParts.join('=').trim();
-              }
-              return acc;
-            },
-            {} as Record<string, string>,
-          );
-
-        //add variables de entorno
-        env_repositorio = {
-          ...env_repositorio,
-          ...custom_varaibles_de_entorno,
-        };
-      }
-
-      const dockerfilePath = this.dockerfileService.generateDockerfile(
-        rute,
-        repositorio.tecnologia,
-        puertos,
-        [env_repositorio],
+    let dockerfiles: any = [];
+    try {
+      dockerfiles = await this.systemQueueService.enqueSystem(
+        'cloneRepository',
+        {
+          proyect: proyect,
+          repositorios: repositorios,
+        },
       );
-
-      // Add dockerfiles
-      dockerfiles.push({
-        proyect_id: proyect.id,
-        rute,
-        type: repositorio.tipo,
-        port: puertos,
-        language: repositorio.tecnologia,
-      });
-
-      //Generate image if is type All
-      if (proyect.tipo_proyecto == 'M') {
-        await this.dockerfileService.buildAndRunContainer(
-          proyect.id as unknown as string,
-          rute,
-          repositorio.tecnologia,
-          puertos,
-        );
-        return dockerfiles;
-      }
+    } catch (e) {
+      throw new BadRequestException(
+        `Ha ocurrido un error al cargar el proyecto`,
+        e,
+      );
     }
-
-    const doker_compose_file = this.dockerfileService.createDockerCompose(
-      proyect.id,
-      proyect.puerto,
-    );
-    */
-    const { dockerfiles } = await this.systemQueueService.enqueSystem(
-      'cloneRepository',
-      {
-        proyect: proyect,
-        repositorios: repositorios,
-      },
-    );
 
     console.log(dockerfiles);
     return dockerfiles;
