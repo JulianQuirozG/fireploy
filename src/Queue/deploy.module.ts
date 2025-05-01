@@ -8,8 +8,8 @@ import { SystemQueueService } from './Services/system.service';
   imports: [
     BullModule.forRoot({
       redis: {
-        host: 'localhost', // o IP del contenedor si estás fuera de docker
-        port: 6380,
+        host: process.env.REDIS_HOST, // o IP del contenedor si estás fuera de docker
+        port: Number(process.env.REDIS_PORT ?? 6380),
       },
     }),
     BullModule.registerQueue(

@@ -9,23 +9,23 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RequestWithUser } from 'src/interfaces/request.interface';
+import { BaseDeDatosService } from 'src/modelos/base_de_datos/base_de_datos.service';
 import { CursoService } from 'src/modelos/curso/curso.service';
-import { UpdateProyectoDto } from 'src/modelos/proyecto/dto/update-proyecto.dto';
 import { ProyectoService } from 'src/modelos/proyecto/proyecto.service';
 import { SeccionService } from 'src/modelos/seccion/seccion.service';
 
 @Injectable()
-export class updateProyectoGuard implements CanActivate {
+export class updateDataBaseGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService,
     private seccionService: SeccionService,
     private cursoService: CursoService,
     private proyectoService: ProyectoService,
+    private baseDatosService: BaseDeDatosService,
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
     const token = request.headers['sessiontoken'] as string;
-    const { estudiantesIds } = request.body as unknown as UpdateProyectoDto;
     const { id } = request.params;
 
     if (!token) {
@@ -39,35 +39,36 @@ export class updateProyectoGuard implements CanActivate {
 
       request.user = { id: payload.sub };
 
-      const proyecto = await this.proyectoService.findOne(+id)
+      if (payload.tipo === 'Administrador') {
+        return true;
+      }
+      const baseDatos = await this.baseDatosService.findOne(+id);
+      const proyecto = await this.proyectoService.findOne(baseDatos.proyecto.id);
       const seccion = await this.seccionService.findOne(proyecto.seccion.id);
       const curso = await this.cursoService.findOne(seccion.curso.id);
 
-
-      if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
-        throw new UnauthorizedException('El docente no es tutor del proyecto');
+      if ((proyecto.tutor && curso.docente.id && payload.tipo === 'Docente') && curso.docente.id === payload.sub) {
+        return true;
       }
 
-      if (payload.tipo === 'Estudiante' && !curso.estudiantes || curso.estudiantes.length === 0) {
+      if (!curso.estudiantes || curso.estudiantes.length === 0) {
         throw new UnauthorizedException('El curso no tiene estudiantes registrados');
       }
 
-      if (estudiantesIds?.length && estudiantesIds?.length > 0) {
-        const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
-        const estudiantesInvalidos = estudiantesIds.filter((id) => !estudiantesCursoIds.includes(id));
-        if (estudiantesInvalidos.length > 0) {
-          throw new UnauthorizedException(
-            `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`
-          );
-        }
+      const estudianteEncontrado = curso.estudiantes.some((estudiante) => estudiante.id === payload.sub);
+      if (!estudianteEncontrado) {
+        throw new UnauthorizedException('El usuario no pertenece a este curso');
       }
 
-      const estudianteEncontrado = proyecto.estudiantes.some((estudiante) => estudiante.id === payload.sub);
-      if ( payload.tipo==='Estudiante' && (!estudianteEncontrado && proyecto.creador.id != payload.sub)) {
-        throw new UnauthorizedException('El usuario no pertenece a este proyecto');
+      const estudiantesCursoIds = proyecto.estudiantes.map((e) => e.id);
+      const estudiantesValidos = estudiantesCursoIds.some((id) => id === payload.sub);
+      console.log(estudiantesCursoIds);
+      console.log(estudiantesValidos)
+      if (!estudiantesValidos && payload.sub != proyecto.creador.id) {
+        throw new UnauthorizedException(
+          `El estudiante no hace parte del proyecto`
+        );
       }
-
-
       return true;
     } catch (error) {
       throw new UnauthorizedException(error.message);

@@ -6,7 +6,7 @@ import { Seccion } from './entities/seccion.entity';
 import { CursoModule } from '../curso/curso.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Seccion]), CursoModule],
+  imports: [TypeOrmModule.forFeature([Seccion]), CursoModule,],
   controllers: [SeccionController],
   providers: [SeccionService],
   exports: [SeccionService],

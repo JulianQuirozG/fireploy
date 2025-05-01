@@ -9,6 +9,7 @@ import {
   UseGuards,
   Req,
   UnauthorizedException,
+  Request,
 } from '@nestjs/common';
 import { ProyectoService } from './proyecto.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
@@ -17,6 +18,8 @@ import { Public } from 'src/decorators/public.decorator';
 import { ExtractUserIdGuard } from 'src/guard/createProyect.guard';
 import { RequestWithUser } from 'src/interfaces/request.interface';
 import { updateProyectoGuard } from 'src/guard/updateProyect.guard';
+import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
+import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -70,7 +73,20 @@ export class ProyectoController {
   }
 
   @Post(':id')
+  @UseGuards(DeployProyectoGuard)
   cargarProyecto(@Param('id') id: string) {
     return this.proyectoService.cargarProyecto(id);
+  }
+
+  @Post('/puntuarProyecto/:id')
+  @UseGuards(AddFavoriteProject)
+  puntuarProyecto(@Param('id') id: string, @Req() req: Request) {
+    return this.proyectoService.puntuarProyecto(id, req);
+  }
+
+  @Post('/despuntuarProyecto/:id')
+  @UseGuards(AddFavoriteProject)
+  despuntuarProyecto(@Param('id') id: string, @Req() req: Request) {
+    return this.proyectoService.despuntuarProyecto(id, req);
   }
 }
