@@ -6,6 +6,7 @@ import {
   ExecutionContext,
   Injectable,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -18,7 +19,7 @@ export class AddFavoriteProject implements CanActivate {
     private jwtService: JwtService,
     private usuarioService: UsuarioService,
     private proyectoService: ProyectoService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
@@ -26,12 +27,17 @@ export class AddFavoriteProject implements CanActivate {
     // Obtener el token de sesión
     const sessionToken: string = request.headers['sessiontoken'] as string;
     if (!sessionToken)
-      throw new BadRequestException(`No se ha enviado el token de sesión`);
+      throw new UnauthorizedException(`No se ha enviado el token de sesión`);
 
     // Verificar el token
-    const session = await this.jwtService.verifyAsync(sessionToken, {
-      secret: process.env.SECRETTOKEN,
-    });
+    let session;
+    try {
+      session = await this.jwtService.verifyAsync(sessionToken, {
+        secret: process.env.SECRETTOKEN,
+      });
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
+    }
 
     // Obtener el ID del proyecto desde los headers
     let proyectoId: string | undefined;

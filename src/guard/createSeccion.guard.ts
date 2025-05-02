@@ -2,7 +2,9 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CursoService } from 'src/modelos/curso/curso.service';
@@ -22,19 +24,14 @@ export class CreateSeccionGuard implements CanActivate {
     //Verify token exist
     const sessionToken: string = req.headers['sessiontoken'] as string;
     if (!sessionToken)
-      throw new BadRequestException(`No se ha enviado el token de sesión`);
+      throw new UnauthorizedException(`No se ha enviado el token de sesión`);
     let session;
     try {
-      //Verify permission token
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       session = await this.jwtService.verifyAsync(sessionToken, {
         secret: process.env.SECRETTOKEN,
       });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      throw new BadRequestException(
-        `La sesion ha acabado o el token de sesión es invalido`,
-      );
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
     }
 
     //Verify curso exists
@@ -47,7 +44,7 @@ export class CreateSeccionGuard implements CanActivate {
     //Verify is estudiante
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (session.tipo == 'Estudiante')
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 
@@ -58,7 +55,7 @@ export class CreateSeccionGuard implements CanActivate {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       (!curso.docente.id || curso.docente.id != session.sub)
     )
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 

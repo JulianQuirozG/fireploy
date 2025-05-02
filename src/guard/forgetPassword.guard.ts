@@ -28,10 +28,14 @@ export class ForGetPasswordGuard implements CanActivate {
       throw new UnauthorizedException('No se ha suministrado el token');
     }
 
+    let payload;
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRETTOKEN,
       });
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
+    }
 
       const user = await this.usuarioService.findOneCorreo(payload.correo);
       
@@ -44,8 +48,5 @@ export class ForGetPasswordGuard implements CanActivate {
       }
 
       return true;
-    } catch (error) {
-      throw new UnauthorizedException(error.message);
-    }
   }
 }
