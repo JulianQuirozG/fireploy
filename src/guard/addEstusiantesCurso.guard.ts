@@ -6,6 +6,7 @@ import {
   Injectable,
   BadRequestException,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -24,12 +25,17 @@ export class AddEstudianteCursoGuard implements CanActivate {
     // Obtener el token de sesión
     const sessionToken: string = request.headers['sessiontoken'] as string;
     if (!sessionToken)
-      throw new BadRequestException(`No se ha enviado el token de sesión`);
+      throw new UnauthorizedException(`No se ha enviado el token de sesión`);
 
     // Verificar el token
-    const session = await this.jwtService.verifyAsync(sessionToken, {
-      secret: process.env.SECRETTOKEN,
-    });
+    let session;
+    try{
+      session = await this.jwtService.verifyAsync(sessionToken, {
+        secret: process.env.SECRETTOKEN,
+      });
+    }catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
+    }
 
     // Obtener el ID del curso desde los headers
     let cursoId: string | undefined;

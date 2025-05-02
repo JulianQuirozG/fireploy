@@ -61,13 +61,15 @@ export class updateProyectoGuard implements CanActivate {
           );
         }
       }
+      
 
       const estudianteEncontrado = proyecto.estudiantes.some((estudiante) => estudiante.id === payload.sub);
+      console.log(estudianteEncontrado)
+      console.log(proyecto.creador.id)
+      console.log(payload.sub)
       if ( payload.tipo==='Estudiante' && (!estudianteEncontrado && proyecto.creador.id != payload.sub)) {
         throw new UnauthorizedException('El usuario no pertenece a este proyecto');
       }
-
-
       return true;
     } catch (error) {
       throw new UnauthorizedException(error.message);

@@ -4,6 +4,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -29,48 +30,49 @@ export class ExtractUserIdGuard implements CanActivate {
       throw new UnauthorizedException('No se ha suministrado el token');
     }
 
+    let payload;
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRETTOKEN,
       });
-
-      request.user = { id: payload.sub };
-
-      if (payload.tipo === 'Administrador') {
-        return true;
-      }
-
-      const seccion = await this.seccionService.findOne(seccionId);
-      const curso = await this.cursoService.findOne(seccion.curso.id);
-
-      if ((tutorId && curso.docente.id) && curso.docente.id === tutorId) {
-        return true;
-      }
-
-      if (!curso.estudiantes || curso.estudiantes.length === 0) {
-        throw new UnauthorizedException('El curso no tiene estudiantes registrados');
-      }
-
-      const estudianteEncontrado = curso.estudiantes.some((estudiante) => estudiante.id === payload.sub);
-      if (!estudianteEncontrado) {
-        throw new UnauthorizedException('El usuario no pertenece a este curso');
-      }
-
-      if (estudiantesIds?.length && estudiantesIds?.length > 0) {
-        const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
-        const estudiantesInvalidos = estudiantesIds.filter((id) => !estudiantesCursoIds.includes(id));
-
-        if (estudiantesInvalidos.length > 0) {
-          throw new UnauthorizedException(
-            `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`
-          );
-        }
-      }
-
-
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException(error.message);
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
     }
+
+    request.user = { id: payload.sub };
+
+    if (payload.tipo === 'Administrador') {
+      return true;
+    }
+
+    const seccion = await this.seccionService.findOne(seccionId);
+    const curso = await this.cursoService.findOne(seccion.curso.id);
+
+    if ((tutorId && curso.docente.id) && curso.docente.id === tutorId) {
+      return true;
+    }
+
+    if (!curso.estudiantes || curso.estudiantes.length === 0) {
+      throw new ForbiddenException('El curso no tiene estudiantes registrados');
+    }
+
+    const estudianteEncontrado = curso.estudiantes.some((estudiante) => estudiante.id === payload.sub);
+    if (!estudianteEncontrado) {
+      throw new ForbiddenException('El usuario no pertenece a este curso');
+    }
+
+    if (estudiantesIds?.length && estudiantesIds?.length > 0) {
+      const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
+      const estudiantesInvalidos = estudiantesIds.filter((id) => !estudiantesCursoIds.includes(id));
+
+      if (estudiantesInvalidos.length > 0) {
+        throw new ForbiddenException(
+          `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`
+        );
+      }
+    }
+
+
+    return true;
   }
 }

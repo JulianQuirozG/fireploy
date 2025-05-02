@@ -5,6 +5,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -20,13 +21,18 @@ export class UpdateUserPermissionGuard implements CanActivate {
     // Verify session token exists
     const sessionToken: string = req.headers['sessiontoken'] as string;
     if (!sessionToken)
-      throw new BadRequestException(`No se ha enviado el token de sesión`);
+      throw new UnauthorizedException(`No se ha enviado el token de sesión`);
 
     // Verify permission token
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const session = await this.jwtService.verifyAsync(sessionToken, {
-      secret: process.env.SECRETTOKEN,
-    });
+    let session;
+    try {
+      session = await this.jwtService.verifyAsync(sessionToken, {
+        secret: process.env.SECRETTOKEN,
+      });
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
+    }
 
     let id;
     if (path.length > 0) {

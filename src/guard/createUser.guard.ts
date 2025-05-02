@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
@@ -26,7 +27,7 @@ export class CreateUserGuard implements CanActivate {
     //Verify token exist
     const sessionToken: string = req.headers['sessiontoken'] as string;
     if (!sessionToken)
-      throw new BadRequestException(`No se ha enviado el token de sesión`);
+      throw new UnauthorizedException(`No se ha enviado el token de sesión`);
     let session;
     try {
       //Verify permission token
@@ -36,7 +37,7 @@ export class CreateUserGuard implements CanActivate {
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         `La sesion ha acabado o el token de sesión es invalido`,
       );
     }
