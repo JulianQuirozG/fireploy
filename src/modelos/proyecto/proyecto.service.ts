@@ -473,9 +473,10 @@ export class ProyectoService {
         },
       );
     } catch (e) {
+      console.log(e);
       throw new BadRequestException(
         `Ha ocurrido un error al cargar el proyecto`,
-        e,
+        e.message,
       );
     }
 
