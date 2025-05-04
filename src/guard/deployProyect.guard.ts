@@ -56,10 +56,10 @@ export class DeployProyectoGuard implements CanActivate {
       if (payload.tipo === 'Estudiante' && (!curso.estudiantes || curso.estudiantes.length === 0)) {
         throw new ForbiddenException('El curso no tiene estudiantes registrados');
       }
-
+      console.log(proyecto.creador.id)
       const estudiantesIds = proyecto.estudiantes.map((estudiante) => estudiante.id);
       const estudiantesValidos = estudiantesIds.some((id) => id == payload.sub)
-      if (payload.tipo === 'Estudiante' && (!estudiantesValidos || proyecto.creador.id != payload.sub)) {
+      if (payload.tipo === 'Estudiante' && (!estudiantesValidos && proyecto.creador.id != payload.sub)) {
         throw new ForbiddenException(
           `El estudiante no pertenece al proyecto `
         );
