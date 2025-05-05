@@ -389,32 +389,32 @@ export class ProyectoService {
       updateProyectoDto.tipo_proyecto === 'M' &&
       proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto
     ) {
-      console.log("Cosas",proyecto.id);
       await this.repositoryService.remove(proyecto.repositorios[1].id);
       await this.repositoryService.remove(proyecto.repositorios[0].id);
-      await this.repositoryService.create({
-        tipo: 'I',
-        proyecto_id: proyecto.id,
-      });
-      console.log("Cosas",proyecto.repositorios);
+      proyecto.repositorios.push(
+        await this.repositoryService.create({
+          tipo: 'I',
+          proyecto_id: proyecto.id,
+        }),
+      );
     } else if (
       updateProyectoDto.tipo_proyecto &&
       updateProyectoDto.tipo_proyecto === 'S' &&
       proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto
     ) {
-      console.log("Cosas",proyecto.id);
-      console.log(proyecto.repositorios);
       await this.repositoryService.remove(proyecto.repositorios[0].id);
-      await this.repositoryService.create({
-        tipo: 'F',
-        proyecto_id: proyecto.id,
-      });
-      await this.repositoryService.create({
-        tipo: 'B',
-        proyecto_id: proyecto.id,
-      });
-      console.log("Cosas2",proyecto.repositorios);
-      console.log(proyecto.id);
+      proyecto.repositorios.push(
+        await this.repositoryService.create({
+          tipo: 'F',
+          proyecto_id: proyecto.id,
+        }),
+      );
+      proyecto.repositorios.push(
+        await this.repositoryService.create({
+          tipo: 'B',
+          proyecto_id: proyecto.id,
+        }),
+      );
     }
 
     console.log(proyecto.repositorios);
