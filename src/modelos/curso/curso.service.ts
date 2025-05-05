@@ -17,6 +17,9 @@ import { addEstudiantesCursoDto } from './dto/add-estudiantes-curso.dto';
 import { Estudiante } from '../estudiante/entities/estudiante.entity';
 import { EstudianteService } from '../estudiante/estudiante.service';
 import { DocenteService } from '../docente/docente.service';
+import * as xlsx from 'xlsx';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class CursoService {
@@ -285,4 +288,54 @@ export class CursoService {
     await this.findOne(id);
     return;
   }
+
+  async UploadCurso(file: Express.Multer.File) {
+      //Verify file exits
+      if (!file) {
+        throw new BadRequestException('No se ha cargado ningún archivo');
+      }
+  
+      //Verify file extension
+      if (
+        !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
+          file.mimetype,
+        )
+      ) {
+        throw new Error('El archivo debe ser un Excel (.xls o .xlsx)');
+      }
+  
+      // read the file content
+      const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  
+      const cursos = plainToInstance(CreateCursoDto, data);
+      const errors: any[] = [];
+  
+      for (const curso of cursos) {
+        const errores = await validate(curso);
+        if (errores.length > 0) errors.push(errores);
+      }
+  
+      if (errors.length > 0)
+        return { mensaje: 'Algunos de los cursos no se pudieron cargar', errors };
+  
+      for (const curso of cursos) {
+        try {
+          await this.create(curso);
+        } catch (error) {
+          errors.push({
+            tittle: `El curso ${curso.grupo} no se pudo registrar`,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            message: error.message,
+          });
+        }
+      }
+  
+      if (errors.length > 0)
+        return { mensaje: 'Alguno de los cursos no se pudieron cargar', errors };
+      else {
+        return { mensaje: 'Cursos cargados con éxito' };
+      }
+    }
 }

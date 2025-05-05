@@ -4,6 +4,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -32,10 +33,14 @@ export class DeployProyectoGuard implements CanActivate {
       throw new UnauthorizedException('No se ha suministrado el token');
     }
 
+    let payload;
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRETTOKEN,
       });
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
+    }
 
       request.user = { id: payload.sub };
 
@@ -45,24 +50,21 @@ export class DeployProyectoGuard implements CanActivate {
 
 
       if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
-        throw new UnauthorizedException('El docente no es tutor del proyecto');
+        throw new ForbiddenException('El docente no es tutor del proyecto');
       }
 
       if (payload.tipo === 'Estudiante' && (!curso.estudiantes || curso.estudiantes.length === 0)) {
-        throw new UnauthorizedException('El curso no tiene estudiantes registrados');
+        throw new ForbiddenException('El curso no tiene estudiantes registrados');
       }
-
+      console.log(proyecto.creador.id)
       const estudiantesIds = proyecto.estudiantes.map((estudiante) => estudiante.id);
       const estudiantesValidos = estudiantesIds.some((id) => id == payload.sub)
-      if (payload.tipo === 'Estudiante' && (!estudiantesValidos || proyecto.creador.id != payload.sub)) {
-        throw new UnauthorizedException(
+      if (payload.tipo === 'Estudiante' && (!estudiantesValidos && proyecto.creador.id != payload.sub)) {
+        throw new ForbiddenException(
           `El estudiante no pertenece al proyecto `
         );
       }
 
       return true;
-    } catch (error) {
-      throw new UnauthorizedException(error.message);
-    }
   }
 }

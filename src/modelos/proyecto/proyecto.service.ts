@@ -417,6 +417,8 @@ export class ProyectoService {
       );
     }
 
+    console.log(proyecto.repositorios);
+
     if (updateProyectoDto.estudiantesIds) {
       const estudiantesActualesIds = proyecto.estudiantes.map((e) => e.id);
 

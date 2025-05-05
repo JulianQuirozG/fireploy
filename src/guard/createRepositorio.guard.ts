@@ -3,7 +3,9 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ProyectoService } from 'src/modelos/proyecto/proyecto.service';
@@ -23,19 +25,15 @@ export class CreateRepositorioGuard implements CanActivate {
     //Verify token exist
     const sessionToken: string = req.headers['sessiontoken'] as string;
     if (!sessionToken)
-      throw new BadRequestException(`No se ha enviado el token de sesión`);
+      throw new UnauthorizedException(`No se ha enviado el token de sesión`);
+    
     let session;
     try {
-      //Verify permission token
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       session = await this.jwtService.verifyAsync(sessionToken, {
         secret: process.env.SECRETTOKEN,
       });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      throw new BadRequestException(
-        `La sesion ha acabado o el token de sesión es invalido`,
-      );
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
     }
 
     //Verify proyecto exists
@@ -51,7 +49,7 @@ export class CreateRepositorioGuard implements CanActivate {
       proyecto.creador.id != session.sub &&
       proyecto.tutor.id != session.sub
     )
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 

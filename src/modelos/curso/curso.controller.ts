@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { CursoService } from './curso.service';
 import { CreateCursoDto } from './dto/create-curso.dto';
@@ -18,6 +20,7 @@ import { FilterCursoDto } from './dto/filter-curso.dto';
 import { CreateCursoPermissionGuard } from 'src/guard/patchCurso.guard';
 import { addEstudiantesCursoDto } from './dto/add-estudiantes-curso.dto';
 import { AddEstudianteCursoGuard } from 'src/guard/addEstusiantesCurso.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('curso')
 export class CursoController {
@@ -62,4 +65,12 @@ export class CursoController {
   remove(@Param('id') id: string) {
     return this.cursoService.remove(id);
   }
+
+    @Post('carga_masiva')
+    @UseInterceptors(FileInterceptor('file'))
+    @UseGuards(RolesGuard)
+    @Roles('Administrador')
+    uploadCursos(@UploadedFile() file: Express.Multer.File) {
+      return this.cursoService.UploadCurso(file);
+    }
 }

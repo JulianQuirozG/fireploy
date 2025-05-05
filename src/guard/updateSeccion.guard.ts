@@ -2,7 +2,9 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -24,7 +26,7 @@ export class updateSeccionGuard implements CanActivate {
     // Obtener el token de sesión
     const sessionToken: string = request.headers['sessiontoken'] as string;
     if (!sessionToken) {
-      throw new BadRequestException('No se ha enviado el token de sesión');
+      throw new UnauthorizedException('No se ha enviado el token de sesión');
     }
 
     // Verificar el token
@@ -38,7 +40,7 @@ export class updateSeccionGuard implements CanActivate {
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         `La sesion ha acabado o el token de sesión es invalido`,
       );
     }
@@ -65,7 +67,7 @@ export class updateSeccionGuard implements CanActivate {
     //Verify user is an estudiante
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (session.tipo == 'Estudiante')
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 
@@ -77,7 +79,7 @@ export class updateSeccionGuard implements CanActivate {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       (session.tipo == 'Docente' && curso.docente.id != session.sub)
     )
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 
