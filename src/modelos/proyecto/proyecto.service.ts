@@ -498,8 +498,18 @@ export class ProyectoService {
    * @throws BadRequestException if an error occurs while cloning the project repositories.
    */
   async cargarProyecto(id: string) {
-    //get the proyect
+    //get the project
     const proyect = await this.findOne(+id);
+
+    //If project is already loading
+    if (proyect.estado_ejecucion == 'L')
+      throw new BadRequestException(
+        'El proyecto ya se encuentra en cola de despliegue',
+      );
+
+    //Set proyecto status in Loading
+    proyect.estado_ejecucion = 'L';
+    await this.update(+id, proyect);
 
     //set notificacion
     const notificacion: CreateNotificacioneDto = {
@@ -516,10 +526,17 @@ export class ProyectoService {
 
     //if project hasn't repositories
     if (repositorios.length == 0) {
+      //Set proyecto status in Error
+      proyect.estado_ejecucion = 'E';
+      await this.update(+id, proyect);
+
+      //Set notificacion
       notificacion.titulo = `Error al cargar el proyecto `;
       notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado un código de error 000`;
+
       //save notificacion
       await this.notificacionService.create(notificacion);
+
       //Send notificacion
       this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
       throw new NotFoundException(
@@ -538,6 +555,9 @@ export class ProyectoService {
       );
     } catch (e) {
       console.log(e);
+      //Set proyecto status in Error
+      proyect.estado_ejecucion = 'E';
+      await this.update(+id, proyect);
 
       //Save notificacion
       notificacion.titulo = `Error al cargar un proyecto`;
@@ -552,9 +572,14 @@ export class ProyectoService {
       );
     }
 
-    console.log(dockerfiles);
+    //Set proyecto status in Online
+    proyect.estado_ejecucion = 'N';
+    await this.update(+id, proyect);
+
+    //Set notificacion
     notificacion.mensaje = `Se ha cargado con exito tu proyecto ${proyect.id}-${proyect.titulo}, ¡Dale un vistazo!`;
     await this.notificacionService.create(notificacion);
+
     //Send notificacion
     this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
     return dockerfiles;
