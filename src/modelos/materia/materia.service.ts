@@ -11,7 +11,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import * as xlsx from 'xlsx';
+import { Workbook } from 'exceljs';
 
 @Injectable()
 export class MateriaService {
@@ -108,12 +108,10 @@ export class MateriaService {
    * @throws Error If the file is not a valid Excel file (.xls or .xlsx).
    */
   async UploadMaterias(file: Express.Multer.File) {
-    //Verify file exits
     if (!file) {
       throw new BadRequestException('No se ha cargado ningún archivo');
     }
 
-    //Verify file extension
     if (
       !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
         file.mimetype,
@@ -122,11 +120,31 @@ export class MateriaService {
       throw new Error('El archivo debe ser un Excel (.xls o .xlsx)');
     }
 
-    // read the file content
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    // Leer el archivo con exceljs
+    const workbook = new Workbook();
+    const buffer = new Uint8Array(file.buffer).buffer;
+    await workbook.xlsx.load(buffer);
+    const worksheet = workbook.worksheets[0];
 
+    // Obtener encabezados
+    const headers: string[] = [];
+    worksheet.getRow(1).eachCell((cell) => {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      headers.push(String(cell.value ?? ''));
+    });
+
+    // Convertir filas a objetos
+    const data: Record<string, any>[] = [];
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // Saltar encabezado
+      const rowData: Record<string, any> = {};
+      row.eachCell((cell, colNumber) => {
+        rowData[headers[colNumber - 1]] = cell.value;
+      });
+      data.push(rowData);
+    });
+
+    // Transformar y validar
     const materias = plainToInstance(CreateMateriaDto, data);
     const errors: any[] = [];
 
@@ -135,8 +153,12 @@ export class MateriaService {
       if (errores.length > 0) errors.push(errores);
     }
 
-    if (errors.length > 0)
-      return { mensaje: 'Alguna de las materias no se logró cargar', errors };
+    if (errors.length > 0) {
+      return {
+        mensaje: 'Alguna de las materias no se logró cargar',
+        errors,
+      };
+    }
 
     for (const materia of materias) {
       try {
@@ -150,10 +172,15 @@ export class MateriaService {
       }
     }
 
-    if (errors.length > 0)
-      return { mensaje: 'Alguna de las materias no se pudo cargar', errors };
-    else {
-      return { mensaje: 'Materias cargadas con exito' };
+    if (errors.length > 0) {
+      return {
+        mensaje: 'Alguna de las materias no se pudo cargar',
+        errors,
+      };
+    } else {
+      return {
+        mensaje: 'Materias cargadas con éxito',
+      };
     }
   }
 }

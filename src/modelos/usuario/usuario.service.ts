@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
 import {
   BadRequestException,
   Injectable,
@@ -11,11 +12,11 @@ import { Repository } from 'typeorm';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
 import { FilterUsuarioDto } from './dto/filter-usuario.dto';
 import { FirebaseService } from 'src/services/firebase.service';
-import * as xlsx from 'xlsx';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { MailService } from 'src/mail/mail.service';
+import { Workbook } from 'exceljs';
 
 @Injectable()
 export class UsuarioService {
@@ -222,12 +223,12 @@ export class UsuarioService {
    * @throws Error If the file is not a valid Excel file (.xls or .xlsx).
    */
   async UploadUsers(file: Express.Multer.File) {
-    //Verify file exits
+    // Verificar que se haya cargado un archivo
     if (!file) {
       throw new BadRequestException('No se ha cargado ningún archivo');
     }
 
-    //Verify file extension
+    // Verificar la extensión del archivo
     if (
       !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
         file.mimetype,
@@ -236,11 +237,32 @@ export class UsuarioService {
       throw new Error('El archivo debe ser un Excel (.xls o .xlsx)');
     }
 
-    // read the file content
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    // Leer el archivo con exceljs desde el buffer
+    const workbook = new Workbook();
+    const buffer = new Uint8Array(file.buffer).buffer;
+    await workbook.xlsx.load(buffer);
+    const worksheet = workbook.worksheets[0];
 
+    // Leer encabezados de la primera fila
+    const headers: string[] = [];
+    worksheet.getRow(1).eachCell((cell) => {
+      headers.push(String(cell.value ?? ''));
+    });
+
+    // Convertir filas en objetos
+    const data: Record<string, any>[] = [];
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // Saltar encabezado
+
+      const rowData: Record<string, any> = {};
+      row.eachCell((cell, colNumber) => {
+        rowData[headers[colNumber - 1]] = cell.value;
+      });
+
+      data.push(rowData);
+    });
+
+    // Transformar a DTOs y validar
     const users = plainToInstance(CreateUsuarioDto, data);
     const errors: any[] = [];
 
@@ -249,8 +271,12 @@ export class UsuarioService {
       if (errores.length > 0) errors.push(errores);
     }
 
-    if (errors.length > 0)
-      return { mensaje: 'Alguno de los usuarios no se logró cargar', errors };
+    if (errors.length > 0) {
+      return {
+        mensaje: 'Alguno de los usuarios no se logró cargar',
+        errors,
+      };
+    }
 
     for (const user of users) {
       try {
@@ -264,10 +290,15 @@ export class UsuarioService {
       }
     }
 
-    if (errors.length > 0)
-      return { mensaje: 'Alguno de los usuarios no se logró cargar', errors };
-    else {
-      return { mensaje: 'Usuarios cargados con exito' };
+    if (errors.length > 0) {
+      return {
+        mensaje: 'Alguno de los usuarios no se logró cargar',
+        errors,
+      };
+    } else {
+      return {
+        mensaje: 'Usuarios cargados con éxito',
+      };
     }
   }
 

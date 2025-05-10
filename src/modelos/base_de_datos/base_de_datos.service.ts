@@ -65,7 +65,7 @@ export class BaseDeDatosService {
       //Verify DB Type
       if (createBaseDeDatoDto.tipo == process.env.SQL_DB) {
         const db = await this.systemQueueService.enqueSystem('create_DB', {
-          containerName: process.env.S as string,
+          containerName: process.env.MYSQL_CONTAINER_NAME as string,
           nombre: baseDeDatos.nombre,
           usuario: baseDeDatos.usuario,
           contrasenia: createBaseDeDatoDto.contrasenia,
