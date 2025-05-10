@@ -26,7 +26,15 @@ export class UsuarioService {
     private firebaseService: FirebaseService,
     private mailService: MailService,
   ) {}
-
+  /**
+   * Creates a new user after validating the email is not already registered.
+   * The user's password is securely hashed before saving.
+   *
+   * @param createUsuarioDto - An object containing the user's registration data, including email and plain password.
+   * @returns A promise that resolves with the newly created user.
+   *
+   * @throws BadRequestException if a user with the provided email already exists.
+   */
   async create(createUsuarioDto: CreateUsuarioDto) {
     //verify user exists
     const user = await this.usersRepository.findOne({
@@ -47,7 +55,13 @@ export class UsuarioService {
     return await this.usersRepository.save(createUsuarioDto);
   }
 
-  //
+  /**
+   * Retrieves a list of users based on optional filters.
+   *
+   * @param filters - Criteria used to filter users (e.g., by ID, type, or other attributes).
+   * @param all_info - A boolean indicating whether to return complete user records (true) or only selected fields (false).
+   * @returns A promise that resolves with an array of users matching the filters.
+   */
   async findAll(
     filters: FilterUsuarioDto,
     all_info: boolean,
@@ -75,6 +89,15 @@ export class UsuarioService {
     return await query.getMany();
   }
 
+  /**
+   * Retrieves a single user by their ID, optionally returning full or partial details.
+   *
+   * @param id - The ID of the user to retrieve.
+   * @param all_info - A boolean indicating whether to return the complete user record (true) or only selected fields (false).
+   * @returns A promise that resolves with the user if found.
+   *
+   * @throws NotFoundException if no user exists with the given ID.
+   */
   async findOne(id: number, all_info: boolean): Promise<Usuario> {
     const query = this.usersRepository
       .createQueryBuilder('usuario')
@@ -107,6 +130,14 @@ export class UsuarioService {
     return usuario;
   }
 
+  /**
+   * Retrieves a single user by their email address.
+   *
+   * @param correo - The email address of the user to find.
+   * @returns A promise that resolves with the user if found.
+   *
+   * @throws NotFoundException if no user is found with the provided email address.
+   */
   async findOneCorreo(correo: string): Promise<Usuario | undefined> {
     const usuario = await this.usersRepository.findOne({
       where: { correo: correo },
@@ -153,9 +184,14 @@ export class UsuarioService {
   }
 
   /**
-   *  Update the profile user image
-   * @param id user id to update
-   * @param file image to upload
+   * Updates the profile image of a user by uploading a new file and saving its URL.
+   *
+   * @param id - The ID of the user whose profile image will be updated.
+   * @param file - The image file to upload (received via Multer).
+   * @returns A promise that resolves with the updated user including the new profile image URL.
+   *
+   * @throws NotFoundException if the user with the given ID does not exist.
+   * @throws InternalServerErrorException if the upload fails or the update operation encounters an error.
    */
   async updateImageUser(id: number, file: Express.Multer.File) {
     //Save the image

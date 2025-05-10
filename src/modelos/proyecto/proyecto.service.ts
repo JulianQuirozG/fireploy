@@ -49,6 +49,17 @@ export class ProyectoService {
     private systemQueueService: SystemQueueService,
     private jwtService: JwtService,
   ) {}
+
+  /**
+   * Creates a new project, assigns related entities
+   *
+   * @param createProyectoDto - The data transfer object containing project creation details,
+   * including optional database information and student IDs.
+   * @param userId - The ID of the user creating the project.
+   * @returns A promise that resolves with the newly created project, fully populated with related entities.
+   *
+   * @throws BadRequestException if a database with the same name already exists.
+   */
   async create(createProyectoDto: CreateProyectoDto, userId: number) {
     const creador = await this.usuarioService.findOne(userId, true);
     let estudiantes: Estudiante[] = [];
@@ -130,6 +141,12 @@ export class ProyectoService {
     return await this.findOne(proyectoCreado.id);
   }
 
+  /**
+   * Retrieves all projects from the database with detailed relational
+   *
+   * @returns A promise that resolves with an array of projects, each populated with
+   * their related entities and selected fields for performance optimization.
+   */
   async findAll() {
     return await this.proyectoRepository
       .createQueryBuilder('proyecto')
@@ -206,6 +223,12 @@ export class ProyectoService {
       .getMany();
   }
 
+  /**
+   * Retrieves all projects that belong to a specific section by section ID
+   *
+   * @param id - The ID of the section to filter projects by.
+   * @returns A promise that resolves with an array of projects related to the specified section.
+   */
   findAllBySection(id: number) {
     return this.proyectoRepository.find({
       where: { seccion: { id } },
@@ -382,6 +405,15 @@ export class ProyectoService {
       .getMany();
   }
 
+  /**
+   * Updates an existing project by its ID with the provided data
+   *
+   * @param id - The ID of the project to update.
+   * @param updateProyectoDto - An object containing the updated fields and associations for the project.
+   * @returns A promise that resolves with the updated project, including all current relations.
+   *
+   * @throws NotFoundException if the project with the given ID does not exist.
+   */
   async update(id: number, updateProyectoDto: UpdateProyectoDto) {
     const proyecto = await this.findOne(id);
     if (
@@ -458,6 +490,15 @@ export class ProyectoService {
     return `This action removes a #${id} proyecto`;
   }
 
+  /**
+   * Loads a project by its ID and enqueues a system job to clone its associated repositories.
+   *
+   * @param id - The ID of the project to load.
+   * @returns A promise that resolves with the result of the repository cloning process.
+   *
+   * @throws NotFoundException if the project has no repositories assigned.
+   * @throws BadRequestException if an error occurs while cloning the project repositories.
+   */
   async cargarProyecto(id: string) {
     //get the proyect
     const proyect = await this.findOne(+id);
@@ -492,6 +533,16 @@ export class ProyectoService {
     return dockerfiles;
   }
 
+  /**
+   * Adds a project to the list of favorites for the authenticated user.
+   *
+   * @param id - The ID of the project to mark as favorite.
+   * @param req - The HTTP request object, used to extract the user's session token.
+   * @returns A promise that resolves with the updated project, now including the user in its favorites list.
+   *
+   * @throws UnauthorizedException if the session token is missing or invalid.
+   * @throws NotFoundException if the project or user is not found.
+   */
   async puntuarProyecto(id: string, req: Request) {
     //Get project
     const project = await this.findOne(+id);
@@ -511,6 +562,16 @@ export class ProyectoService {
     return await this.findOne(+id);
   }
 
+  /**
+   * Removes a project from the list of favorites for the authenticated user.
+   *
+   * @param id - The ID of the project to remove from favorites.
+   * @param req - The HTTP request object, used to extract the user's session token.
+   * @returns A promise that resolves with the updated project, excluding the user from its favorites list.
+   *
+   * @throws UnauthorizedException if the session token is missing or invalid.
+   * @throws NotFoundException if the project or user is not found.
+   */
   async despuntuarProyecto(id: string, req: Request) {
     //Get project
     const project = await this.findOne(+id);

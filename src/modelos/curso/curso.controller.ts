@@ -66,11 +66,11 @@ export class CursoController {
     return this.cursoService.remove(id);
   }
 
-    @Post('carga_masiva')
-    @UseInterceptors(FileInterceptor('file'))
-    @UseGuards(RolesGuard)
-    @Roles('Administrador')
-    uploadCursos(@UploadedFile() file: Express.Multer.File) {
-      return this.cursoService.UploadCurso(file);
-    }
+  @Post('carga_masiva')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(RolesGuard)
+  @Roles('Administrador')
+  uploadCursos(@UploadedFile() file: Express.Multer.File) {
+    return this.cursoService.uploadCurso(file);
+  }
 }

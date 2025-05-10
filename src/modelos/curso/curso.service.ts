@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   BadRequestException,
   ConflictException,
@@ -31,6 +33,18 @@ export class CursoService {
     private estudianteService: EstudianteService,
     private docenteService: DocenteService,
   ) {}
+
+  /**
+   * Creates a new course by combining the subject ID, group, and semester into a unique course ID.
+   *
+   * @param createCursoDto - Data transfer object containing the course creation data such as
+   * subject ID, group, semester, description, status, and optional teacher ID.
+   *
+   * @returns The newly created course entity with all associations loaded.
+   *
+   * @throws {ConflictException} If a course with the generated ID already exists.
+   * @throws {NotFoundException} If the specified teacher does not exist or is not a valid "Docente".
+   */
   async create(createCursoDto: CreateCursoDto) {
     const id: string = `${createCursoDto.materiaId}${createCursoDto.grupo}${createCursoDto.semestre}`;
     const curso = await this.cursoRepository.findOne({ where: { id: id } });
@@ -69,6 +83,20 @@ export class CursoService {
     return this.findOne(id);
   }
 
+  /**
+   * Retrieves a list of courses from the system, including their related entities such as
+   * subject (materia), teacher (docente), sections, and students. Supports optional filters
+   * by subject ID, teacher ID, or student ID
+   *
+   * @param filters - Optional object containing filter criteria:
+   *  - `materia`: Filter by subject ID.
+   *  - `docente`: Filter by teacher ID.
+   *  - `estudiantes`: Filter by student ID.
+   *
+   * @returns An array of course entities with their associated subject, teacher, sections, and students.
+   *
+   * @throws {BadRequestException} If any of the provided filter IDs do not correspond to existing records.
+   */
   async findAll(filters?: FilterCursoDto) {
     const query = this.cursoRepository
       .createQueryBuilder('curso')
@@ -165,6 +193,14 @@ export class CursoService {
     return await query.getMany();
   }
 
+  /**
+   * Retrieves all courses associated with a given subject (materia) ID.
+   *
+   * @param id - The ID of the subject (materia) to filter courses by.
+   *
+   * @returns An array of courses that are associated with the given subject ID,
+   * each including its related subject, teacher, and students.
+   */
   async findAllByMateria(id: number) {
     return await this.cursoRepository.find({
       where: { materia: { id } },
@@ -172,6 +208,16 @@ export class CursoService {
     });
   }
 
+  /**
+   * Retrieves a single course by its ID, including all related entities such as
+   * subject (materia), teacher (docente), sections, and students.
+   *
+   * @param id - The unique identifier of the course to retrieve.
+   *
+   * @returns The course entity with its related subject, teacher, sections, and students.
+   *
+   * @throws {NotFoundException} If no course exists with the specified ID.
+   */
   async findOne(id: string) {
     const query = this.cursoRepository
       .createQueryBuilder('curso')
@@ -231,6 +277,17 @@ export class CursoService {
     return curso;
   }
 
+  /**
+   * Updates the information of an existing course by its ID.
+   *
+   * @param id - The unique identifier of the course to update.
+   * @param updateCursoDto - Data transfer object containing the updated course fields,
+   * including optional changes to the assigned teacher.
+   *
+   * @returns The updated course entity with all related data loaded.
+   *
+   * @throws {NotFoundException} If the course does not exist or the specified teacher ID is invalid.
+   */
   async update(id: string, updateCursoDto: UpdateCursoDto) {
     //Verify curso exists
     await this.findOne(id);
@@ -256,6 +313,20 @@ export class CursoService {
     return await this.findOne(id);
   }
 
+  /**
+   * Adds or removes students from a course based on the specified operation.
+   *
+   * This method first retrieves the course and the list of students by their IDs.
+   * If the operation (`operacion`) is `"A"`, it adds the students to the course, avoiding duplicates.
+   * If the operation is different, it removes the specified students from the course.
+   *
+   * @param id - The unique identifier of the course to modify.
+   * @param addEstudiantes - Data transfer object containing the list of student IDs and the operation type (`"A"` for add, any other for remove).
+   *
+   * @returns The updated course entity with the modified list of enrolled students.
+   *
+   * @throws {NotFoundException} If the course or any of the specified students do not exist.
+   */
   async addStudents(id: string, addEstudiantes: addEstudiantesCursoDto) {
     const curso = await this.findOne(id);
     const estudantes: Estudiante[] = await Promise.all(
@@ -289,53 +360,64 @@ export class CursoService {
     return;
   }
 
-  async UploadCurso(file: Express.Multer.File) {
-      //Verify file exits
-      if (!file) {
-        throw new BadRequestException('No se ha cargado ningún archivo');
-      }
-  
-      //Verify file extension
-      if (
-        !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
-          file.mimetype,
-        )
-      ) {
-        throw new Error('El archivo debe ser un Excel (.xls o .xlsx)');
-      }
-  
-      // read the file content
-      const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
-      const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-  
-      const cursos = plainToInstance(CreateCursoDto, data);
-      const errors: any[] = [];
-  
-      for (const curso of cursos) {
-        const errores = await validate(curso);
-        if (errores.length > 0) errors.push(errores);
-      }
-  
-      if (errors.length > 0)
-        return { mensaje: 'Algunos de los cursos no se pudieron cargar', errors };
-  
-      for (const curso of cursos) {
-        try {
-          await this.create(curso);
-        } catch (error) {
-          errors.push({
-            tittle: `El curso ${curso.grupo} no se pudo registrar`,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            message: error.message,
-          });
-        }
-      }
-  
-      if (errors.length > 0)
-        return { mensaje: 'Alguno de los cursos no se pudieron cargar', errors };
-      else {
-        return { mensaje: 'Cursos cargados con éxito' };
+  /**
+   * Uploads and processes an Excel file to register multiple courses in bulk.
+   *
+   * @param file - The uploaded Excel file containing the course data.
+   *
+   * @returns A success message if all courses were created, or a partial error report
+   * if some courses failed validation or registration.
+   *
+   * @throws {BadRequestException} If no file is uploaded.
+   * @throws {Error} If the uploaded file has an invalid MIME type.
+   */
+  async uploadCurso(file: Express.Multer.File) {
+    //Verify file exits
+    if (!file) {
+      throw new BadRequestException('No se ha cargado ningún archivo');
+    }
+
+    //Verify file extension
+    if (
+      !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
+        file.mimetype,
+      )
+    ) {
+      throw new Error('El archivo debe ser un Excel (.xls o .xlsx)');
+    }
+
+    // read the file content
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    const cursos = plainToInstance(CreateCursoDto, data);
+    const errors: any[] = [];
+
+    for (const curso of cursos) {
+      const errores = await validate(curso);
+      if (errores.length > 0) errors.push(errores);
+    }
+
+    if (errors.length > 0)
+      return { mensaje: 'Algunos de los cursos no se pudieron cargar', errors };
+
+    for (const curso of cursos) {
+      try {
+        await this.create(curso);
+      } catch (error) {
+        errors.push({
+          tittle: `El curso ${curso.grupo} no se pudo registrar`,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          message: error.message,
+        });
       }
     }
+
+    if (errors.length > 0)
+      return { mensaje: 'Alguno de los cursos no se pudieron cargar', errors };
+    else {
+      return { mensaje: 'Cursos cargados con éxito' };
+    }
+  }
 }

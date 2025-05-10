@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm/dist';
 import { FilterSolicitudDto } from './dto/filter-solicitud.dto';
 import { CursoService } from '../curso/curso.service';
 import { Docente } from '../docente/entities/docente.entity';
-import { Usuario } from '../usuario/entities/usuario.entity';
 
 @Injectable()
 export class SolicitudService {
@@ -47,7 +46,12 @@ export class SolicitudService {
     return await this.findOne(solicitud.id);
   }
 
-  // Return a solicitud filter list
+  /**
+   * Retrieves all solicitudes based on optional filters.
+   *
+   * @param filters - Optional filtering criteria, including user ID, request status, type, and course (if applicable).
+   * @returns A promise that resolves with an array of filtered and structured request records.
+   */
   async findAll(filters?: FilterSolicitudDto) {
     const query = this.solicitudRepository
       .createQueryBuilder('solicitud')
@@ -192,7 +196,7 @@ export class SolicitudService {
         for (const solicitud of solicitudesRelacionadas) {
           solicitud.estado = 'R';
           solicitud.fecha_respuesta = new Date();
-          solicitud.aprobado_by = user_approver as Usuario;
+          solicitud.aprobado_by = user_approver;
         }
         await this.solicitudRepository.save(solicitudesRelacionadas);
       }
