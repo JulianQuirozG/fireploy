@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { NotificacionesService } from './notificaciones.service';
 import { CreateNotificacioneDto } from './dto/create-notificacione.dto';
-import { UpdateNotificacioneDto } from './dto/update-notificacione.dto';
+import { GetNotificacionesGuard } from 'src/guard/getNotificaciones.guard';
+import { VerNotificacionesGuard } from 'src/guard/verNotifiaccion.guard';
 
 @Controller('notificaciones')
 export class NotificacionesController {
@@ -20,22 +22,21 @@ export class NotificacionesController {
     return this.notificacionesService.create(createNotificacioneDto);
   }
 
-  @Get(':id')
+  @UseGuards(GetNotificacionesGuard)
+  @Get('usuario/:id')
   findAllByUser(@Param('id') id: string) {
     return this.notificacionesService.findAllByUser(+id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.notificacionesService.findOne(+id);
-  }
+  //@Get(':id')
+  //findOne(@Param('id') id: string) {
+  //  return this.notificacionesService.findOne(+id);
+  //}
 
+  @UseGuards(VerNotificacionesGuard)
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateNotificacioneDto: UpdateNotificacioneDto,
-  ) {
-    return this.notificacionesService.update(+id, updateNotificacioneDto);
+  verNotificacion(@Param('id') id: string) {
+    return this.notificacionesService.update(+id);
   }
 
   @Delete(':id')

@@ -22,16 +22,24 @@ export class NotificacionesService {
       .leftJoin('notificacione.usuario', 'usuario')
 
       .addSelect(['usuario.id', 'usuario.nombre'])
-      .where('usuario.id = :id', { userId })
+      .where('usuario.id = :userId', { userId })
       .getMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notificacione`;
+  async findOne(id: number) {
+    return await this.notificacionesRepository
+      .createQueryBuilder('notificacione')
+      .leftJoin('notificacione.usuario', 'usuario')
+
+      .addSelect(['usuario.id', 'usuario.nombre'])
+      .where('notificacione.id = :id', { id })
+      .getMany();
   }
 
-  update(id: number, updateNotificacioneDto: UpdateNotificacioneDto) {
-    return `This action updates a #${id} notificacione`;
+  async update(id: number) {
+    const notificacion = await this.findOne(id);
+    notificacion[0].visto = true;
+    return await this.notificacionesRepository.save(notificacion);
   }
 
   remove(id: number) {

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
-  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -30,7 +31,6 @@ export class GetDataBaseGuard implements CanActivate {
     }
 
     // Verify sessiontoken
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     let session;
     try {
       session = await this.jwtService.verifyAsync(sessionToken, {
