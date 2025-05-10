@@ -19,11 +19,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-     "docs": "typedoc --entryPoints src --entryPointStrategy expand --out docs"
+    "docs": "typedoc --entryPoints src --entryPointStrategy expand --out docs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.15.2",
-    "@nestjs-modules/mailer": "^2.0.2",
+    "@nestjs-modules/mailer": "^1.6.1",
     "@nestjs/bull": "^11.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
@@ -31,7 +31,9 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.0",
     "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.1.0",
     "@types/multer": "^1.4.12",
     "bcrypt": "^5.1.1",
     "bull": "^4.16.5",
@@ -39,6 +41,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "firebase-admin": "^13.2.0",
     "fireploy": "file:",
     "fs": "^0.0.1-security",
@@ -51,8 +54,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "simple-git": "^3.27.0",
-    "typeorm": "^0.3.20",
-    "xlsx": "^0.18.5"
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

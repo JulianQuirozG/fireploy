@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   BadRequestException,
   Injectable,
@@ -22,14 +22,13 @@ import { Curso } from '../curso/entities/curso.entity';
 import { DocenteService } from '../docente/docente.service';
 import { Docente } from '../docente/entities/docente.entity';
 import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
-import { GitService } from 'src/services/git.service';
-import { DockerfileService } from 'src/services/docker.service';
-import { SystemService } from 'src/services/system.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { RepositorioService } from '../repositorio/repositorio.service';
-import { BaseDeDato } from '../base_de_datos/entities/base_de_dato.entity';
 import { SystemQueueService } from 'src/Queue/Services/system.service';
 import { JwtService } from '@nestjs/jwt';
+import { NotificationsGateway } from 'src/socket/notification.gateway';
+import { CreateNotificacioneDto } from '../notificaciones/dto/create-notificacione.dto';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class ProyectoService {
@@ -42,12 +41,11 @@ export class ProyectoService {
     private cursoService: CursoService,
     private docenteService: DocenteService,
     private baseDeDatosService: BaseDeDatosService,
-    private gitService: GitService,
-    private dockerfileService: DockerfileService,
-    private systemService: SystemService,
     private repositoryService: RepositorioService,
     private systemQueueService: SystemQueueService,
     private jwtService: JwtService,
+    private socketService: NotificationsGateway,
+    private notificacionService: NotificacionesService,
   ) {}
 
   /**
@@ -503,14 +501,31 @@ export class ProyectoService {
     //get the proyect
     const proyect = await this.findOne(+id);
 
+    //set notificacion
+    const notificacion: CreateNotificacioneDto = {
+      titulo: `Proyecto cargado con exito`,
+      mensaje: '',
+      tipo: 1,
+      fecha_creacion: new Date(Date.now()),
+      visto: false,
+      usuario: proyect.creador,
+    };
+
     //get repositories
     const repositorios = proyect.repositorios;
 
     //if project hasn't repositories
-    if (repositorios.length == 0)
+    if (repositorios.length == 0) {
+      notificacion.titulo = `Error al cargar el proyecto `;
+      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado un código de error 000`;
+      //save notificacion
+      await this.notificacionService.create(notificacion);
+      //Send notificacion
+      this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
       throw new NotFoundException(
         `El proyecto con el id ${id} no tiene repositorios asignados.`,
       );
+    }
 
     let dockerfiles: any = [];
     try {
@@ -523,6 +538,14 @@ export class ProyectoService {
       );
     } catch (e) {
       console.log(e);
+
+      //Save notificacion
+      notificacion.titulo = `Error al cargar un proyecto`;
+      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e}`;
+      await this.notificacionService.create(notificacion);
+
+      //Send notificacion
+      this.socketService.sendToUser(proyect.creador.id, 'Proyecto fallido');
       throw new BadRequestException(
         `Ha ocurrido un error al cargar el proyecto`,
         e.message,
@@ -530,6 +553,10 @@ export class ProyectoService {
     }
 
     console.log(dockerfiles);
+    notificacion.mensaje = `Se ha cargado con exito tu proyecto ${proyect.id}-${proyect.titulo}, ¡Dale un vistazo!`;
+    await this.notificacionService.create(notificacion);
+    //Send notificacion
+    this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
     return dockerfiles;
   }
 

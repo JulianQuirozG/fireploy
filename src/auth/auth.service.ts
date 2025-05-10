@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   ForbiddenException,
@@ -11,10 +15,7 @@ import { UpdatePasswordDto } from 'src/modelos/usuario/dto/update-password.dto';
 import { UsuarioService } from 'src/modelos/usuario/usuario.service';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
 import { OAuth2Client } from 'google-auth-library';
-import { CreateUsuarioDto } from 'src/modelos/usuario/dto/create-usuario.dto';
-import { CreateEstudianteDto } from 'src/modelos/estudiante/dto/create-estudiante.dto';
 import { LoginGoogleDto } from './dto/auth-google.dto';
-
 
 @Injectable()
 export class AuthService {
@@ -24,7 +25,6 @@ export class AuthService {
     private encrypt: Encrypt,
     private jwtService: JwtService,
     private mailService: MailService,
-
   ) {
     this.client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   }
@@ -53,13 +53,10 @@ export class AuthService {
       foto: user?.foto_perfil,
       id: user?.id,
     };
-
     return response;
   }
 
-  async recoverPassword(
-    correo: string,
-  ): Promise<{ access_token: string }> {
+  async recoverPassword(correo: string): Promise<{ access_token: string }> {
     const user = await this.usuarioService.findOneCorreo(correo);
     if (user?.estado == 'I') {
       throw new ForbiddenException(
@@ -143,19 +140,23 @@ export class AuthService {
     return this.mailService.enviarCorreo(
       updateUsuarioDto.correo,
       'Solicitud de cambio de contraseña',
-      htmlTemplate
+      htmlTemplate,
     );
   }
 
   async changepassword(updateUsuarioDto: UpdatePasswordDto) {
-    const user = await this.usuarioService.findOneCorreo(updateUsuarioDto.correo);
-    const contraseniahash = await this.encrypt.getHash(updateUsuarioDto.contrasenia);
+    const user = await this.usuarioService.findOneCorreo(
+      updateUsuarioDto.correo,
+    );
+    const contraseniahash = await this.encrypt.getHash(
+      updateUsuarioDto.contrasenia,
+    );
     if (user) {
       user.contrasenia = contraseniahash;
 
       return await this.usuarioService.update(user?.id, user);
     }
-    throw new BadRequestException("El usuario no existe");
+    throw new BadRequestException('El usuario no existe');
   }
 
   async loginWithGoogle({ idToken }: LoginGoogleDto) {
@@ -173,14 +174,16 @@ export class AuthService {
       const { sub: googleId, email, name } = payload;
 
       if (!email) {
-        throw new BadRequestException('El token de Google no contiene el correo electrónico.');
+        throw new BadRequestException(
+          'El token de Google no contiene el correo electrónico.',
+        );
       }
 
       // 1. Buscar usuario existente
-      let user,mensaje;
+      let user, mensaje;
       try {
         user = await this.usuarioService.findOneCorreo(email);
-        mensaje="Usario logueado con exito"
+        mensaje = 'Usario logueado con exito';
       } catch (error) {
         // 2. Si no existe, lo creamos
         user = await this.usuarioService.create({
@@ -196,13 +199,17 @@ export class AuthService {
           red_social: 'Google',
           foto_perfil: payload.picture ?? '',
         });
-        mensaje="Usario Registrado con exito"
+        mensaje = 'Usario Registrado con exito';
         user = await this.usuarioService.findOneCorreo(email);
       }
 
-      const payload2 = { sub: user?.id, tipo: user?.tipo, correo: user?.correo };
+      const payload2 = {
+        sub: user?.id,
+        tipo: user?.tipo,
+        correo: user?.correo,
+      };
       const response = {
-        message:mensaje,
+        message: mensaje,
         access_token: String(
           await this.jwtService.signAsync(payload2, {
             secret: process.env.SECRETTOKEN,
@@ -215,14 +222,14 @@ export class AuthService {
       };
       return response;
       // 3. Aquí podrías generar y retornar un JWT si usas autenticación por token
-
     } catch (error) {
       // Manejo específico del error del tiempo del token
       if (error.message?.includes('Token used too late')) {
-        throw new UnauthorizedException('El token de Google ha expirado o tu reloj del sistema está desincronizado.');
+        throw new UnauthorizedException(
+          'El token de Google ha expirado o tu reloj del sistema está desincronizado.',
+        );
       }
       throw new BadRequestException('Error al validar el token de Google.');
     }
   }
-
 }

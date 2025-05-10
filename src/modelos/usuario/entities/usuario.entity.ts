@@ -1,4 +1,5 @@
 import { Curso } from 'src/modelos/curso/entities/curso.entity';
+import { Notificacione } from 'src/modelos/notificaciones/entities/notificacione.entity';
 import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
 import { Solicitud } from 'src/modelos/solicitud/entities/solicitud.entity';
 import {
@@ -67,6 +68,9 @@ export class Usuario {
 
   @OneToMany(() => Proyecto, (proyecto) => proyecto.creador)
   proyectosCreados: Proyecto[];
+
+  @OneToMany(() => Notificacione, (notificaciones) => notificaciones.usuario)
+  notificaciones: Notificacione[];
 
   @ManyToMany(() => Proyecto, (proyecto) => proyecto.estudiantes)
   @JoinTable()

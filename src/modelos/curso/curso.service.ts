@@ -19,9 +19,9 @@ import { addEstudiantesCursoDto } from './dto/add-estudiantes-curso.dto';
 import { Estudiante } from '../estudiante/entities/estudiante.entity';
 import { EstudianteService } from '../estudiante/estudiante.service';
 import { DocenteService } from '../docente/docente.service';
-import * as xlsx from 'xlsx';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { Workbook } from 'exceljs';
 
 @Injectable()
 export class CursoService {
@@ -372,12 +372,10 @@ export class CursoService {
    * @throws {Error} If the uploaded file has an invalid MIME type.
    */
   async uploadCurso(file: Express.Multer.File) {
-    //Verify file exits
     if (!file) {
       throw new BadRequestException('No se ha cargado ningún archivo');
     }
 
-    //Verify file extension
     if (
       !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
         file.mimetype,
@@ -386,10 +384,31 @@ export class CursoService {
       throw new Error('El archivo debe ser un Excel (.xls o .xlsx)');
     }
 
-    // read the file content
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    const workbook = new Workbook();
+
+    const buffer = new Uint8Array(file.buffer).buffer;
+    await workbook.xlsx.load(buffer);
+
+    const worksheet = workbook.worksheets[0];
+
+    const data: Record<string, any>[] = [];
+    const headers: string[] = [];
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    worksheet.getRow(1).eachCell((cell, colNumber) => {
+      headers.push(String(cell.value ?? ''));
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+
+      const rowData: Record<string, any> = {};
+      row.eachCell((cell, colNumber) => {
+        rowData[headers[colNumber - 1]] = cell.value;
+      });
+
+      data.push(rowData);
+    });
 
     const cursos = plainToInstance(CreateCursoDto, data);
     const errors: any[] = [];
@@ -399,8 +418,12 @@ export class CursoService {
       if (errores.length > 0) errors.push(errores);
     }
 
-    if (errors.length > 0)
-      return { mensaje: 'Algunos de los cursos no se pudieron cargar', errors };
+    if (errors.length > 0) {
+      return {
+        mensaje: 'Algunos de los cursos no se pudieron cargar',
+        errors,
+      };
+    }
 
     for (const curso of cursos) {
       try {
@@ -414,9 +437,9 @@ export class CursoService {
       }
     }
 
-    if (errors.length > 0)
-      return { mensaje: 'Alguno de los cursos no se pudieron cargar', errors };
-    else {
+    if (errors.length > 0) {
+      return { mensaje: 'Algunos cursos no se pudieron cargar', errors };
+    } else {
       return { mensaje: 'Cursos cargados con éxito' };
     }
   }
