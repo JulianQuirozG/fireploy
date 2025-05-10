@@ -4,6 +4,9 @@ import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class BaseDeDato {
+  /**
+   * Comentario
+   */
   @PrimaryGeneratedColumn()
   id: number;
 
