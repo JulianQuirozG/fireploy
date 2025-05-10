@@ -19,6 +19,14 @@ export class MateriaService {
     @InjectRepository(Materia)
     private materiaRepository: Repository<Materia>,
   ) {}
+
+  /**
+   * Creates and saves a new materia in the database if it doesn't already exist.
+   *
+   * @param createMateriaDto - An object containing the data required to create a new subject.
+   * @returns A promise that resolves with the saved subject.
+   * @throws ConflictException if a subject with the same name and active status already exists.
+   */
   async create(createMateriaDto: CreateMateriaDto) {
     const materia = await this.materiaRepository.findOne({
       where: {
@@ -34,12 +42,24 @@ export class MateriaService {
     return await this.materiaRepository.save(createMateriaDto);
   }
 
+  /**
+   * Retrieves all subjects materias from the database, including their related courses.
+   *
+   * @returns A promise that resolves with an array of subjects, each with their associated courses.
+   */
   async findAll() {
     return await this.materiaRepository.find({
       relations: ['cursos'],
     });
   }
 
+  /**
+   * Retrieves a single subject (materia) by its ID, including its related courses.
+   *
+   * @param id - The ID of the subject to retrieve.
+   * @returns A promise that resolves with the subject object if found, including its related courses.
+   * @throws NotFoundException if no subject is found with the given ID.
+   */
   async findOne(id: number) {
     const materia = await this.materiaRepository.findOne({
       where: { id: id },
@@ -51,12 +71,27 @@ export class MateriaService {
     return materia;
   }
 
+  /**
+   * Updates an existing subject materia with the provided data.
+   *
+   * @param id - The ID of the subject to update.
+   * @param updateMateriaDto - An object containing the updated data for the subject.
+   * @returns A promise that resolves with the updated subject.
+   * @throws NotFoundException if no subject is found with the given ID.
+   */
   async update(id: number, updateMateriaDto: UpdateMateriaDto) {
     await this.findOne(id);
     await this.materiaRepository.update(id, updateMateriaDto);
     return await this.findOne(id);
   }
 
+  /**
+   * Deletes a materia by its ID.
+   *
+   * @param id - The ID of the subject to delete.
+   * @returns A promise that resolves with the result of the delete operation.
+   * @throws NotFoundException if no subject is found with the given ID.
+   */
   async remove(id: number) {
     await this.findOne(id);
     return await this.materiaRepository.delete(id);

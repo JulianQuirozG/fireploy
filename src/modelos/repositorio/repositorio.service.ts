@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   forwardRef,
@@ -15,10 +14,7 @@ import { Repositorio } from './entities/repositorio.entity';
 import { Repository } from 'typeorm';
 import { FilterRepositorioDto } from './dto/filter-repositorio.dto';
 import { ProyectoService } from '../proyecto/proyecto.service';
-import { stringify } from 'querystring';
 import { VariablesDeEntorno } from 'src/interfaces/variables_entorno.interface';
-import { concat } from 'rxjs';
-
 @Injectable()
 export class RepositorioService {
   constructor(
@@ -27,6 +23,16 @@ export class RepositorioService {
     @Inject(forwardRef(() => ProyectoService))
     private proyectoRepository: ProyectoService,
   ) {}
+
+  /**
+   * Creates a new repository associated with an existing project.
+   *
+   * @param createRepositorioDto - An object containing the repository data, including version, URL, type,
+   * technology, framework, project ID, and optional environment variables.
+   * @returns A promise that resolves with the newly created repository, fully populated.
+   *
+   * @throws BadRequestException if the provided project ID does not exist.
+   */
   async create(createRepositorioDto: CreateRepositorioDto) {
     const proyecto = await this.proyectoRepository.findOne(
       +createRepositorioDto.proyecto_id,
@@ -63,6 +69,15 @@ export class RepositorioService {
     return await this.findOne(nuevorepositorio.id);
   }
 
+  /**
+   * Retrieves all repositories, optionally filtered by project ID.
+   *
+   * @param filters - Optional filtering criteria, including the project ID.
+   * @returns A promise that resolves with an array of repositories,
+   * each including its associated project.
+   *
+   * @throws BadRequestException if the provided project ID does not correspond to an existing project.
+   */
   async findAll(filters?: FilterRepositorioDto) {
     if (filters) {
       const { proyecto_id } = filters;
@@ -85,6 +100,14 @@ export class RepositorioService {
     });
   }
 
+  /**
+   * Retrieves a single repository by its ID, including its associated project.
+   *
+   * @param id - The ID of the repository to retrieve.
+   * @returns A promise that resolves with the repository object if found, including its related project.
+   *
+   * @throws NotFoundException if no repository exists with the specified ID.
+   */
   async findOne(id: number) {
     const repo = await this.repositorioRepository.findOne({
       where: { id: id },
@@ -96,6 +119,15 @@ export class RepositorioService {
     return repo;
   }
 
+  /**
+   * Updates an existing repository with the provided data.
+   *
+   * @param id - The ID of the repository to update.
+   * @param updateRepositorioDto - An object containing the fields to update, including optional environment variables.
+   * @returns A promise that resolves with the updated repository.
+   *
+   * @throws NotFoundException if the repository with the given ID does not exist.
+   */
   async update(id: number, updateRepositorioDto: UpdateRepositorioDto) {
     //Verify repositorio exists
     let repo = await this.findOne(id);
@@ -111,6 +143,7 @@ export class RepositorioService {
         })
         .join('\n');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { variables_de_entorno, ...restoDto } = updateRepositorioDto;
 
     repo = {
@@ -122,6 +155,14 @@ export class RepositorioService {
     return this.findOne(id);
   }
 
+  /**
+   * Deletes a repository by its ID.
+   *
+   * @param id - The ID of the repository to delete.
+   * @returns A promise that resolves with a confirmation message including the repository ID and associated project reference.
+   *
+   * @throws NotFoundException if the repository with the given ID does not exist.
+   */
   async remove(id: number) {
     const repository = await this.findOne(id);
     await this.repositorioRepository.delete(repository.id);
