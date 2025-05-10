@@ -33,6 +33,8 @@ import { MailModule } from './mail/mail.module';
 import { DeployModule } from './Queue/deploy.module';
 import { DockerRequestModule } from './modelos/dockerRequest/dockerRequest.module';
 import { NotificationsModule } from './socket/notification.module';
+import { NotificacionesModule } from './modelos/notificaciones/notificaciones.module';
+import { Notificacione } from './modelos/notificaciones/entities/notificacione.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -57,6 +59,7 @@ import { NotificationsModule } from './socket/notification.module';
         Repositorio,
         BaseDeDato,
         Solicitud,
+        Notificacione,
       ],
       synchronize: true,
     }),
@@ -76,6 +79,7 @@ import { NotificationsModule } from './socket/notification.module';
     DeployModule,
     DockerRequestModule,
     NotificationsModule,
+    NotificacionesModule,
   ],
   controllers: [AppController],
   providers: [
