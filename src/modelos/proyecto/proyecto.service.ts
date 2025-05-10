@@ -30,6 +30,7 @@ import { RepositorioService } from '../repositorio/repositorio.service';
 import { BaseDeDato } from '../base_de_datos/entities/base_de_dato.entity';
 import { SystemQueueService } from 'src/Queue/Services/system.service';
 import { JwtService } from '@nestjs/jwt';
+import { NotificationsGateway } from 'src/socket/notification.gateway';
 
 @Injectable()
 export class ProyectoService {
@@ -48,6 +49,7 @@ export class ProyectoService {
     private repositoryService: RepositorioService,
     private systemQueueService: SystemQueueService,
     private jwtService: JwtService,
+    private notificationService: NotificationsGateway,
   ) {}
 
   /**
@@ -523,6 +525,10 @@ export class ProyectoService {
       );
     } catch (e) {
       console.log(e);
+      this.notificationService.sendToUser(
+        proyect.creador.id,
+        'Proyecto fallido',
+      );
       throw new BadRequestException(
         `Ha ocurrido un error al cargar el proyecto`,
         e.message,

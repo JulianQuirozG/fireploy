@@ -15,7 +15,6 @@ import { MailModule } from 'src/mail/mail.module';
       secret: process.env.SECRETTOKEN as string,
       signOptions: { expiresIn: '2h' },
     }),
-    
   ],
   controllers: [AuthController],
   providers: [AuthService, Encrypt],

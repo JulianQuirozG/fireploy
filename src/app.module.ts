@@ -32,6 +32,7 @@ import { Solicitud } from './modelos/solicitud/entities/solicitud.entity';
 import { MailModule } from './mail/mail.module';
 import { DeployModule } from './Queue/deploy.module';
 import { DockerRequestModule } from './modelos/dockerRequest/dockerRequest.module';
+import { NotificationsModule } from './socket/notification.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -73,7 +74,8 @@ import { DockerRequestModule } from './modelos/dockerRequest/dockerRequest.modul
     SolicitudModule,
     MailModule,
     DeployModule,
-    DockerRequestModule
+    DockerRequestModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

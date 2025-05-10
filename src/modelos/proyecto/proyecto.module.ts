@@ -14,6 +14,7 @@ import { SystemService } from 'src/services/system.service';
 import { EstudianteModule } from '../estudiante/estudiante.module';
 import { RepositorioModule } from '../repositorio/repositorio.module';
 import { DeployModule } from 'src/Queue/deploy.module';
+import { NotificationsModule } from 'src/socket/notification.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Proyecto]),
@@ -25,6 +26,7 @@ import { DeployModule } from 'src/Queue/deploy.module';
     forwardRef(() => BaseDeDatosModule),
     forwardRef(() => RepositorioModule),
     DeployModule,
+    NotificationsModule,
   ],
   controllers: [ProyectoController],
   providers: [ProyectoService, GitService, DockerfileService, SystemService],

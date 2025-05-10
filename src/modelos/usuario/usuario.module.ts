@@ -8,8 +8,7 @@ import { FirebaseService } from 'src/services/firebase.service';
 import { EstudianteModule } from '../estudiante/estudiante.module';
 import { ProyectoModule } from '../proyecto/proyecto.module';
 import { MailModule } from 'src/mail/mail.module';
-import { AuthService } from 'src/auth/auth.service';
-import { AuthModule } from 'src/auth/auth.module';
+import { NotificationsModule } from 'src/socket/notification.module';
 //import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
@@ -18,7 +17,7 @@ import { AuthModule } from 'src/auth/auth.module';
     forwardRef(() => EstudianteModule),
     forwardRef(() => ProyectoModule),
     MailModule,
-    
+    NotificationsModule,
   ],
   controllers: [UsuarioController],
   providers: [UsuarioService, Encrypt, FirebaseService],

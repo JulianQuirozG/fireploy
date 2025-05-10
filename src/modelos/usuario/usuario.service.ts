@@ -17,6 +17,7 @@ import { validate } from 'class-validator';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { Workbook } from 'exceljs';
+import { NotificationsGateway } from 'src/socket/notification.gateway';
 
 @Injectable()
 export class UsuarioService {
@@ -26,6 +27,7 @@ export class UsuarioService {
     private encrypt: Encrypt,
     private firebaseService: FirebaseService,
     private mailService: MailService,
+    private notificationService: NotificationsGateway,
   ) {}
   /**
    * Creates a new user after validating the email is not already registered.
@@ -121,7 +123,7 @@ export class UsuarioService {
     }
 
     const usuario = await query.getOne();
-
+    this.notificationService.sendToUser(id, 'Mensaje enviado');
     if (!usuario) {
       throw new NotFoundException(
         `El usuario con el id ${id} no se encuentra en la base de datos.`,
