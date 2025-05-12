@@ -125,7 +125,6 @@ export class UsuarioService {
     }
 
     const usuario = await query.getOne();
-    this.notificationService.sendToUser(id, 'Mensaje enviado');
     if (!usuario) {
       throw new NotFoundException(
         `El usuario con el id ${id} no se encuentra en la base de datos.`,

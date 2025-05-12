@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   CanActivate,
   ExecutionContext,
@@ -16,11 +16,12 @@ import { SeccionService } from 'src/modelos/seccion/seccion.service';
 
 @Injectable()
 export class updateProyectoGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService,
+  constructor(
+    private readonly jwtService: JwtService,
     private seccionService: SeccionService,
     private cursoService: CursoService,
     private proyectoService: ProyectoService,
-  ) { }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
@@ -39,36 +40,46 @@ export class updateProyectoGuard implements CanActivate {
 
       request.user = { id: payload.sub };
 
-      const proyecto = await this.proyectoService.findOne(+id)
+      const proyecto = await this.proyectoService.findOne(+id);
       const seccion = await this.seccionService.findOne(proyecto.seccion.id);
       const curso = await this.cursoService.findOne(seccion.curso.id);
-
 
       if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
         throw new UnauthorizedException('El docente no es tutor del proyecto');
       }
 
-      if (payload.tipo === 'Estudiante' && !curso.estudiantes || curso.estudiantes.length === 0) {
-        throw new UnauthorizedException('El curso no tiene estudiantes registrados');
+      if (
+        (payload.tipo === 'Estudiante' && !curso.estudiantes) ||
+        curso.estudiantes.length === 0
+      ) {
+        throw new UnauthorizedException(
+          'El curso no tiene estudiantes registrados',
+        );
       }
 
       if (estudiantesIds?.length && estudiantesIds?.length > 0) {
         const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
-        const estudiantesInvalidos = estudiantesIds.filter((id) => !estudiantesCursoIds.includes(id));
+        const estudiantesInvalidos = estudiantesIds.filter(
+          (id) => !estudiantesCursoIds.includes(id),
+        );
         if (estudiantesInvalidos.length > 0) {
           throw new UnauthorizedException(
-            `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`
+            `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`,
           );
         }
       }
-      
 
-      const estudianteEncontrado = proyecto.estudiantes.some((estudiante) => estudiante.id === payload.sub);
-      console.log(estudianteEncontrado)
-      console.log(proyecto.creador.id)
-      console.log(payload.sub)
-      if ( payload.tipo==='Estudiante' && (!estudianteEncontrado && proyecto.creador.id != payload.sub)) {
-        throw new UnauthorizedException('El usuario no pertenece a este proyecto');
+      const estudianteEncontrado = proyecto.estudiantes.some(
+        (estudiante) => estudiante.id === payload.sub,
+      );
+      if (
+        payload.tipo === 'Estudiante' &&
+        !estudianteEncontrado &&
+        proyecto.creador.id != payload.sub
+      ) {
+        throw new UnauthorizedException(
+          'El usuario no pertenece a este proyecto',
+        );
       }
       return true;
     } catch (error) {

@@ -447,8 +447,6 @@ export class ProyectoService {
       );
     }
 
-    console.log(proyecto.repositorios);
-
     if (updateProyectoDto.estudiantesIds) {
       const estudiantesActualesIds = proyecto.estudiantes.map((e) => e.id);
 
@@ -456,6 +454,30 @@ export class ProyectoService {
       const estudiantesParaAgregar = updateProyectoDto.estudiantesIds.filter(
         (id) => !estudiantesActualesIds.includes(id),
       );
+
+      for (const userId of estudiantesParaAgregar) {
+        const estudiante = await this.estudiateService.findOne(userId);
+        if (estudiante && estudiante.id != proyecto.creador.id) {
+          //set notificacion
+          const notificacion: CreateNotificacioneDto = {
+            titulo: `Ahora eres colaborador de un proyecto`,
+            mensaje: `Has sido agregado como colaborador del proyecto "${proyecto.titulo} - ${proyecto.id}"`,
+            tipo: 1,
+            fecha_creacion: new Date(Date.now()),
+            visto: false,
+            usuario: estudiante,
+          };
+
+          //save notificacion
+          await this.notificacionService.create(notificacion);
+
+          //Send notificacion
+          this.socketService.sendToUser(
+            notificacion.usuario.id,
+            'Has sido agregado a un proyecto',
+          );
+        }
+      }
 
       // Filtrar estudiantes a eliminar
       const estudiantesParaEliminar = estudiantesActualesIds.filter(
@@ -554,7 +576,6 @@ export class ProyectoService {
         },
       );
     } catch (e) {
-      console.log(e);
       //Set proyecto status in Error
       proyect.estado_ejecucion = 'E';
       await this.update(+id, proyect);
