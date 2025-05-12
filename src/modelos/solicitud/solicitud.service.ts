@@ -8,6 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm/dist';
 import { FilterSolicitudDto } from './dto/filter-solicitud.dto';
 import { CursoService } from '../curso/curso.service';
 import { Docente } from '../docente/entities/docente.entity';
+import { CreateNotificacioneDto } from '../notificaciones/dto/create-notificacione.dto';
+import { NotificationsGateway } from 'src/socket/notification.gateway';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class SolicitudService {
@@ -16,6 +19,8 @@ export class SolicitudService {
     private cursoService: CursoService,
     @InjectRepository(Solicitud)
     private solicitudRepository: Repository<Solicitud>,
+    private socketService: NotificationsGateway,
+    private notificacionService: NotificacionesService,
   ) {}
 
   /**
@@ -167,11 +172,22 @@ export class SolicitudService {
       );
     }
 
+    //set notificacion
+    const notificacion: CreateNotificacioneDto = {
+      titulo: ``,
+      mensaje: '',
+      tipo: 2,
+      fecha_creacion: new Date(Date.now()),
+      visto: false,
+      usuario: solicitud.usuario,
+    };
+
     //verify user apporoved exists
     const user_approver = await this.usuarioService.findOne(
       updateSolicitudDto.aprobado_by,
       true,
     );
+
     //Update solicitud
     solicitud = await this.solicitudRepository.save({
       id: id,
@@ -180,35 +196,85 @@ export class SolicitudService {
       aprobado_by: user_approver,
     });
     const response = await this.findOne(solicitud.id);
-    if (response.estado == 'R') return response;
+
+    //update
     if (response.tipo_solicitud == 1) {
-      //Update user State
-      const user = response.usuario;
-      user.tipo = 'Docente';
-      await this.usuarioService.update(user.id, user);
-    } else {
-      const solicitudesRelacionadas = await this.findAll({
-        tipo_solicitud: 2,
-        curso: response.curso?.id,
-        estado: process.env.IN_WAIT_STATE_SOLICITUD,
-      });
-      if (solicitudesRelacionadas.length > 0) {
-        for (const solicitud of solicitudesRelacionadas) {
-          solicitud.estado = 'R';
-          solicitud.fecha_respuesta = new Date();
-          solicitud.aprobado_by = user_approver;
-        }
-        await this.solicitudRepository.save(solicitudesRelacionadas);
+      //Set notificacion
+      notificacion.titulo = `Solicitud docente aceptada`;
+      notificacion.mensaje = `Tu solicitud para ser un docente de la plataforma fireploy ha sido aceptada.`;
+
+      if (response.estado == 'R') {
+        notificacion.titulo = `Solicitud docente rechazada`;
+        notificacion.mensaje = `Lo sentimos, tu solicitud para ser docente de la plataforma fireploy ha sido rechazada.`;
+      } else {
+        //Update user State
+        const user = response.usuario;
+        user.tipo = 'Docente';
+        await this.usuarioService.update(user.id, user);
       }
-      //Update docente curso
-      const user = response.usuario;
+    } else {
+      //find curso
       const curso = await this.cursoService.findOne(
         response.curso?.id as string,
       );
-      curso.docente = user.id as unknown as Docente;
-      await this.cursoService.update(curso.id, curso);
+
+      //Set notificacion
+      notificacion.titulo = `Solicitud docente de curso aceptada`;
+      notificacion.mensaje = `Tu solicitud para ser el docente tutor del curso "${curso.materia.nombre} - ${curso.id}" ha sido aceptada.`;
+
+      if (response.estado == 'R') {
+        notificacion.titulo = `Solicitud docente de curso rechazada`;
+        notificacion.mensaje = `Lo sentimos, tu solicitud para ser el docente tutor del curso "${curso.materia.nombre} - ${curso.id}" ha sido rechazada.`;
+      } else {
+        //Eliminate another solicitudes
+        const solicitudesRelacionadas = await this.findAll({
+          tipo_solicitud: 2,
+          curso: response.curso?.id,
+          estado: process.env.IN_WAIT_STATE_SOLICITUD,
+        });
+        if (solicitudesRelacionadas.length > 0) {
+          for (const solicitud of solicitudesRelacionadas) {
+            solicitud.estado = 'R';
+            solicitud.fecha_respuesta = new Date();
+            solicitud.aprobado_by = user_approver;
+
+            //set rejected notificaciones
+            const rejected_notificacicon: CreateNotificacioneDto = {
+              titulo: `Solicitud docente de curso rechazada`,
+              mensaje: `Lo sentimos, tu solicitud para ser el docente tutor del curso "${curso.materia.nombre} - ${curso.id}" ha sido rechazada.`,
+              tipo: 2,
+              fecha_creacion: new Date(Date.now()),
+              visto: false,
+              usuario: solicitud.usuario,
+            };
+
+            //save notificacion
+            await this.notificacionService.create(rejected_notificacicon);
+
+            //Send notificacion
+            this.socketService.sendToUser(
+              solicitud.usuario.id,
+              'Solicitud respondida',
+            );
+          }
+          await this.solicitudRepository.save(solicitudesRelacionadas);
+        }
+
+        //Update docente curso
+        const user = response.usuario;
+        curso.docente = user.id as unknown as Docente;
+        await this.cursoService.update(curso.id, curso);
+      }
     }
 
+    //save notificacion
+    await this.notificacionService.create(notificacion);
+
+    //Send notificacion
+    this.socketService.sendToUser(
+      notificacion.usuario.id,
+      'Solicitud respondida',
+    );
     return response;
   }
 
