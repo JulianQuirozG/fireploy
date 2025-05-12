@@ -37,4 +37,11 @@ export class NotificationsGateway
       client.emit('notificacion', message);
     }
   }
+
+  sendUpdateDeployPosition(userId: number, message: any) {
+    const client = this.clients.get(userId);
+    if (client) {
+      client.emit('deploy_position', message);
+    }
+  }
 }

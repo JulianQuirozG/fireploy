@@ -15,14 +15,12 @@ export class DeployQueueService {
 
   async getWaitingJobs() {
     const jobs = await this.deployQueue.getWaiting();
-    console.log(jobs);
     const result = jobs.map((job, index) => ({
       id: job.id,
       name: job.name,
       data: job.data,
       position: index + 1,
     }));
-
     return result;
   }
 }

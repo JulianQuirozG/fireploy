@@ -589,11 +589,18 @@ export class ProyectoService {
         e.message,
       );
     } finally {
-      console.log('---------------------------------');
-      console.log(
-        await this.deployQueueService.getWaitingJobs(),
-      );
-      console.log('---------------------------------');
+      const awaiting_projects = await this.deployQueueService.getWaitingJobs();
+      for (const projects of awaiting_projects) {
+        const userId = projects.data.proyect.creador.id;
+        const projectId = projects.data.proyect.id;
+        const position = projects.position;
+        //Send notificacion
+        this.socketService.sendToUser(userId, {
+          userId: userId,
+          projectId: projectId,
+          position: position,
+        });
+      }
     }
 
     //Set proyecto status in Online
