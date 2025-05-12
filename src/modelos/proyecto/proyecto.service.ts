@@ -595,7 +595,7 @@ export class ProyectoService {
         const projectId = projects.data.proyect.id;
         const position = projects.position;
         //Send notificacion
-        this.socketService.sendToUser(userId, {
+        this.socketService.sendUpdateDeployPosition(userId, {
           userId: userId,
           projectId: projectId,
           position: position,
