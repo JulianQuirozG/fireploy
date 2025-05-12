@@ -23,14 +23,12 @@ export class NotificationsGateway
     const userId = Number(client.handshake.query.userId);
     if (!isNaN(userId)) {
       this.clients.set(userId, client);
-      console.log(`🟢 Usuario ${userId} conectado`);
     }
   }
 
   handleDisconnect(client: Socket) {
     const userId = Number(client.handshake.query.userId);
     this.clients.delete(userId);
-    console.log(`🔴 Usuario ${userId} desconectado`);
   }
 
   sendToUser(userId: number, message: any) {
