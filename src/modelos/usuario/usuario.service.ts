@@ -85,7 +85,8 @@ export class UsuarioService {
         'usuario.red_social',
         'usuario.foto_perfil',
         'usuario.est_fecha_inicio',
-        'usuario.tipo',
+        'usuario.tipo','usuario.tipo',
+        'usuario.estado',
       ]);
     }
 
@@ -119,6 +120,7 @@ export class UsuarioService {
         'usuario.foto_perfil',
         'usuario.est_fecha_inicio',
         'usuario.tipo',
+        'usuario.estado',
       ]);
     }
 
