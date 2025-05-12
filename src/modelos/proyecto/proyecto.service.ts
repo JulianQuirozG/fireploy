@@ -24,11 +24,11 @@ import { Docente } from '../docente/entities/docente.entity';
 import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { RepositorioService } from '../repositorio/repositorio.service';
-import { SystemQueueService } from 'src/Queue/Services/system.service';
 import { JwtService } from '@nestjs/jwt';
 import { NotificationsGateway } from 'src/socket/notification.gateway';
 import { CreateNotificacioneDto } from '../notificaciones/dto/create-notificacione.dto';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { DeployQueueService } from 'src/Queue/Services/deploy.service';
 
 @Injectable()
 export class ProyectoService {
@@ -42,7 +42,7 @@ export class ProyectoService {
     private docenteService: DocenteService,
     private baseDeDatosService: BaseDeDatosService,
     private repositoryService: RepositorioService,
-    private systemQueueService: SystemQueueService,
+    private deployQueueService: DeployQueueService,
     private jwtService: JwtService,
     private socketService: NotificationsGateway,
     private notificacionService: NotificacionesService,
@@ -568,13 +568,10 @@ export class ProyectoService {
 
     let dockerfiles: any = [];
     try {
-      dockerfiles = await this.systemQueueService.enqueSystem(
-        'cloneRepository',
-        {
-          proyect: proyect,
-          repositorios: repositorios,
-        },
-      );
+      dockerfiles = await this.deployQueueService.enqueDeploy({
+        proyect: proyect,
+        repositorios: repositorios,
+      });
     } catch (e) {
       //Set proyecto status in Error
       proyect.estado_ejecucion = 'E';
@@ -591,6 +588,12 @@ export class ProyectoService {
         `Ha ocurrido un error al cargar el proyecto`,
         e.message,
       );
+    } finally {
+      console.log('---------------------------------');
+      console.log(
+        await this.deployQueueService.getWaitingJobs(),
+      );
+      console.log('---------------------------------');
     }
 
     //Set proyecto status in Online
