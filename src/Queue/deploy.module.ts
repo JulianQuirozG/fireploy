@@ -12,13 +12,10 @@ import { SystemQueueService } from './Services/system.service';
         port: Number(process.env.REDIS_PORT ?? 6380),
       },
     }),
-    BullModule.registerQueue(
-      { name: 'deploy' },
-      { name: 'system' },
-    ),
+    BullModule.registerQueue({ name: 'deploy' }, { name: 'data_base' }),
   ],
   controllers: [DeployController],
   providers: [DeployQueueService, SystemQueueService],
   exports: [DeployQueueService, SystemQueueService],
 })
-export class DeployModule { }
+export class DeployModule {}
