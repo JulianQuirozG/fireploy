@@ -29,6 +29,7 @@ import { NotificationsGateway } from 'src/socket/notification.gateway';
 import { CreateNotificacioneDto } from '../notificaciones/dto/create-notificacione.dto';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { DeployQueueService } from 'src/Queue/Services/deploy.service';
+import { ProjectManagerQueueService } from 'src/Queue/Services/projects_manager.service';
 
 @Injectable()
 export class ProyectoService {
@@ -43,6 +44,7 @@ export class ProyectoService {
     private baseDeDatosService: BaseDeDatosService,
     private repositoryService: RepositorioService,
     private deployQueueService: DeployQueueService,
+    private projectManagerQueueService: ProjectManagerQueueService,
     private jwtService: JwtService,
     private socketService: NotificationsGateway,
     private notificacionService: NotificacionesService,
@@ -672,5 +674,47 @@ export class ProyectoService {
     await this.update(project.id, project);
 
     return await this.findOne(+id);
+  }
+
+  async changeStatusProyecto(id: string, status: string) {
+    //Get project
+    const project = await this.findOne(+id);
+
+    //Verify project status
+    if (project.estado_ejecucion == 'L')
+      throw new BadRequestException('El proyecto se encuentra cargandoo');
+
+    if (project.estado_ejecucion == 'E')
+      throw new BadRequestException(
+        'El proyecto se encuentra en estado de error, arreglalo antes de intenetar deternerlo o iniciarlo',
+      );
+
+    if (project.estado_ejecucion == 'F' && status == 'Stop')
+      throw new BadRequestException('El proyecto ya se encuentra detenido');
+
+    if (project.estado_ejecucion == 'N' && status == 'Start')
+      throw new BadRequestException('El proyecto ya se encuentra encendido');
+
+    project.estado_ejecucion = 'L';
+    await this.update(project.id, project);
+
+    //Add queue
+    try {
+      await this.projectManagerQueueService.changeStatus({
+        project: project,
+        action: status,
+      });
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
+    project.estado_ejecucion = 'N';
+    let response = `proyecto ${project.id} ha sido iniciado con exito.`;
+    if (status == 'Stop') {
+      project.estado_ejecucion = 'F';
+      response = `proyecto ${project.id} ha sido detenido con exito.`;
+    }
+
+    await this.update(project.id, project);
+    return response;
   }
 }
