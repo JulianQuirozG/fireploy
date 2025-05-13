@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
@@ -11,6 +12,7 @@ export class SystemQueueService {
   async enqueSystem(data: any) {
     const job = await this.systemQueue.add('create_DB', data);
     console.log('Trabajo enviado a la cola: system', data);
-    await job.finished();
+    const response = await job.finished();
+    return response.connection_URI as string;
   }
 }
