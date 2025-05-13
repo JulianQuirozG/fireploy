@@ -89,4 +89,14 @@ export class ProyectoController {
   despuntuarProyecto(@Param('id') id: string, @Req() req: Request) {
     return this.proyectoService.despuntuarProyecto(id, req);
   }
+
+  @Post('/stop/:id')
+  stopProyecto(@Param('id') id: string) {
+    return this.proyectoService.changeStatusProyecto(id, 'Stop');
+  }
+
+  @Post('/start/:id')
+  startProyecto(@Param('id') id: string) {
+    return this.proyectoService.changeStatusProyecto(id, 'Start');
+  }
 }
