@@ -56,6 +56,21 @@ export class AuthService {
     return response;
   }
 
+ /**
+ * Generates a password recovery token (JWT) for a user by email.
+ * 
+ * This method:
+ * 1. Validates if the user exists and is active.
+ * 2. Constructs a JWT payload with the user's ID, type, and email.
+ * 3. Signs the payload asynchronously to generate an access token.
+ * 4. Returns user metadata along with the access token.
+ * 
+ * @param correo - The email address of the user requesting password recovery.
+ * @returns A Promise that resolves to an object containing the JWT token and user data.
+ * 
+ * @throws ForbiddenException - If the user is inactive.
+ * @throws NotFoundException - If the user does not exist.
+ */
   async recoverPassword(correo: string): Promise<{ access_token: string }> {
     const user = await this.usuarioService.findOneCorreo(correo);
     if (user?.estado == 'I') {
@@ -79,59 +94,58 @@ export class AuthService {
     return response;
   }
 
+/**
+ * Sends a password reset email to a user.
+ * 
+ * This method:
+ * 1. Generates a JWT token for password reset using the user's email.
+ * 2. Constructs a secure reset password URL with the token.
+ * 3. Builds a styled HTML email template using Bootstrap.
+ * 4. Sends the email to the user via the MailService.
+ * 
+ * @param updateUsuarioDto - DTO containing the user's email.
+ * @returns A promise with the result of the email sending process.
+ * 
+ * @throws ForbiddenException - If the user is inactive.
+ * @throws NotFoundException - If the user does not exist.
+ */
   async changepasswordEmail(updateUsuarioDto: EmailUpdatePasswordDto) {
     const tokenResponse = await this.recoverPassword(updateUsuarioDto.correo);
-    const resetUrl = `https://${process.env.URL}/reset-password?token=${tokenResponse.access_token}`;
+    const resetUrl = `https://${process.env.URL}/reset-password/:token=${tokenResponse.access_token}`;
 
     const htmlTemplate = `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT"
-            crossorigin="anonymous"
-          />
-          <title>Mensaje Recuperar Contraseña</title>
-        </head>
-        <body>
-          <div class="m-3 d-flex flex-column align-middle align-items-center">
-            <div class="d-flex align-items-center align-content-center gap-2">
-              <h1 class="d-inline m-0">Fireploy</h1>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="black"
-                focusable="false"
-                aria-hidden="true"
-                style="width: 48px; height: 48px"
-              >
-                <path
-                  d="M9.19 6.35c-2.04 2.29-3.44 5.58-3.57 5.89L2 10.69l4.05-4.05c.47-.47 1.15-.68 1.81-.55zM11.17 17s3.74-1.55 5.89-3.7c5.4-5.4 4.5-9.62 4.21-10.57-.95-.3-5.17-1.19-10.57 4.21C8.55 9.09 7 12.83 7 12.83zm6.48-2.19c-2.29 2.04-5.58 3.44-5.89 3.57L13.31 22l4.05-4.05c.47-.47.68-1.15.55-1.81zM9 18c0 .83-.34 1.58-.88 2.12C6.94 21.3 2 22 2 22s.7-4.94 1.88-6.12C4.42 15.34 5.17 15 6 15c1.66 0 3 1.34 3 3m4-9c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2"
-                />
-              </svg>
-            </div>
-            <div class="mb-3 mt-4 color-black border border-solid p-5 d-flex flex-column gap-4" style="max-width: 700px;">
-              <h3>Hola Rodrigo Andrés 😄</h3>
-              <p class="m-0">
-                <strong
-                  >Se ha recibido una solicitud de cambio de contraseña para tu cuenta de Fireploy</strong
-                >
-              </p>
-              <div class="d-flex justify-content-center">
-                <button type="button" class="btn btn-primary m-0"><a target="_blank" rel="noopener noreferrer" style="text-transform: none; text-decoration: none; color: white" href="${resetUrl}">Cambiar Contraseña</a></button>
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Recuperar Contraseña</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border: 1px solid #dee2e6;">
+          <tr>
+            <td align="center" style="padding-bottom: 20px;">
+              <h1 style="margin: 0;">Fireploy 🔥</h1>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <h3 style="color: #333333;">Hola 😄</h3>
+              <p><strong>Se ha recibido una solicitud de cambio de contraseña para tu cuenta de Fireploy.</strong></p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" target="_blank" style="background-color: #0d6efd; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; display: inline-block;">Cambiar Contraseña</a>
               </div>
-              <p class="m-0 text-body text-black">Si no realizaste esta petición, realiza caso omiso a este correo</p>
-              <div><p class="m-0">Muchas gracias,</p>
-              <p style="font-weight: 500;" class="m-0">Equipo de Fireploy</p></div>
-            </div>
-            <div><p>Copyright © 2025 <strong>Fireploy</strong>. All Rights Reserved.</p></div>
-          </div>
-        </body>
-      </html>
+              <p style="color: #6c757d;">Si no realizaste esta petición, ignora este correo.</p>
+              <p>Muchas gracias,<br><strong>Equipo de Fireploy</strong></p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="font-size: 12px; color: #adb5bd; padding-top: 20px;">
+              © 2025 Fireploy. Todos los derechos reservados.
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
     `;
 
     return this.mailService.enviarCorreo(
@@ -141,6 +155,14 @@ export class AuthService {
     );
   }
 
+  /**
+ * Updates the user's password by hashing the new one and saving it in the database.
+ *
+ * @param updateUsuarioDto - Object containing the user's email and new password.
+ * @returns A Promise that resolves with the updated user object.
+ *
+ * @throws BadRequestException - If the user does not exist.
+ */
   async changepassword(updateUsuarioDto: UpdatePasswordDto) {
     const user = await this.usuarioService.findOneCorreo(
       updateUsuarioDto.correo,
@@ -156,6 +178,15 @@ export class AuthService {
     throw new BadRequestException('El usuario no existe');
   }
 
+  /**
+ * Logs in a user using their Google ID token. If the user does not exist, it creates a new one.
+ *
+ * @param LoginGoogleDto - Object containing the Google ID token.
+ * @returns A JWT token and user data upon successful login or registration.
+ *
+ * @throws UnauthorizedException - If the token is invalid or expired.
+ * @throws BadRequestException - If the token does not contain an email or if any processing error occurs.
+ */
   async loginWithGoogle({ idToken }: LoginGoogleDto) {
     try {
       const ticket = await this.client.verifyIdToken({
