@@ -727,7 +727,12 @@ export class ProyectoService {
 
     //Send notificacion
     this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
-    return dockerfiles;
+
+    console.log(dockerfiles.dockerfiles)
+    const updateProyect = await this.update(+id, {
+      url: `https://proyectos.fireploy.online/app${id}`,
+    } as UpdateProyectoDto);
+    return updateProyect;
   }
 
   /**
@@ -820,7 +825,7 @@ export class ProyectoService {
     };
     const url = await this.firebaseService.uploadFile(renamedFile);
 
-    //UpdateUser info
+    //Updateproject info
     const user = await this.update(id, {
       imagen: url,
     } as UpdateProyectoDto);
