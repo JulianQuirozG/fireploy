@@ -16,6 +16,7 @@ import { RepositorioModule } from '../repositorio/repositorio.module';
 import { DeployModule } from 'src/Queue/deploy.module';
 import { NotificationsModule } from 'src/socket/notification.module';
 import { NotificacionesModule } from '../notificaciones/notificaciones.module';
+import { FirebaseService } from 'src/services/firebase.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Proyecto]),
@@ -31,7 +32,7 @@ import { NotificacionesModule } from '../notificaciones/notificaciones.module';
     NotificacionesModule,
   ],
   controllers: [ProyectoController],
-  providers: [ProyectoService, GitService, DockerfileService, SystemService],
+  providers: [ProyectoService, GitService, DockerfileService, SystemService, FirebaseService],
   exports: [ProyectoService],
 })
 export class ProyectoModule {}

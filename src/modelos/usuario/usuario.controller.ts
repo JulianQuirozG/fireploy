@@ -40,9 +40,21 @@ export class UsuarioController {
     return this.usuarioService.findAll(filters, false);
   }
 
+  @Get('/public')
+  @Public()
+  findAllPublic() {
+    return this.usuarioService.findAllPublic();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usuarioService.findOne(+id, false);
+  }
+
+  @Get('/public/:id')
+  @Public()
+  findOnePublic(@Param('id') id: string) {
+    return this.usuarioService.findOnePublic(+id);
   }
 
   @Patch(':id')

@@ -81,59 +81,56 @@ export class AuthService {
 
   async changepasswordEmail(updateUsuarioDto: EmailUpdatePasswordDto) {
     const tokenResponse = await this.recoverPassword(updateUsuarioDto.correo);
-    const resetUrl = `${process.env.URL}/reset-password?token=${tokenResponse.access_token}`;
+    const resetUrl = `https://${process.env.URL}/reset-password?token=${tokenResponse.access_token}`;
 
     const htmlTemplate = `
       <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Recuperación de contraseña</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #333;
-            padding: 20px;
-          }
-          .container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 600px;
-            margin: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          }
-          .button {
-            background-color: #e63946;
-            color: white;
-            padding: 12px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 20px;
-          }
-          .footer {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #999;
-            text-align: center;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h2>Hola 👋</h2>
-          <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>FIREPLOY</strong>.</p>
-          <p>Haz clic en el botón de abajo para crear una nueva contraseña:</p>
-          <a href="${resetUrl}" >${resetUrl}</a>
-          <p>Si no realizaste esta solicitud, puedes ignorar este mensaje.</p>
-          <div class="footer">
-            &copy; 2025 FIREPLOY - Todos los derechos reservados
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT"
+            crossorigin="anonymous"
+          />
+          <title>Mensaje Recuperar Contraseña</title>
+        </head>
+        <body>
+          <div class="m-3 d-flex flex-column align-middle align-items-center">
+            <div class="d-flex align-items-center align-content-center gap-2">
+              <h1 class="d-inline m-0">Fireploy</h1>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="black"
+                focusable="false"
+                aria-hidden="true"
+                style="width: 48px; height: 48px"
+              >
+                <path
+                  d="M9.19 6.35c-2.04 2.29-3.44 5.58-3.57 5.89L2 10.69l4.05-4.05c.47-.47 1.15-.68 1.81-.55zM11.17 17s3.74-1.55 5.89-3.7c5.4-5.4 4.5-9.62 4.21-10.57-.95-.3-5.17-1.19-10.57 4.21C8.55 9.09 7 12.83 7 12.83zm6.48-2.19c-2.29 2.04-5.58 3.44-5.89 3.57L13.31 22l4.05-4.05c.47-.47.68-1.15.55-1.81zM9 18c0 .83-.34 1.58-.88 2.12C6.94 21.3 2 22 2 22s.7-4.94 1.88-6.12C4.42 15.34 5.17 15 6 15c1.66 0 3 1.34 3 3m4-9c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2"
+                />
+              </svg>
+            </div>
+            <div class="mb-3 mt-4 color-black border border-solid p-5 d-flex flex-column gap-4" style="max-width: 700px;">
+              <h3>Hola Rodrigo Andrés 😄</h3>
+              <p class="m-0">
+                <strong
+                  >Se ha recibido una solicitud de cambio de contraseña para tu cuenta de Fireploy</strong
+                >
+              </p>
+              <div class="d-flex justify-content-center">
+                <button type="button" class="btn btn-primary m-0"><a target="_blank" rel="noopener noreferrer" style="text-transform: none; text-decoration: none; color: white" href="${resetUrl}">Cambiar Contraseña</a></button>
+              </div>
+              <p class="m-0 text-body text-black">Si no realizaste esta petición, realiza caso omiso a este correo</p>
+              <div><p class="m-0">Muchas gracias,</p>
+              <p style="font-weight: 500;" class="m-0">Equipo de Fireploy</p></div>
+            </div>
+            <div><p>Copyright © 2025 <strong>Fireploy</strong>. All Rights Reserved.</p></div>
           </div>
-        </div>
-      </body>
+        </body>
       </html>
     `;
 
