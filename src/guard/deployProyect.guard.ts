@@ -17,11 +17,12 @@ import { SeccionService } from 'src/modelos/seccion/seccion.service';
 
 @Injectable()
 export class DeployProyectoGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService,
+  constructor(
+    private readonly jwtService: JwtService,
     private seccionService: SeccionService,
     private cursoService: CursoService,
     private proyectoService: ProyectoService,
-  ) { }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
@@ -42,29 +43,34 @@ export class DeployProyectoGuard implements CanActivate {
       throw new UnauthorizedException('Token de sesión inválido o expirado');
     }
 
-      request.user = { id: payload.sub };
+    request.user = { id: payload.sub };
 
-      const proyecto = await this.proyectoService.findOne(+id)
-      const seccion = await this.seccionService.findOne(proyecto.seccion.id);
-      const curso = await this.cursoService.findOne(seccion.curso.id);
+    const proyecto = await this.proyectoService.findOne(+id);
+    const seccion = await this.seccionService.findOne(proyecto.seccion.id);
+    const curso = await this.cursoService.findOne(seccion.curso.id);
 
+    if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
+      throw new ForbiddenException('El docente no es tutor del proyecto');
+    }
 
-      if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
-        throw new ForbiddenException('El docente no es tutor del proyecto');
-      }
+    if (
+      payload.tipo === 'Estudiante' &&
+      (!curso.estudiantes || curso.estudiantes.length === 0)
+    ) {
+      throw new ForbiddenException('El curso no tiene estudiantes registrados');
+    }
+    const estudiantesIds = proyecto.estudiantes.map(
+      (estudiante) => estudiante.id,
+    );
+    const estudiantesValidos = estudiantesIds.some((id) => id == payload.sub);
+    if (
+      payload.tipo === 'Estudiante' &&
+      !estudiantesValidos &&
+      proyecto.creador.id != payload.sub
+    ) {
+      throw new ForbiddenException(`El estudiante no pertenece al proyecto `);
+    }
 
-      if (payload.tipo === 'Estudiante' && (!curso.estudiantes || curso.estudiantes.length === 0)) {
-        throw new ForbiddenException('El curso no tiene estudiantes registrados');
-      }
-      console.log(proyecto.creador.id)
-      const estudiantesIds = proyecto.estudiantes.map((estudiante) => estudiante.id);
-      const estudiantesValidos = estudiantesIds.some((id) => id == payload.sub)
-      if (payload.tipo === 'Estudiante' && (!estudiantesValidos && proyecto.creador.id != payload.sub)) {
-        throw new ForbiddenException(
-          `El estudiante no pertenece al proyecto `
-        );
-      }
-
-      return true;
+    return true;
   }
 }

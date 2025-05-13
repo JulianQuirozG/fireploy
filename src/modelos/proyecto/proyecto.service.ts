@@ -24,12 +24,13 @@ import { Docente } from '../docente/entities/docente.entity';
 import { BaseDeDatosService } from '../base_de_datos/base_de_datos.service';
 import { UsuarioService } from '../usuario/usuario.service';
 import { RepositorioService } from '../repositorio/repositorio.service';
-import { SystemQueueService } from 'src/Queue/Services/system.service';
 import { JwtService } from '@nestjs/jwt';
 import { NotificationsGateway } from 'src/socket/notification.gateway';
 import { CreateNotificacioneDto } from '../notificaciones/dto/create-notificacione.dto';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { FirebaseService } from 'src/services/firebase.service';
+import { DeployQueueService } from 'src/Queue/Services/deploy.service';
+import { ProjectManagerQueueService } from 'src/Queue/Services/projects_manager.service';
 
 @Injectable()
 export class ProyectoService {
@@ -43,7 +44,8 @@ export class ProyectoService {
     private docenteService: DocenteService,
     private baseDeDatosService: BaseDeDatosService,
     private repositoryService: RepositorioService,
-    private systemQueueService: SystemQueueService,
+    private deployQueueService: DeployQueueService,
+    private projectManagerQueueService: ProjectManagerQueueService,
     private jwtService: JwtService,
     private socketService: NotificationsGateway,
     private notificacionService: NotificacionesService,
@@ -559,8 +561,6 @@ export class ProyectoService {
       );
     }
 
-    console.log(proyecto.repositorios);
-
     if (updateProyectoDto.estudiantesIds) {
       const estudiantesActualesIds = proyecto.estudiantes.map((e) => e.id);
 
@@ -568,6 +568,30 @@ export class ProyectoService {
       const estudiantesParaAgregar = updateProyectoDto.estudiantesIds.filter(
         (id) => !estudiantesActualesIds.includes(id),
       );
+
+      for (const userId of estudiantesParaAgregar) {
+        const estudiante = await this.estudiateService.findOne(userId);
+        if (estudiante && estudiante.id != proyecto.creador.id) {
+          //set notificacion
+          const notificacion: CreateNotificacioneDto = {
+            titulo: `Ahora eres colaborador de un proyecto`,
+            mensaje: `Has sido agregado como colaborador del proyecto "${proyecto.titulo} - ${proyecto.id}"`,
+            tipo: 1,
+            fecha_creacion: new Date(Date.now()),
+            visto: false,
+            usuario: estudiante,
+          };
+
+          //save notificacion
+          await this.notificacionService.create(notificacion);
+
+          //Send notificacion
+          this.socketService.sendToUser(
+            notificacion.usuario.id,
+            'Has sido agregado a un proyecto',
+          );
+        }
+      }
 
       // Filtrar estudiantes a eliminar
       const estudiantesParaEliminar = estudiantesActualesIds.filter(
@@ -658,15 +682,11 @@ export class ProyectoService {
 
     let dockerfiles: any = [];
     try {
-      dockerfiles = await this.systemQueueService.enqueSystem(
-        'cloneRepository',
-        {
-          proyect: proyect,
-          repositorios: repositorios,
-        },
-      );
+      dockerfiles = await this.deployQueueService.enqueDeploy({
+        proyect: proyect,
+        repositorios: repositorios,
+      });
     } catch (e) {
-      console.log(e);
       //Set proyecto status in Error
       proyect.estado_ejecucion = 'E';
       await this.update(+id, proyect);
@@ -682,6 +702,19 @@ export class ProyectoService {
         `Ha ocurrido un error al cargar el proyecto`,
         e.message,
       );
+    } finally {
+      const awaiting_projects = await this.deployQueueService.getWaitingJobs();
+      for (const projects of awaiting_projects) {
+        const userId = projects.data.proyect.creador.id;
+        const projectId = projects.data.proyect.id;
+        const position = projects.position;
+        //Send notificacion
+        this.socketService.sendUpdateDeployPosition(userId, {
+          userId: userId,
+          projectId: projectId,
+          position: position,
+        });
+      }
     }
 
     //Set proyecto status in Online
@@ -790,5 +823,64 @@ export class ProyectoService {
       imagen: url,
     } as UpdateProyectoDto);
     return user;
+  }
+
+  /**
+   * Cambia el estado de ejecución de un proyecto (iniciar o detener).
+   *
+   * Este método realiza las siguientes acciones:
+   * 1. Obtiene el proyecto por su ID.
+   * 2. Verifica si el estado actual del proyecto permite el cambio solicitado.
+   * 3. Cambia temporalmente el estado a 'L' (cargando) y actualiza en la base de datos.
+   * 4. Llama al servicio de cola para ejecutar el cambio de estado real (start o stop).
+   * 5. Si se realiza con éxito, actualiza el estado final del proyecto ('N' o 'F').
+   *
+   * @param id - ID del proyecto a modificar.
+   * @param status - Acción a realizar: `"Start"` para iniciar, `"Stop"` para detener.
+   * @returns Un mensaje de éxito indicando que el proyecto fue iniciado o detenido.
+   *
+   * @throws BadRequestException - Si el estado actual del proyecto no permite la acción solicitada
+   *                               o si ocurre un error en la cola de procesamiento.
+   */
+  async changeStatusProyecto(id: string, status: string) {
+    //Get project
+    const project = await this.findOne(+id);
+
+    //Verify project status
+    if (project.estado_ejecucion == 'L')
+      throw new BadRequestException('El proyecto se encuentra cargandoo');
+
+    if (project.estado_ejecucion == 'E')
+      throw new BadRequestException(
+        'El proyecto se encuentra en estado de error, arreglalo antes de intenetar deternerlo o iniciarlo',
+      );
+
+    if (project.estado_ejecucion == 'F' && status == 'Stop')
+      throw new BadRequestException('El proyecto ya se encuentra detenido');
+
+    if (project.estado_ejecucion == 'N' && status == 'Start')
+      throw new BadRequestException('El proyecto ya se encuentra encendido');
+
+    project.estado_ejecucion = 'L';
+    await this.update(project.id, project);
+
+    //Add queue
+    try {
+      await this.projectManagerQueueService.changeStatus({
+        project: project,
+        action: status,
+      });
+    } catch (e) {
+      throw new BadRequestException(e);
+    }
+    project.estado_ejecucion = 'N';
+    let response = `proyecto ${project.id} ha sido iniciado con exito.`;
+    if (status == 'Stop') {
+      project.estado_ejecucion = 'F';
+      response = `proyecto ${project.id} ha sido detenido con exito.`;
+    }
+
+    await this.update(project.id, project);
+    return response;
   }
 }

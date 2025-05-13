@@ -13,12 +13,12 @@ export class DeployController {
   @Post('/encolarProyecto')
   @Public()
   enqueueDeploy(@Body() body: any) {
-    return this.deployService.enqueDeploy('desplegar', body);
+    return this.deployService.enqueDeploy(body);
   }
 
   @Post('/encolarSystem')
   @Public()
   enqueueSystem(@Body() body: any) {
-    return this.SystemService.enqueSystem('deploy-system', body);
+    //return this.SystemService.enqueSystem('deploy-system', body);
   }
 }

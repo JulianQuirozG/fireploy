@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   CanActivate,
@@ -31,7 +32,7 @@ export class updateSeccionGuard implements CanActivate {
 
     // Verificar el token
     let session;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     try {
       //Verify permission token
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -46,11 +47,11 @@ export class updateSeccionGuard implements CanActivate {
     }
 
     let id: number | undefined;
-    
+
     if (path.length > 0) {
       id = path[1] as unknown as number;
     }
-    console.log(id);
+
     //Verify valid id
     if (isNaN(Number(id)))
       throw new BadRequestException(
@@ -65,18 +66,16 @@ export class updateSeccionGuard implements CanActivate {
     const curso = await this.cursoService.findOne(seccion.curso.id);
 
     //Verify user is an estudiante
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (session.tipo == 'Estudiante')
       throw new ForbiddenException(
         `El usuario no tiene permiso para realizar esa acción`,
       );
 
     //Verify docente is the curso'tutor
-    if(session.tipo=='Administrador')
-      return true
+    if (session.tipo == 'Administrador') return true;
 
-    if (!curso.docente ||
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (
+      !curso.docente ||
       (session.tipo == 'Docente' && curso.docente.id != session.sub)
     )
       throw new ForbiddenException(

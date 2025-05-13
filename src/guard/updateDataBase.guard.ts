@@ -17,12 +17,13 @@ import { SeccionService } from 'src/modelos/seccion/seccion.service';
 
 @Injectable()
 export class updateDataBaseGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService,
+  constructor(
+    private readonly jwtService: JwtService,
     private seccionService: SeccionService,
     private cursoService: CursoService,
     private proyectoService: ProyectoService,
     private baseDatosService: BaseDeDatosService,
-  ) { }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
@@ -42,38 +43,43 @@ export class updateDataBaseGuard implements CanActivate {
       throw new UnauthorizedException('Token de sesión inválido o expirado');
     }
 
-      request.user = { id: payload.sub };
+    request.user = { id: payload.sub };
 
-      if (payload.tipo === 'Administrador') {
-        return true;
-      }
-      const baseDatos = await this.baseDatosService.findOne(+id);
-      const proyecto = await this.proyectoService.findOne(baseDatos.proyecto.id);
-      const seccion = await this.seccionService.findOne(proyecto.seccion.id);
-      const curso = await this.cursoService.findOne(seccion.curso.id);
-
-      if ((proyecto.tutor && curso.docente.id && payload.tipo === 'Docente') && curso.docente.id === payload.sub) {
-        return true;
-      }
-
-      if (!curso.estudiantes || curso.estudiantes.length === 0) {
-        throw new ForbiddenException('El curso no tiene estudiantes registrados');
-      }
-
-      const estudianteEncontrado = curso.estudiantes.some((estudiante) => estudiante.id === payload.sub);
-      if (!estudianteEncontrado) {
-        throw new ForbiddenException('El usuario no pertenece a este curso');
-      }
-
-      const estudiantesCursoIds = proyecto.estudiantes.map((e) => e.id);
-      const estudiantesValidos = estudiantesCursoIds.some((id) => id === payload.sub);
-      console.log(estudiantesCursoIds);
-      console.log(estudiantesValidos)
-      if (!estudiantesValidos && payload.sub != proyecto.creador.id) {
-        throw new ForbiddenException(
-          `El estudiante no hace parte del proyecto`
-        );
-      }
+    if (payload.tipo === 'Administrador') {
       return true;
+    }
+    const baseDatos = await this.baseDatosService.findOne(+id);
+    const proyecto = await this.proyectoService.findOne(baseDatos.proyecto.id);
+    const seccion = await this.seccionService.findOne(proyecto.seccion.id);
+    const curso = await this.cursoService.findOne(seccion.curso.id);
+
+    if (
+      proyecto.tutor &&
+      curso.docente.id &&
+      payload.tipo === 'Docente' &&
+      curso.docente.id === payload.sub
+    ) {
+      return true;
+    }
+
+    if (!curso.estudiantes || curso.estudiantes.length === 0) {
+      throw new ForbiddenException('El curso no tiene estudiantes registrados');
+    }
+
+    const estudianteEncontrado = curso.estudiantes.some(
+      (estudiante) => estudiante.id === payload.sub,
+    );
+    if (!estudianteEncontrado) {
+      throw new ForbiddenException('El usuario no pertenece a este curso');
+    }
+
+    const estudiantesCursoIds = proyecto.estudiantes.map((e) => e.id);
+    const estudiantesValidos = estudiantesCursoIds.some(
+      (id) => id === payload.sub,
+    );
+    if (!estudiantesValidos && payload.sub != proyecto.creador.id) {
+      throw new ForbiddenException(`El estudiante no hace parte del proyecto`);
+    }
+    return true;
   }
 }
