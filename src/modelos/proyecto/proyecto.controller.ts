@@ -47,7 +47,7 @@ export class ProyectoController {
   }
 
   @Patch('image/:id')
-  @Public()
+  @UseGuards(updateProyectoGuard)
   @UseInterceptors(FileInterceptor('image'))
   updateImageProject(
     @Param('id') id: string,
