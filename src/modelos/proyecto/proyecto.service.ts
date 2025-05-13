@@ -680,7 +680,7 @@ export class ProyectoService {
       );
     }
 
-    let dockerfiles: any = [];
+    let dockerfiles: any;
     try {
       dockerfiles = await this.deployQueueService.enqueDeploy({
         proyect: proyect,
@@ -727,8 +727,8 @@ export class ProyectoService {
 
     //Send notificacion
     this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
-
-    console.log(dockerfiles.dockerfiles)
+    const result = await dockerfiles.finished();
+    console.log(result)
     const updateProyect = await this.update(+id, {
       url: `https://proyectos.fireploy.online/app${id}`,
     } as UpdateProyectoDto);
