@@ -23,6 +23,8 @@ import { updateProyectoGuard } from 'src/guard/updateProyect.guard';
 import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
 import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateUserImageGuard } from 'src/guard/updateUserImage.guard';
+import { UpdateProjectImageGuard } from 'src/guard/updateProjectImage.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -47,7 +49,7 @@ export class ProyectoController {
   }
 
   @Patch('image/:id')
-  @UseGuards(updateProyectoGuard)
+  @UseGuards(UpdateProjectImageGuard)
   @UseInterceptors(FileInterceptor('image'))
   updateImageProject(
     @Param('id') id: string,
