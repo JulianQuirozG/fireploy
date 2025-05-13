@@ -15,6 +15,15 @@ export class MailService {
     });
   }
 
+  /**
+ * Sends an email using the configured Nodemailer transporter.
+ *
+ * @param {string} to - The recipient's email address.
+ * @param {string} subject - The subject of the email.
+ * @param {string} html - The HTML content of the email.
+ * @returns {Promise<{ message: string }>} A success message if the email is sent.
+ * @throws {BadRequestException} If an error occurs while sending the email.
+ */
   async enviarCorreo(to: string, subject: string, html: string) {
     try{
       const info = await this.transporter.sendMail({

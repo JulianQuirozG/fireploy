@@ -111,7 +111,7 @@ export class AuthService {
  */
   async changepasswordEmail(updateUsuarioDto: EmailUpdatePasswordDto) {
     const tokenResponse = await this.recoverPassword(updateUsuarioDto.correo);
-    const resetUrl = `https://${process.env.URL}/reset-password/:token=${tokenResponse.access_token}`;
+    const resetUrl = `https://${process.env.URL}/reset-password/?token=${tokenResponse.access_token}`;
 
     const htmlTemplate = `
     <!DOCTYPE html>

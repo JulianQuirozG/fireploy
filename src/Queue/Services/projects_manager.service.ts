@@ -9,6 +9,12 @@ export class ProjectManagerQueueService {
     @InjectQueue('project_manager') private readonly projectManagerQueue: Queue,
   ) {}
 
+  /**
+ * Adds a job to the project manager queue to change the status of a project or task.
+ *
+ * @param {any} data - The data required to change the status (e.g. project ID, new status).
+ * @returns {Promise<void>} - Resolves when the job has been completed.
+ */
   async changeStatus(data: any) {
     const job = await this.projectManagerQueue.add('changeStatus', data);
     console.log('Trabajo enviado a la cola: system', data);
