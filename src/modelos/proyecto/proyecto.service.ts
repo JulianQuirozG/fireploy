@@ -679,16 +679,12 @@ export class ProyectoService {
         `El proyecto con el id ${id} no tiene repositorios asignados.`,
       );
     }
-    let result: any; 
     let dockerfiles: any;
     try {
       dockerfiles = await this.deployQueueService.enqueDeploy({
         proyect: proyect,
         repositorios: repositorios,
       });
-      console.log("doc",dockerfiles)
-      result = await dockerfiles.finished();
-      console.log("resu",result)
     } catch (e) {
       //Set proyecto status in Error
       proyect.estado_ejecucion = 'E';
