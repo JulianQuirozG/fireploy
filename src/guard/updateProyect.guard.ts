@@ -4,6 +4,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -21,7 +22,7 @@ export class updateProyectoGuard implements CanActivate {
     private seccionService: SeccionService,
     private cursoService: CursoService,
     private proyectoService: ProyectoService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
@@ -33,57 +34,58 @@ export class updateProyectoGuard implements CanActivate {
       throw new UnauthorizedException('No se ha suministrado el token');
     }
 
+    let payload;
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRETTOKEN,
       });
-
-      request.user = { id: payload.sub };
-
-      const proyecto = await this.proyectoService.findOne(+id);
-      const seccion = await this.seccionService.findOne(proyecto.seccion.id);
-      const curso = await this.cursoService.findOne(seccion.curso.id);
-
-      if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
-        throw new UnauthorizedException('El docente no es tutor del proyecto');
-      }
-
-      if (
-        (payload.tipo === 'Estudiante' && !curso.estudiantes) ||
-        curso.estudiantes.length === 0
-      ) {
-        throw new UnauthorizedException(
-          'El curso no tiene estudiantes registrados',
-        );
-      }
-
-      if (estudiantesIds?.length && estudiantesIds?.length > 0) {
-        const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
-        const estudiantesInvalidos = estudiantesIds.filter(
-          (id) => !estudiantesCursoIds.includes(id),
-        );
-        if (estudiantesInvalidos.length > 0) {
-          throw new UnauthorizedException(
-            `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`,
-          );
-        }
-      }
-
-      const estudianteEncontrado = proyecto.estudiantes.some(
-        (estudiante) => estudiante.id === payload.sub,
-      );
-      if (
-        payload.tipo === 'Estudiante' &&
-        !estudianteEncontrado &&
-        proyecto.creador.id != payload.sub
-      ) {
-        throw new UnauthorizedException(
-          'El usuario no pertenece a este proyecto',
-        );
-      }
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException(error.message);
+    } catch (err) {
+      throw new UnauthorizedException('Token de sesión inválido o expirado');
     }
+
+    request.user = { id: payload.sub };
+
+    const proyecto = await this.proyectoService.findOne(+id);
+    const seccion = await this.seccionService.findOne(proyecto.seccion.id);
+    const curso = await this.cursoService.findOne(seccion.curso.id);
+
+    if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
+      throw new ForbiddenException('El docente no es tutor del proyecto');
+    }
+
+    if (
+      (payload.tipo === 'Estudiante' && !curso.estudiantes) ||
+      curso.estudiantes.length === 0
+    ) {
+      throw new ForbiddenException(
+        'El curso no tiene estudiantes registrados',
+      );
+    }
+
+    if (estudiantesIds?.length && estudiantesIds?.length > 0) {
+      const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
+      const estudiantesInvalidos = estudiantesIds.filter(
+        (id) => !estudiantesCursoIds.includes(id),
+      );
+      if (estudiantesInvalidos.length > 0) {
+        throw new ForbiddenException(
+          `Los siguientes estudiantes no pertenecen al curso: ${estudiantesInvalidos.join(', ')}`,
+        );
+      }
+    }
+
+    const estudianteEncontrado = proyecto.estudiantes.some(
+      (estudiante) => estudiante.id === payload.sub,
+    );
+    if (
+      payload.tipo === 'Estudiante' &&
+      !estudianteEncontrado &&
+      proyecto.creador.id != payload.sub
+    ) {
+      throw new ForbiddenException(
+        'El usuario no pertenece a este proyecto',
+      );
+    }
+    return true;
   }
 }

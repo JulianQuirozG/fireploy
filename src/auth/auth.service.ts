@@ -56,6 +56,21 @@ export class AuthService {
     return response;
   }
 
+ /**
+ * Generates a password recovery token (JWT) for a user by email.
+ * 
+ * This method:
+ * 1. Validates if the user exists and is active.
+ * 2. Constructs a JWT payload with the user's ID, type, and email.
+ * 3. Signs the payload asynchronously to generate an access token.
+ * 4. Returns user metadata along with the access token.
+ * 
+ * @param correo - The email address of the user requesting password recovery.
+ * @returns A Promise that resolves to an object containing the JWT token and user data.
+ * 
+ * @throws ForbiddenException - If the user is inactive.
+ * @throws NotFoundException - If the user does not exist.
+ */
   async recoverPassword(correo: string): Promise<{ access_token: string }> {
     const user = await this.usuarioService.findOneCorreo(correo);
     if (user?.estado == 'I') {
@@ -79,62 +94,58 @@ export class AuthService {
     return response;
   }
 
+/**
+ * Sends a password reset email to a user.
+ * 
+ * This method:
+ * 1. Generates a JWT token for password reset using the user's email.
+ * 2. Constructs a secure reset password URL with the token.
+ * 3. Builds a styled HTML email template using Bootstrap.
+ * 4. Sends the email to the user via the MailService.
+ * 
+ * @param updateUsuarioDto - DTO containing the user's email.
+ * @returns A promise with the result of the email sending process.
+ * 
+ * @throws ForbiddenException - If the user is inactive.
+ * @throws NotFoundException - If the user does not exist.
+ */
   async changepasswordEmail(updateUsuarioDto: EmailUpdatePasswordDto) {
     const tokenResponse = await this.recoverPassword(updateUsuarioDto.correo);
-    const resetUrl = `${process.env.URL}/reset-password?token=${tokenResponse.access_token}`;
+    const resetUrl = `https://${process.env.URL}/reset-password/?token=${tokenResponse.access_token}`;
 
     const htmlTemplate = `
-      <!DOCTYPE html>
-      <html lang="es">
+    <!DOCTYPE html>
+    <html lang="es">
       <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Recuperación de contraseña</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #333;
-            padding: 20px;
-          }
-          .container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 600px;
-            margin: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          }
-          .button {
-            background-color: #e63946;
-            color: white;
-            padding: 12px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 20px;
-          }
-          .footer {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #999;
-            text-align: center;
-          }
-        </style>
+        <title>Recuperar Contraseña</title>
       </head>
-      <body>
-        <div class="container">
-          <h2>Hola 👋</h2>
-          <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>FIREPLOY</strong>.</p>
-          <p>Haz clic en el botón de abajo para crear una nueva contraseña:</p>
-          <a href="${resetUrl}" >${resetUrl}</a>
-          <p>Si no realizaste esta solicitud, puedes ignorar este mensaje.</p>
-          <div class="footer">
-            &copy; 2025 FIREPLOY - Todos los derechos reservados
-          </div>
-        </div>
+      <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border: 1px solid #dee2e6;">
+          <tr>
+            <td align="center" style="padding-bottom: 20px;">
+              <h1 style="margin: 0;">Fireploy 🔥</h1>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <h3 style="color: #333333;">Hola 😄</h3>
+              <p><strong>Se ha recibido una solicitud de cambio de contraseña para tu cuenta de Fireploy.</strong></p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" target="_blank" style="background-color: #0d6efd; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; display: inline-block;">Cambiar Contraseña</a>
+              </div>
+              <p style="color: #6c757d;">Si no realizaste esta petición, ignora este correo.</p>
+              <p>Muchas gracias,<br><strong>Equipo de Fireploy</strong></p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="font-size: 12px; color: #adb5bd; padding-top: 20px;">
+              © 2025 Fireploy. Todos los derechos reservados.
+            </td>
+          </tr>
+        </table>
       </body>
-      </html>
+    </html>
     `;
 
     return this.mailService.enviarCorreo(
@@ -144,6 +155,14 @@ export class AuthService {
     );
   }
 
+  /**
+ * Updates the user's password by hashing the new one and saving it in the database.
+ *
+ * @param updateUsuarioDto - Object containing the user's email and new password.
+ * @returns A Promise that resolves with the updated user object.
+ *
+ * @throws BadRequestException - If the user does not exist.
+ */
   async changepassword(updateUsuarioDto: UpdatePasswordDto) {
     const user = await this.usuarioService.findOneCorreo(
       updateUsuarioDto.correo,
@@ -159,6 +178,15 @@ export class AuthService {
     throw new BadRequestException('El usuario no existe');
   }
 
+  /**
+ * Logs in a user using their Google ID token. If the user does not exist, it creates a new one.
+ *
+ * @param LoginGoogleDto - Object containing the Google ID token.
+ * @returns A JWT token and user data upon successful login or registration.
+ *
+ * @throws UnauthorizedException - If the token is invalid or expired.
+ * @throws BadRequestException - If the token does not contain an email or if any processing error occurs.
+ */
   async loginWithGoogle({ idToken }: LoginGoogleDto) {
     try {
       const ticket = await this.client.verifyIdToken({

@@ -93,6 +93,45 @@ export class UsuarioService {
     return await query.getMany();
   }
 
+
+  /**
+ * Retrieves a list of all users with publicly safe profile information.
+ *
+ * This method is intended for public access (no authentication required),
+ * and returns a sanitized subset of user fields only. Sensitive data such as 
+ * passwords, roles with elevated permissions, tokens, or internal metadata 
+ * are intentionally excluded.
+ *
+ * Fields returned:
+ * - id
+ * - nombre
+ * - apellido
+ * - correo
+ * - red_social
+ * - foto_perfil
+ * - est_fecha_inicio
+ * - tipo
+ * - estado
+ *
+ * @returns A promise resolving to an array of public user profiles.
+ */
+  async findAllPublic(
+  ): Promise<Usuario[]> {
+    return await this.usersRepository
+      .createQueryBuilder('usuario')
+      .select([
+        'usuario.id',
+        'usuario.nombre',
+        'usuario.apellido',
+        'usuario.red_social',
+        'usuario.foto_perfil',
+        'usuario.est_fecha_inicio',
+        'usuario.tipo','usuario.tipo',
+        'usuario.estado',
+      ]).getMany();;
+
+  }
+
   /**
    * Retrieves a single user by their ID, optionally returning full or partial details.
    *
@@ -123,6 +162,57 @@ export class UsuarioService {
         'usuario.estado',
       ]);
     }
+
+    const usuario = await query.getOne();
+    if (!usuario) {
+      throw new NotFoundException(
+        `El usuario con el id ${id} no se encuentra en la base de datos.`,
+      );
+    }
+
+    return usuario;
+  }
+
+    /**
+    * Retrieves a public user profile by its ID with limited, non-sensitive information.
+    *
+    * This method is accessible without authentication and returns only fields
+    * deemed safe for public exposure. Sensitive data such as password hashes,
+    * roles, tokens, or internal-only flags are not included.
+    *
+    * Fields returned:
+    * - id
+    * - nombre
+    * - apellido
+    * - fecha_nacimiento
+    * - sexo
+    * - descripcion
+    * - correo
+    * - red_social
+    * - foto_perfil
+    * - est_fecha_inicio
+    * - tipo
+    * - estado
+    * @param id - The ID of the user to retrieve.
+    * @returns A promise resolving to the user's public profile.
+    * @throws NotFoundException if the user is not found.
+    */
+    async findOnePublic(id: number): Promise<Usuario> {
+    const query = this.usersRepository
+      .createQueryBuilder('usuario')
+      .where('usuario.id = :id', { id }).select([
+        'usuario.id',
+        'usuario.nombre',
+        'usuario.apellido',
+        'usuario.fecha_nacimiento',
+        'usuario.sexo',
+        'usuario.descripcion',
+        'usuario.red_social',
+        'usuario.foto_perfil',
+        'usuario.est_fecha_inicio',
+        'usuario.tipo',
+        'usuario.estado',
+      ]);
 
     const usuario = await query.getOne();
     if (!usuario) {
