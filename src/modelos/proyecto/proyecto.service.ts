@@ -808,7 +808,9 @@ export class ProyectoService {
  */
   async updateImageProject(id: number, file: Express.Multer.File) {
     //Save the image
-
+    if (!file) {
+      throw new BadRequestException('No se envió ningún archivo.');
+    }
     const fileExtension = file.originalname.split('.').pop();
     const newFileName = `project_images/project_Image_${id}.${fileExtension}`;
 
