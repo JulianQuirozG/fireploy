@@ -21,11 +21,12 @@ export class FirebaseService {
     if (!fs.existsSync(serviceAccountPath)) {
       throw new Error('Firebase service account file not found');
     }
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccountPath),
-      storageBucket: process.env.BUCKET_NAME as string,
-    });
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccountPath),
+        storageBucket: process.env.BUCKET_NAME as string,
+      });
+    }
 
     this.storage = new Storage({
       keyFilename: serviceAccountPath,

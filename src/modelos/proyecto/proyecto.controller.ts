@@ -10,6 +10,8 @@ import {
   Req,
   UnauthorizedException,
   Request,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ProyectoService } from './proyecto.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
@@ -20,6 +22,7 @@ import { RequestWithUser } from 'src/interfaces/request.interface';
 import { updateProyectoGuard } from 'src/guard/updateProyect.guard';
 import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
 import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -43,6 +46,17 @@ export class ProyectoController {
     return this.proyectoService.findAll();
   }
 
+  @Patch('image/:id')
+  @Public()
+  @UseInterceptors(FileInterceptor('image'))
+  updateImageProject(
+    @Param('id') id: string,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.proyectoService.updateImageProject(+id, image);
+  }
+
+
   @Get('/seccion/:id')
   findAllByMateria(@Param('id') id: number) {
     return this.proyectoService.findAllBySection(id);
@@ -56,6 +70,12 @@ export class ProyectoController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.proyectoService.findOne(+id);
+  }
+
+  @Get('/public/:id')
+  @Public()
+  findOnePublic(@Param('id') id: string) {
+    return this.proyectoService.findOnePublic(+id);
   }
 
   @Patch(':id')

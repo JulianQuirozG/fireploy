@@ -28,6 +28,7 @@ import { JwtService } from '@nestjs/jwt';
 import { NotificationsGateway } from 'src/socket/notification.gateway';
 import { CreateNotificacioneDto } from '../notificaciones/dto/create-notificacione.dto';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { FirebaseService } from 'src/services/firebase.service';
 import { DeployQueueService } from 'src/Queue/Services/deploy.service';
 import { ProjectManagerQueueService } from 'src/Queue/Services/projects_manager.service';
 
@@ -48,6 +49,7 @@ export class ProyectoService {
     private jwtService: JwtService,
     private socketService: NotificationsGateway,
     private notificacionService: NotificacionesService,
+    private firebaseService: FirebaseService,
   ) {}
 
   /**
@@ -328,6 +330,116 @@ export class ProyectoService {
         'curso.grupo',
         'curso.semestre',
         'curso.descripcion',
+      ])
+
+      .addSelect(['favorito.id', 'favorito.nombre'])
+
+      .addSelect(['favorito.id', 'favorito.nombre'])
+
+      .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
+
+      .where('proyecto.id = :id', { id })
+      .getOne();
+
+    if (!result)
+      throw new NotFoundException(
+        `El proyecto con el id ${id} no se encuentra registrado.`,
+      );
+
+    return result;
+  }
+
+  /**
+ * Retrieves a project by its ID, including only **publicly safe** related entities and fields.
+ *
+ * This method is intended for public access (no authentication required),
+ * so it restricts sensitive information from being loaded, such as environment variables
+ * or internal-only fields.
+ *
+ * Relations included:
+ * - Estudiantes (basic public profile)
+ * - Sección, Curso y Materia
+ * - Tutor y Creador (basic public profile)
+ * - Repositorios (excluding variables_de_entorno)
+ * - Base de datos (only type)
+ * - Usuarios que marcaron como favorito (id y nombre)
+ *
+ * @param id - The ID of the project to retrieve.
+ * @returns A promise resolving to the public version of the project with the specified ID.
+ * @throws NotFoundException if the project is not found.
+ */
+  async findOnePublic(id: number) {
+    const result = await this.proyectoRepository
+      .createQueryBuilder('proyecto')
+      .leftJoin('proyecto.estudiantes', 'estudiante')
+      .leftJoinAndSelect('proyecto.seccion', 'seccion')
+      .leftJoin('seccion.curso', 'curso')
+      .leftJoin('curso.materia', 'materia')
+      .leftJoin('proyecto.tutor', 'tutor')
+      .leftJoin('proyecto.repositorios', 'repositorio')
+      .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
+      .leftJoin('proyecto.creador', 'creador')
+      .leftJoin('proyecto.fav_usuarios', 'favorito')
+
+      // Select repositorio excepto variables_de_entorno
+      .addSelect([
+        'repositorio.id',
+        'repositorio.url',
+        'repositorio.tipo',
+        'repositorio.tecnologia',
+        'repositorio.version',
+        'repositorio.framework',
+      ])
+
+      .addSelect([
+        'estudiante.id',
+        'estudiante.nombre',
+        'estudiante.apellido',
+        'estudiante.fecha_nacimiento',
+        'estudiante.sexo',
+        'estudiante.descripcion',
+        'estudiante.correo',
+        'estudiante.red_social',
+        'estudiante.foto_perfil',
+        'estudiante.tipo',
+        'estudiante.est_fecha_inicio',
+      ])
+
+      .addSelect([
+        'tutor.id',
+        'tutor.nombre',
+        'tutor.apellido',
+        'tutor.fecha_nacimiento',
+        'tutor.sexo',
+        'tutor.descripcion',
+        'tutor.correo',
+        'tutor.red_social',
+        'tutor.foto_perfil',
+        'tutor.tipo',
+      ])
+
+      .addSelect([
+        'creador.id',
+        'creador.nombre',
+        'creador.apellido',
+        'creador.fecha_nacimiento',
+        'creador.sexo',
+        'creador.descripcion',
+        'creador.correo',
+        'creador.red_social',
+        'creador.foto_perfil',
+        'creador.tipo',
+        'creador.est_fecha_inicio',
+      ])
+
+      .addSelect([
+        'baseDeDatos.tipo',
+      ])
+
+      .addSelect([
+        'curso.id',
+        'curso.grupo',
+        'curso.semestre',
       ])
 
       .addSelect(['favorito.id', 'favorito.nombre'])
@@ -676,6 +788,60 @@ export class ProyectoService {
     return await this.findOne(+id);
   }
 
+  /**
+ * Uploads and updates the project's image by its ID.
+ *
+ * This method renames the incoming image file using a standard naming convention,
+ * uploads it to Firebase Storage via the FirebaseService, and updates the project
+ * record with the new image URL.
+ *
+ * Steps performed:
+ * 1. Extracts the file extension from the uploaded file.
+ * 2. Renames the file to the format: `Project_Image_<projectId>.<ext>`.
+ * 3. Uploads the renamed file to Firebase and retrieves its public URL.
+ * 4. Updates the project in the database with the new image URL.
+ *
+ * @param id - The ID of the project whose image will be updated.
+ * @param file - The image file uploaded via Multer (Express).
+ * @returns A promise resolving to the updated project with the new image URL.
+ * @throws NotFoundException if the project with the given ID does not exist.
+ */
+  async updateImageProject(id: number, file: Express.Multer.File) {
+    //Save the image
+
+    const fileExtension = file.originalname.split('.').pop();
+    const newFileName = `project_images/project_Image_${id}.${fileExtension}`;
+
+    const renamedFile = {
+      ...file,
+      originalname: newFileName,
+    };
+    const url = await this.firebaseService.uploadFile(renamedFile);
+
+    //UpdateUser info
+    const user = await this.update(id, {
+      imagen: url,
+    } as UpdateProyectoDto);
+    return user;
+  }
+
+  /**
+   * Cambia el estado de ejecución de un proyecto (iniciar o detener).
+   *
+   * Este método realiza las siguientes acciones:
+   * 1. Obtiene el proyecto por su ID.
+   * 2. Verifica si el estado actual del proyecto permite el cambio solicitado.
+   * 3. Cambia temporalmente el estado a 'L' (cargando) y actualiza en la base de datos.
+   * 4. Llama al servicio de cola para ejecutar el cambio de estado real (start o stop).
+   * 5. Si se realiza con éxito, actualiza el estado final del proyecto ('N' o 'F').
+   *
+   * @param id - ID del proyecto a modificar.
+   * @param status - Acción a realizar: `"Start"` para iniciar, `"Stop"` para detener.
+   * @returns Un mensaje de éxito indicando que el proyecto fue iniciado o detenido.
+   *
+   * @throws BadRequestException - Si el estado actual del proyecto no permite la acción solicitada
+   *                               o si ocurre un error en la cola de procesamiento.
+   */
   async changeStatusProyecto(id: string, status: string) {
     //Get project
     const project = await this.findOne(+id);
