@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   forwardRef,
@@ -63,20 +62,24 @@ export class BaseDeDatosService {
     //Build DB in DB image
     try {
       //Verify DB Type
-      if (createBaseDeDatoDto.tipo == process.env.SQL_DB) {
-        const db = await this.systemQueueService.enqueSystem({
-          containerName: process.env.MYSQL_CONTAINER_NAME as string,
-          nombre: baseDeDatos.nombre,
-          usuario: baseDeDatos.usuario,
-          contrasenia: createBaseDeDatoDto.contrasenia,
-        });
-        //await this.dockerfileService.createMySQLDatabaseAndUser();
-      }
+      let containerName = process.env.MYSQL_CONTAINER_NAME as string;
+      if (createBaseDeDatoDto.tipo == process.env.NO_SQL_DB)
+        containerName = process.env.MONGO_CONTAINER_NAME as string;
+
+      const connection_URI = await this.systemQueueService.enqueSystem({
+        containerName: containerName,
+        nombre: baseDeDatos.nombre,
+        usuario: baseDeDatos.usuario,
+        contrasenia: createBaseDeDatoDto.contrasenia,
+        type: createBaseDeDatoDto.tipo,
+      });
+      baseDeDatos.url = connection_URI;
+      await this.update(baseDeDatos.id, baseDeDatos);
     } catch (error) {
       throw new NotFoundException(`Error al generar la base de datos ${error}`);
     }
 
-    return baseDeDatos;
+    return await this.findOne(baseDeDatos.id);
   }
 
   /**
