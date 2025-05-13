@@ -223,7 +223,7 @@ export class AuthService {
           correo: email,
           contrasenia: email, // Idealmente deberías tener otro sistema para evitar contraseñas visibles
           tipo: 'Estudiante',
-          estado: '',
+          estado: 'A',
           red_social: 'Google',
           foto_perfil: payload.picture ?? '',
         });
