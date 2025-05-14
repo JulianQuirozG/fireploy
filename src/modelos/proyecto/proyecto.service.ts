@@ -322,6 +322,7 @@ export class ProyectoService {
         'baseDeDatos.usuario',
         'baseDeDatos.nombre',
         'baseDeDatos.contrasenia',
+        'baseDeDatos.url',
         'baseDeDatos.tipo',
       ])
 
@@ -350,24 +351,24 @@ export class ProyectoService {
   }
 
   /**
- * Retrieves a project by its ID, including only **publicly safe** related entities and fields.
- *
- * This method is intended for public access (no authentication required),
- * so it restricts sensitive information from being loaded, such as environment variables
- * or internal-only fields.
- *
- * Relations included:
- * - Estudiantes (basic public profile)
- * - Sección, Curso y Materia
- * - Tutor y Creador (basic public profile)
- * - Repositorios (excluding variables_de_entorno)
- * - Base de datos (only type)
- * - Usuarios que marcaron como favorito (id y nombre)
- *
- * @param id - The ID of the project to retrieve.
- * @returns A promise resolving to the public version of the project with the specified ID.
- * @throws NotFoundException if the project is not found.
- */
+   * Retrieves a project by its ID, including only **publicly safe** related entities and fields.
+   *
+   * This method is intended for public access (no authentication required),
+   * so it restricts sensitive information from being loaded, such as environment variables
+   * or internal-only fields.
+   *
+   * Relations included:
+   * - Estudiantes (basic public profile)
+   * - Sección, Curso y Materia
+   * - Tutor y Creador (basic public profile)
+   * - Repositorios (excluding variables_de_entorno)
+   * - Base de datos (only type)
+   * - Usuarios que marcaron como favorito (id y nombre)
+   *
+   * @param id - The ID of the project to retrieve.
+   * @returns A promise resolving to the public version of the project with the specified ID.
+   * @throws NotFoundException if the project is not found.
+   */
   async findOnePublic(id: number) {
     const result = await this.proyectoRepository
       .createQueryBuilder('proyecto')
@@ -432,15 +433,9 @@ export class ProyectoService {
         'creador.est_fecha_inicio',
       ])
 
-      .addSelect([
-        'baseDeDatos.tipo',
-      ])
+      .addSelect(['baseDeDatos.tipo'])
 
-      .addSelect([
-        'curso.id',
-        'curso.grupo',
-        'curso.semestre',
-      ])
+      .addSelect(['curso.id', 'curso.grupo', 'curso.semestre'])
 
       .addSelect(['favorito.id', 'favorito.nombre'])
 
@@ -792,23 +787,23 @@ export class ProyectoService {
   }
 
   /**
- * Uploads and updates the project's image by its ID.
- *
- * This method renames the incoming image file using a standard naming convention,
- * uploads it to Firebase Storage via the FirebaseService, and updates the project
- * record with the new image URL.
- *
- * Steps performed:
- * 1. Extracts the file extension from the uploaded file.
- * 2. Renames the file to the format: `Project_Image_<projectId>.<ext>`.
- * 3. Uploads the renamed file to Firebase and retrieves its public URL.
- * 4. Updates the project in the database with the new image URL.
- *
- * @param id - The ID of the project whose image will be updated.
- * @param file - The image file uploaded via Multer (Express).
- * @returns A promise resolving to the updated project with the new image URL.
- * @throws NotFoundException if the project with the given ID does not exist.
- */
+   * Uploads and updates the project's image by its ID.
+   *
+   * This method renames the incoming image file using a standard naming convention,
+   * uploads it to Firebase Storage via the FirebaseService, and updates the project
+   * record with the new image URL.
+   *
+   * Steps performed:
+   * 1. Extracts the file extension from the uploaded file.
+   * 2. Renames the file to the format: `Project_Image_<projectId>.<ext>`.
+   * 3. Uploads the renamed file to Firebase and retrieves its public URL.
+   * 4. Updates the project in the database with the new image URL.
+   *
+   * @param id - The ID of the project whose image will be updated.
+   * @param file - The image file uploaded via Multer (Express).
+   * @returns A promise resolving to the updated project with the new image URL.
+   * @throws NotFoundException if the project with the given ID does not exist.
+   */
   async updateImageProject(id: number, file: Express.Multer.File) {
     //Save the image
     if (!file) {
