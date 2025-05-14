@@ -15,6 +15,10 @@ import { Repository } from 'typeorm';
 import { FilterRepositorioDto } from './dto/filter-repositorio.dto';
 import { ProyectoService } from '../proyecto/proyecto.service';
 import { VariablesDeEntorno } from 'src/interfaces/variables_entorno.interface';
+import * as fs from 'fs';
+import * as AdmZip from 'adm-zip';
+import * as path from 'path';
+import { GitService } from 'src/services/git.service';
 @Injectable()
 export class RepositorioService {
   constructor(
@@ -22,7 +26,8 @@ export class RepositorioService {
     private repositorioRepository: Repository<Repositorio>,
     @Inject(forwardRef(() => ProyectoService))
     private proyectoRepository: ProyectoService,
-  ) {}
+    private gitService: GitService,
+  ) { }
 
   /**
    * Creates a new repository associated with an existing project.
@@ -167,5 +172,35 @@ export class RepositorioService {
     const repository = await this.findOne(id);
     await this.repositorioRepository.delete(repository.id);
     return `repositorio con el #${id} ha sido eliminado, con referencia al proyecto ${repository.proyecto_id} ha sido elimnado correctamente`;
+  }
+
+  async uploadProjectZip(filePath: string, id: string) {
+
+    const tempDir = path.join('/home/julian/ZIP', 'temp', filePath);
+
+    //Crear un directorio temporal para almacenar los archivos
+    fs.mkdirSync(tempDir, { recursive: true });
+
+    const zip = new AdmZip(filePath);
+    zip.extractAllTo(tempDir, true);
+    let repo, exist;
+
+    try {
+      exist = await this.gitService.repoExists(id);
+    } catch {
+      repo = await this.gitService.createGitHubRepo(id);
+      exist = await this.gitService.repoExists(id);
+    }
+
+    const url = `https://Fireploy:${process.env.GIT_TOKEN}@github.com/Fireploy/${id}.git`;
+
+    await this.gitService.pushFolderToRepo(tempDir, url);
+    
+    const repositorio = await this.update(+id, {
+      url: exist,
+    } as UpdateRepositorioDto);
+
+
+    return repositorio;
   }
 }

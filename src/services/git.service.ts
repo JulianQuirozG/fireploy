@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import axios from 'axios';
+import e from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 import simpleGit, { SimpleGit } from 'simple-git';
@@ -7,10 +9,12 @@ import simpleGit, { SimpleGit } from 'simple-git';
 @Injectable()
 export class GitService {
   private git: SimpleGit;
+  // private readonly github = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
   constructor() {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     this.git = simpleGit(); // Inicializa simple-git
+
   }
 
   /**
@@ -56,4 +60,90 @@ export class GitService {
       throw new Error(`Error cloning the repository: ${error.message}`);
     }
   }
+
+  async repoExists(repoName: string): Promise<string> {
+    const url = `https://api.github.com/repos/Fireploy/${repoName}`;
+
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `token ${process.env.GIT_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+        },
+      });
+      return response.data.clone_url;
+    } catch (error) {
+      throw new BadRequestException('No se encontr´p el recurso')
+    }
+
+  }
+
+
+  async createGitHubRepo(repoName: string) {
+    const url = 'https://api.github.com/user/repos';
+    const headers = {
+      Authorization: `token ${process.env.GIT_TOKEN}`,
+      'Content-Type': 'application/json',
+    };
+
+    const data = {
+      name: repoName,
+      description: `Repositorio ${repoName} creado desde el backend`,
+      private: false,
+      auto_init: true,
+    };
+
+    try {
+      const response = await axios.post(url, data, { headers });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Error al crear el repositorio en GitHub ${error.message}`);
+    }
+  }
+
+  async pushFolderToRepo(
+    folderPath: string,
+    remoteRepoUrl: string,
+  ): Promise<string> {
+    // Validar si el path existe
+    if (!fs.existsSync(folderPath)) {
+      throw new BadRequestException(`La carpeta "${folderPath}" no existe.`);
+    }
+
+    const git = simpleGit(folderPath);
+    console.log("el diablo", path.join(folderPath, '.git'))
+    try {
+      // Si no hay repo, inicializa uno
+      if (!fs.existsSync(path.join(folderPath, '.git'))) {
+        await git.init();
+        console.log('Repositorio Git inicializado');
+      }
+
+      //Elimina el repositorio remoto si lo tiene
+      await git.remote(['remove', 'origin']).catch(() => {}); 
+      //asiigna el repositorio remoto 
+      await git.addRemote('origin', remoteRepoUrl).catch(() => {});
+
+      const ramasLocales = await git.branchLocal();
+      if(!ramasLocales.all.includes('main')){
+        await git.checkoutLocalBranch('main');
+      }else{
+        await git.checkout('main')
+      }
+
+      await git.add('.');
+      await git.commit('Subida automática desde NestJS', undefined, {
+        '--allow-empty': null,
+      });
+
+      // Push forzado para sobreescribir el repo remoto
+      await git.push('origin', 'main', ['--force']);
+
+      return 'Repositorio actualizado exitosamente.';
+    } catch (error) {
+      console.error('Error al hacer push a GitHub', error);
+      throw error;
+    }
+  }
+  
 }

@@ -46,19 +46,10 @@ export class updateRepositorioGuard implements CanActivate {
       );
     }
 
-    let id: number | undefined;
-    if (path.length > 0) {
-      id = path[1] as unknown as number;
-    }
-
-    //Verify valid id
-    if (isNaN(Number(id)))
-      throw new BadRequestException(
-        `El id del repositorio a editar no es valido`,
-      );
+    const { id } = request.params;
 
     //Verify repositorio exists
-    const repositorio = await this.repositorioService.findOne(id as number);
+    const repositorio = await this.repositorioService.findOne(+id);
     if (!repositorio)
       throw new BadRequestException(`El repositorio a editar no existe`);
 
