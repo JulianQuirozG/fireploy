@@ -176,13 +176,17 @@ export class RepositorioService {
 
   async uploadProjectZip(filePath: string, id: string) {
 
-    const tempDir = path.join('/home/julian/ZIP', 'temp', filePath);
+    const tempDir = path.join(`${process.env.FOLDER_ROUTE_ZIP}`, 'temp', filePath);
 
     //Crear un directorio temporal para almacenar los archivos
     fs.mkdirSync(tempDir, { recursive: true });
-
-    const zip = new AdmZip(filePath);
-    zip.extractAllTo(tempDir, true);
+    try{
+      const zip = new AdmZip(filePath);
+      zip.extractAllTo(tempDir, true);
+    }catch (error){
+      throw new BadRequestException(error.message)
+    }
+    
     let repo, exist;
 
     try {

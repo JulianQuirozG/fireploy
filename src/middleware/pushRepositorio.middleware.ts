@@ -14,7 +14,7 @@ import * as fs from 'fs';
 @Injectable()
 export class PueshRepositorioMiddleware implements NestMiddleware {
   constructor(
-    private readonly zipDir = '/home/julian/ZIP'
+    private readonly zipDir = `${process.env.FOLDER_ROUTE_ZIP}`
   ) { }
   async use(req: Request, res: Response, next: NextFunction) {
     if (!fs.existsSync(this.zipDir)) {

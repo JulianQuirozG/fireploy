@@ -60,10 +60,10 @@ export class RepositorioController {
   @UseGuards(updateRepositorioGuard)
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: '/home/julian/ZIP',
+      destination: `${process.env.FOLDER_ROUTE_ZIP}`,
       filename: (req, file, cb) => {
-        if (!fs.existsSync('/home/julian/ZIP')) {
-          fs.mkdirSync('/home/julian/ZIP', { recursive: true });
+        if (!fs.existsSync(`${process.env.FOLDER_ROUTE_ZIP}`)) {
+          fs.mkdirSync(`${process.env.FOLDER_ROUTE_ZIP}`, { recursive: true });
         }
         cb(null, `${Date.now()}${extname(file.originalname)}`);
       },
