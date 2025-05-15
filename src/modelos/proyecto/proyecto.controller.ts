@@ -23,7 +23,6 @@ import { updateProyectoGuard } from 'src/guard/updateProyect.guard';
 import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
 import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UpdateUserImageGuard } from 'src/guard/updateUserImage.guard';
 import { UpdateProjectImageGuard } from 'src/guard/updateProjectImage.guard';
 
 @Controller('proyecto')
