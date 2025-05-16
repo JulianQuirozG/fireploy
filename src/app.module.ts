@@ -35,6 +35,8 @@ import { DockerRequestModule } from './modelos/dockerRequest/dockerRequest.modul
 import { NotificationsModule } from './socket/notification.module';
 import { NotificacionesModule } from './modelos/notificaciones/notificaciones.module';
 import { Notificacione } from './modelos/notificaciones/entities/notificacione.entity';
+import { LogModule } from './modelos/log/log.module';
+import { Log } from './modelos/log/entities/log.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -60,6 +62,7 @@ import { Notificacione } from './modelos/notificaciones/entities/notificacione.e
         BaseDeDato,
         Solicitud,
         Notificacione,
+        Log,
       ],
       synchronize: true,
     }),
@@ -80,6 +83,7 @@ import { Notificacione } from './modelos/notificaciones/entities/notificacione.e
     DockerRequestModule,
     NotificationsModule,
     NotificacionesModule,
+    LogModule,
   ],
   controllers: [AppController],
   providers: [

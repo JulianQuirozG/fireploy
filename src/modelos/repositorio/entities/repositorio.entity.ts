@@ -1,5 +1,12 @@
+import { Log } from 'src/modelos/log/entities/log.entity';
 import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Repositorio {
@@ -28,4 +35,7 @@ export class Repositorio {
     onDelete: 'SET NULL',
   })
   proyecto_id: Proyecto;
+
+  @OneToMany(() => Log, (log) => log.repositorio)
+  logs: Log[];
 }
