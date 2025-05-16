@@ -62,9 +62,13 @@ export class updateProyectoGuard implements CanActivate {
       );
     }
 
-    if (estudiantesIds?.length && estudiantesIds?.length > 0) {
+    if (payload.tipo === 'Estudiante' && estudiantesIds?.length && estudiantesIds?.length > 0) {
       const estudiantesCursoIds = curso.estudiantes.map((e) => e.id);
-      const estudiantesInvalidos = estudiantesIds.filter(
+      const proyectoCursoIds = proyecto.estudiantes.map((e) => e.id);
+      let estudiantesInvalidos = estudiantesIds.filter(
+        (id) => !proyectoCursoIds.includes(id),
+      );
+      estudiantesInvalidos = estudiantesIds.filter(
         (id) => !estudiantesCursoIds.includes(id),
       );
       if (estudiantesInvalidos.length > 0) {
