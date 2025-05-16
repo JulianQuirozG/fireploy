@@ -67,7 +67,7 @@ export class CreateDataBaseGuard implements CanActivate {
     const estudiantesCursoIds = proyecto.estudiantes.map((e) => e.id);
     const estudiantesValidos = estudiantesCursoIds.some((id) => id === payload.sub);
 
-    if (!estudiantesValidos || payload.sub != proyecto.creador.id) {
+    if (!estudiantesValidos && payload.sub != proyecto.creador.id) {
       throw new ForbiddenException(
         `El estudiante no hace parte del proyecto`
       );
