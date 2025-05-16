@@ -1,13 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { LogService } from './log.service';
 import { CreateLogDto } from './dto/create-log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('log')
 export class LogController {
   constructor(private readonly logService: LogService) {}
 
   @Post()
+  @Public()
   create(@Body() createLogDto: CreateLogDto) {
     return this.logService.create(createLogDto);
   }

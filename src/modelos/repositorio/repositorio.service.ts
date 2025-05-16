@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
@@ -27,7 +30,7 @@ export class RepositorioService {
     @Inject(forwardRef(() => ProyectoService))
     private proyectoRepository: ProyectoService,
     private gitService: GitService,
-  ) { }
+  ) {}
 
   /**
    * Creates a new repository associated with an existing project.
@@ -116,7 +119,7 @@ export class RepositorioService {
   async findOne(id: number) {
     const repo = await this.repositorioRepository.findOne({
       where: { id: id },
-      relations: ['proyecto_id'],
+      relations: ['proyecto_id', 'logs'],
     });
     if (!repo) {
       throw new NotFoundException(`El repositorio con el id: ${id}, no existe`);
@@ -175,18 +178,21 @@ export class RepositorioService {
   }
 
   async uploadProjectZip(filePath: string, id: string) {
-
-    const tempDir = path.join(`${process.env.FOLDER_ROUTE_ZIP}`, 'temp', filePath);
+    const tempDir = path.join(
+      `${process.env.FOLDER_ROUTE_ZIP}`,
+      'temp',
+      filePath,
+    );
 
     //Crear un directorio temporal para almacenar los archivos
     fs.mkdirSync(tempDir, { recursive: true });
-    try{
+    try {
       const zip = new AdmZip(filePath);
       zip.extractAllTo(tempDir, true);
-    }catch (error){
-      throw new BadRequestException(error.message)
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    
+
     let repo, exist;
 
     try {
@@ -199,11 +205,10 @@ export class RepositorioService {
     const url = `https://Fireploy:${process.env.GIT_TOKEN}@github.com/Fireploy/${id}.git`;
 
     await this.gitService.pushFolderToRepo(tempDir, url);
-    
+
     const repositorio = await this.update(+id, {
       url: exist,
     } as UpdateRepositorioDto);
-
 
     return repositorio;
   }

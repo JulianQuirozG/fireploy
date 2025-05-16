@@ -17,6 +17,8 @@ import { DeployModule } from 'src/Queue/deploy.module';
 import { NotificationsModule } from 'src/socket/notification.module';
 import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 import { FirebaseService } from 'src/services/firebase.service';
+import { LogService } from '../log/log.service';
+import { LogModule } from '../log/log.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Proyecto]),
@@ -30,9 +32,16 @@ import { FirebaseService } from 'src/services/firebase.service';
     DeployModule,
     NotificationsModule,
     NotificacionesModule,
+    LogModule,
   ],
   controllers: [ProyectoController],
-  providers: [ProyectoService, GitService, DockerfileService, SystemService, FirebaseService],
+  providers: [
+    ProyectoService,
+    GitService,
+    DockerfileService,
+    SystemService,
+    FirebaseService,
+  ],
   exports: [ProyectoService],
 })
 export class ProyectoModule {}

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import {
   BadRequestException,
@@ -31,6 +30,7 @@ import { NotificacionesService } from '../notificaciones/notificaciones.service'
 import { FirebaseService } from 'src/services/firebase.service';
 import { DeployQueueService } from 'src/Queue/Services/deploy.service';
 import { ProjectManagerQueueService } from 'src/Queue/Services/projects_manager.service';
+import { LogService } from '../log/log.service';
 
 @Injectable()
 export class ProyectoService {
@@ -50,6 +50,7 @@ export class ProyectoService {
     private socketService: NotificationsGateway,
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
+    private logService: LogService,
   ) {}
 
   /**
@@ -711,6 +712,15 @@ export class ProyectoService {
       }
     }
 
+    //Set repositorios logs
+    for (const repositorio of dockerfiles) {
+      //Save log
+      const repo = await this.logService.create({
+        fecha_registro: new Date(Date.now()),
+        log: repositorio.log,
+        repositorioId: repositorio.repositorioId,
+      });
+    }
     //Set proyecto status in Online
     proyect.estado_ejecucion = 'N';
     await this.update(+id, proyect);
@@ -721,7 +731,7 @@ export class ProyectoService {
 
     //Send notificacion
     this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
-    
+
     const updateProyect = await this.update(+id, {
       url: `https://proyectos.fireploy.online/app${id}`,
     } as UpdateProyectoDto);
@@ -883,5 +893,4 @@ export class ProyectoService {
     await this.update(project.id, project);
     return response;
   }
-  
 }
