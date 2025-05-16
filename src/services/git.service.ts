@@ -111,7 +111,6 @@ export class GitService {
     }
 
     const git = simpleGit(folderPath);
-    console.log("el diablo", path.join(folderPath, '.git'))
     try {
       // Si no hay repo, inicializa uno
       if (!fs.existsSync(path.join(folderPath, '.git'))) {

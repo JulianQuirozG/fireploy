@@ -213,7 +213,6 @@ CMD ["npm", "run", "dev"] `,
 
         const command = `docker run -d --name ${containerName} --network ${network} -p ${port}:${port} -v ${volume}:/data ${envString} ${image} --port=${port}`;
 
-        console.log(command);
         await this.executeCommand(command);
       }
     }
