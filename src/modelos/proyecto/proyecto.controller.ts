@@ -69,7 +69,6 @@ export class ProyectoController {
   }
 
   @Get(':id')
-  @Public()
   findOne(@Param('id') id: string) {
     return this.proyectoService.findOne(+id);
   }
