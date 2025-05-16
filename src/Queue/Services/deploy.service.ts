@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
@@ -16,7 +17,7 @@ export class DeployQueueService {
   async enqueDeploy(data: any) {
     const job = await this.deployQueue.add('deploy', data);
     console.log('Trabajo enviado a la cola: system', data);
-    await job.finished();
+    return await job.finished();
   }
 
   /**

@@ -9,7 +9,7 @@ export class Log {
   @Column({ nullable: false })
   fecha_registro: Date;
 
-  @Column({ nullable: false, length: 2048 })
+  @Column({ type: 'text', nullable: false })
   log: string;
 
   @ManyToOne(() => Repositorio, (repositorio) => repositorio.logs, {

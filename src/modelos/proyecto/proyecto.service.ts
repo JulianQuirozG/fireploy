@@ -712,15 +712,6 @@ export class ProyectoService {
       }
     }
 
-    //Set repositorios logs
-    for (const repositorio of dockerfiles) {
-      //Save log
-      const repo = await this.logService.create({
-        fecha_registro: new Date(Date.now()),
-        log: repositorio.log,
-        repositorioId: repositorio.repositorioId,
-      });
-    }
     //Set proyecto status in Online
     proyect.estado_ejecucion = 'N';
     await this.update(+id, proyect);
@@ -735,6 +726,16 @@ export class ProyectoService {
     const updateProyect = await this.update(+id, {
       url: `https://proyectos.fireploy.online/app${id}`,
     } as UpdateProyectoDto);
+
+    //Set repositorios logs
+    for (const repositorio of dockerfiles.dockerfiles) {
+      //Save log
+      await this.logService.create({
+        fecha_registro: new Date(Date.now()),
+        log: repositorio.log,
+        repositorioId: repositorio.repositorioId,
+      });
+    }
     return updateProyect;
   }
 
