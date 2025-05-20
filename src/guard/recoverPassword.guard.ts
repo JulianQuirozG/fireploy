@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RequestWithUser } from 'src/interfaces/request.interface';
+import { UpdatePasswordUserDto } from 'src/modelos/usuario/dto/update-password-user.dto';
 import { UpdatePasswordDto } from 'src/modelos/usuario/dto/update-password.dto';
 import { UsuarioService } from 'src/modelos/usuario/usuario.service';
 
@@ -22,7 +23,7 @@ export class RecoverPasswordGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithUser = context.switchToHttp().getRequest();
     const token = request.headers['sessiontoken'] as string;
-    const { correo, nuevaContrasenia, contrasenia } = request.body as unknown as UpdatePasswordDto;
+    const { correo, nuevaContrasenia, contrasenia } = request.body as unknown as UpdatePasswordUserDto;
 
     if (!token) {
       throw new UnauthorizedException('No se ha suministrado el token');
@@ -36,16 +37,16 @@ export class RecoverPasswordGuard implements CanActivate {
     } catch (err) {
       throw new UnauthorizedException('Token de sesión inválido o expirado');
     }
-      
-      const user = await this.usuarioService.findOneCorreo(payload.correo);
-      if (payload.sub != user?.id || payload.correo != user?.correo || correo != user?.correo) {
-        throw new UnauthorizedException('El usuario id del token no coincide con el id del request');
-      }
 
-      if (nuevaContrasenia != contrasenia) {
-        throw new BadRequestException('Las contraseñas no coinciden');
-      }
+    const user = await this.usuarioService.findOneCorreo(payload.correo);
+    if (payload.sub != user?.id || payload.correo != user?.correo || correo != user?.correo) {
+      throw new UnauthorizedException('El usuario id del token no coincide con el id del request');
+    }
 
-      return true;
+    if (nuevaContrasenia != contrasenia) {
+      throw new BadRequestException('Las contraseñas no coinciden');
+    }
+
+    return true;
   }
 }

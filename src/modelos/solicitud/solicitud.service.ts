@@ -11,6 +11,7 @@ import { Docente } from '../docente/entities/docente.entity';
 import { CreateNotificacioneDto } from '../notificaciones/dto/create-notificacione.dto';
 import { NotificationsGateway } from 'src/socket/notification.gateway';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { GetSolicitudDto } from './dto/get-solicitud.dto';
 
 @Injectable()
 export class SolicitudService {
@@ -150,6 +151,49 @@ export class SolicitudService {
 
       const solicitudConCurso = await queryCurso.getOne();
       return { ...solicitud, curso: solicitudConCurso?.curso };
+    }
+
+    return solicitud;
+  }
+
+    /**
+   * Retrieves a solicitud by its user ID, including its related usuario and aprobado_by entities.
+   *
+   * @param id - The ID of the solicitud to retrieve.
+   * @returns The solicitud with its relations.
+   * @throws NotFoundException if the solicitud is not found.
+   */
+  async findOneSolicitudByUser(getSolicitudDto: GetSolicitudDto) {
+
+    const {id, tipo} = getSolicitudDto;
+    // Obtener la solicitud sin curso
+    const query = this.solicitudRepository
+      .createQueryBuilder('solicitud')
+      .leftJoinAndSelect('solicitud.usuario', 'usuario')
+      .leftJoinAndSelect('solicitud.aprobado_by', 'aprobado_by')
+      .leftJoinAndSelect('solicitud.curso', 'curso')
+      .where('usuario.id = :id', { id })
+      .andWhere('solicitud.tipo_solicitud = :tipo', { tipo })
+      .select([
+        'solicitud.id',
+        'solicitud.estado',
+        'solicitud.fecha_solicitud',
+        'solicitud.tipo_solicitud',
+        'solicitud.fecha_respuesta',
+        'solicitud.tipo_solicitud',
+        'usuario.id',
+        'usuario.nombre',
+        'aprobado_by.id',
+        'aprobado_by.nombre',
+        'curso.id'
+      ]);
+
+    // Verificar si la solicitud es tipo 2 antes de unir `curso`
+    const solicitud = await query.getMany();
+    if (!solicitud) {
+      throw new NotFoundException(
+        `El usuario con el id ${id} no se cuenta con solicitudes, de tipo ${tipo}.`,
+      );
     }
 
     return solicitud;
