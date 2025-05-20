@@ -16,6 +16,7 @@ import { UsuarioService } from 'src/modelos/usuario/usuario.service';
 import { Encrypt } from 'src/utilities/hash/hash.encryption';
 import { OAuth2Client } from 'google-auth-library';
 import { LoginGoogleDto } from './dto/auth-google.dto';
+import { UpdatePasswordUserDto } from 'src/modelos/usuario/dto/update-password-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -163,10 +164,17 @@ export class AuthService {
  *
  * @throws BadRequestException - If the user does not exist.
  */
-  async changepassword(updateUsuarioDto: UpdatePasswordDto) {
+  async changepassword(updateUsuarioDto: UpdatePasswordUserDto) {
     const user = await this.usuarioService.findOneCorreo(
       updateUsuarioDto.correo,
     );
+    
+    try{
+      const login = await this.signIn(updateUsuarioDto.correo,updateUsuarioDto.contrasen);
+    }catch{
+      throw new ForbiddenException('La contraseña actual es incorrecta')
+    }
+    
     const contraseniahash = await this.encrypt.getHash(
       updateUsuarioDto.contrasenia,
     );

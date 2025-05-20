@@ -18,10 +18,11 @@ import { GetSolicitudByIdGuard } from 'src/guard/getSolicitudById.guard';
 import { FilterSolicitudDto } from './dto/filter-solicitud.dto';
 import { GetSolicitudesGuard } from 'src/guard/getSolicitudes.guard';
 import { CreateSolicitudGuard } from 'src/guard/createSolicitud.guard';
+import { GetSolicitudDto } from './dto/get-solicitud.dto';
 
 @Controller('solicitud')
 export class SolicitudController {
-  constructor(private readonly solicitudService: SolicitudService) {}
+  constructor(private readonly solicitudService: SolicitudService) { }
 
   @Post()
   @UseGuards(RolesGuard, CreateSolicitudGuard)
@@ -40,6 +41,11 @@ export class SolicitudController {
   @UseGuards(GetSolicitudByIdGuard)
   findOne(@Param('id') id: string) {
     return this.solicitudService.findOne(+id);
+  }
+
+  @Post('consultar')
+  findOneSolicitudByUser(@Body() getSolicitudDto: GetSolicitudDto) {
+    return this.solicitudService.findOneSolicitudByUser(getSolicitudDto);
   }
 
   @Patch(':id')

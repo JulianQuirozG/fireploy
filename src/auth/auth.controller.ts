@@ -6,6 +6,7 @@ import { UpdatePasswordDto } from 'src/modelos/usuario/dto/update-password.dto';
 import { ForGetPasswordGuard } from 'src/guard/forgetPassword.guard';
 import { RecoverPasswordGuard } from 'src/guard/recoverPassword.guard';
 import { LoginGoogleDto } from './dto/auth-google.dto';
+import { UpdatePasswordUserDto } from 'src/modelos/usuario/dto/update-password-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -27,13 +28,13 @@ export class AuthController {
   @Post('changePassword/:token')
   @Public()
   @UseGuards(ForGetPasswordGuard)
-  async forgetPassword(@Param('token') token: string, @Body() updateUsuarioDto: UpdatePasswordDto) {
+  async forgetPassword(@Param('token') token: string, @Body() updateUsuarioDto: UpdatePasswordUserDto) {
     return this.authService.changepassword(updateUsuarioDto);
   }
 
   @Post('updatePassword')
   @UseGuards(RecoverPasswordGuard)
-  async updatePassword(@Body() updateUsuarioDto: UpdatePasswordDto) {
+  async updatePassword(@Body() updateUsuarioDto: UpdatePasswordUserDto) {
     return this.authService.changepassword(updateUsuarioDto);
   }
 
