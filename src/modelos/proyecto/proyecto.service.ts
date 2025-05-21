@@ -161,6 +161,7 @@ export class ProyectoService {
       .leftJoin('proyecto.repositorios', 'repositorio')
       .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
       .leftJoin('proyecto.creador', 'creador')
+      .leftJoin('proyecto.fav_usuarios', 'favorito')
 
       .addSelect([
         'repositorio.id',
@@ -213,6 +214,8 @@ export class ProyectoService {
       ])
 
       .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+
+      .addSelect(['favorito.id', 'favorito.nombre'])
 
       .addSelect([
         'curso.id',
