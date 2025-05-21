@@ -9,7 +9,7 @@ export class Notificacione {
   @Column({ nullable: false, length: 50 })
   titulo: string;
 
-  @Column({ nullable: false, length: 255 })
+  @Column({ type: 'text', nullable: false})
   mensaje: string;
 
   @Column({ nullable: false })
