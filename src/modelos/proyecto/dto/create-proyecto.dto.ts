@@ -30,10 +30,10 @@ export class CreateProyectoDto {
 
   @IsOptional()
   @IsNumber()
-  calificacion: number = 0;
+  calificacion?: number;
 
   @IsOptional()
-  url?: string = '';
+  url?: string;
 
   @IsOptional()
   @IsUrl({}, { message: 'La imagen debe ser una URL válida' })
@@ -42,6 +42,7 @@ export class CreateProyectoDto {
   })
   imagen?: string;
 
+  @IsOptional()
   @IsNotEmpty({ message: 'El estado del proyecto es obligatorio' })
   @IsString({ message: 'El estado del proyecto debe ser una cadena de texto' })
   @MaxLength(1, {
@@ -50,8 +51,9 @@ export class CreateProyectoDto {
   @IsIn(['A', 'I'], {
     message: 'estado debe ser "A" para activo o "I" para inactivo',
   })
-  estado_proyecto: string = 'A';
+  estado_proyecto?: string;
 
+  @IsOptional()
   @IsNotEmpty({ message: 'El estado de ejecución es obligatorio' })
   @IsString({ message: 'El estado de ejecución debe ser una cadena de texto' })
   @MaxLength(1, {
@@ -60,7 +62,7 @@ export class CreateProyectoDto {
   @IsIn(['F', 'N', 'E', 'L'], {
     message: 'estado debe ser Offline (F), Online (N), Error (E), Loading (L)',
   })
-  estado_ejecucion: string = 'F';
+  estado_ejecucion?: string;
 
   @IsOptional()
   @IsArray({ message: 'Los estudiantes deben ser una lista de IDs' })
@@ -81,7 +83,7 @@ export class CreateProyectoDto {
 
   @IsOptional()
   @IsDate()
-  fecha_creacion: Date = new Date(Date.now());
+  fecha_creacion?: Date;
 
   @IsNotEmpty({ message: 'El tipo de proyecto es obligatorio' })
   @IsString({ message: 'El tipo de proyecto debe ser una cadena de texto' })

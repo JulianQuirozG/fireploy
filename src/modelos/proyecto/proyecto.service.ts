@@ -99,11 +99,11 @@ export class ProyectoService {
     const nuevoProyecto = this.proyectoRepository.create({
       titulo: createProyectoDto.titulo,
       descripcion: createProyectoDto.descripcion,
-      url: createProyectoDto.url,
+      url: createProyectoDto.url || '',
       imagen: createProyectoDto.imagen,
-      estado_proyecto: createProyectoDto.estado_proyecto,
-      estado_ejecucion: createProyectoDto.estado_ejecucion,
-      fecha_creacion: createProyectoDto.fecha_creacion,
+      estado_proyecto: createProyectoDto.estado_proyecto || 'A',
+      estado_ejecucion: createProyectoDto.estado_ejecucion || 'F',
+      fecha_creacion: createProyectoDto.fecha_creacion || new Date(Date.now()),
       creador: creador,
       estudiantes: estudiantes,
       seccion: seccion,
@@ -527,6 +527,8 @@ export class ProyectoService {
    */
   async update(id: number, updateProyectoDto: UpdateProyectoDto) {
     const proyecto = await this.findOne(id);
+
+    //if type project changes
     if (
       updateProyectoDto.tipo_proyecto &&
       updateProyectoDto.tipo_proyecto === 'M' &&
@@ -560,6 +562,7 @@ export class ProyectoService {
       );
     }
 
+    //If estudiantes changes
     if (updateProyectoDto.estudiantesIds) {
       const estudiantesActualesIds = proyecto.estudiantes.map((e) => e.id);
 
@@ -610,7 +613,6 @@ export class ProyectoService {
         (e) => !estudiantesParaEliminar.includes(e.id),
       );
     }
-
     // **Actualizar los demás datos del proyecto**
     Object.assign(proyecto, updateProyectoDto);
 
