@@ -16,7 +16,6 @@ export class LogService {
 
   async create(createLogDto: CreateLogDto) {
     //get repositorio
-    console.log(createLogDto);
     const repositorio = await this.repositorioService.findOne(
       +createLogDto.repositorioId,
     );
