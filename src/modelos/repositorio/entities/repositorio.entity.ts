@@ -22,7 +22,7 @@ export class Repositorio {
   @Column({ nullable: true, length: 50 })
   tecnologia: string;
 
-  @Column({ nullable: true, length: 2048 })
+  @Column({ type: 'text', nullable: true })
   variables_de_entorno: string;
 
   @Column({ nullable: true, length: 20 })
