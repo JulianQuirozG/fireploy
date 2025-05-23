@@ -24,7 +24,7 @@ export class BaseDeDatosService {
     @Inject(forwardRef(() => ProyectoService))
     private proyectoService: ProyectoService,
     private systemQueueService: SystemQueueService,
-  ) {}
+  ) { }
 
   /**
    * Creates a new database entity, associates it with a project.
@@ -65,6 +65,11 @@ export class BaseDeDatosService {
       let containerName = process.env.MYSQL_CONTAINER_NAME as string;
       if (createBaseDeDatoDto.tipo == process.env.NO_SQL_DB)
         containerName = process.env.MONGO_CONTAINER_NAME as string;
+      else if (createBaseDeDatoDto.tipo == process.env.POST_DB)
+        containerName = process.env.POSTGRES_CONTAINER_NAME as string;
+      else if (createBaseDeDatoDto.tipo == process.env.MARIA_DB)
+        containerName = process.env.MARIADB_CONTAINER_NAME as string;
+
 
       const connection_URI = await this.systemQueueService.enqueSystem({
         containerName: containerName,
