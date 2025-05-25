@@ -245,6 +245,7 @@ export class ProyectoService {
         'repositorios',
         'base_de_datos',
         'creador',
+        'fav_usuarios',
       ],
     });
   }
