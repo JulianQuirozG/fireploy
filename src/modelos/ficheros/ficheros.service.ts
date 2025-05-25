@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateFicheroDto } from './dto/create-fichero.dto';
 import { UpdateFicheroDto } from './dto/update-fichero.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Fichero } from './entities/fichero.entity';
+import { Repository } from 'typeorm';
+import { RepositorioService } from '../repositorio/repositorio.service';
 
 @Injectable()
 export class FicherosService {
-  create(createFicheroDto: CreateFicheroDto) {
-    return 'This action adds a new fichero';
+  constructor(
+    @InjectRepository(Fichero)
+    private readonly ficheroRepository: Repository<Fichero>,
+    private readonly repositorioService: RepositorioService) { }
+
+  async create(createFicheroDto: CreateFicheroDto, file: Express.Multer.File): Promise<Fichero> {
+    const repositorio = await this.repositorioService.findOne(+createFicheroDto.repositorio);
+    const fichero = this.ficheroRepository.create({ nombre: createFicheroDto.nombre, contenido: file.buffer, repositorio: repositorio });
+
+    return await this.ficheroRepository.save(fichero);
   }
 
   findAll() {
     return `This action returns all ficheros`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} fichero`;
+  async findOne(id: number) {
+    const fichero = await this.ficheroRepository.findOne({
+      where: { id: id },
+      relations: ['repositorio']
+    });
+
+    if (!fichero)
+      throw new BadRequestException(`el fichero con el id: ${id}, no existe`)
+    return fichero;
   }
 
   update(id: number, updateFicheroDto: UpdateFicheroDto) {
     return `This action updates a #${id} fichero`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} fichero`;
+  async remove(id: number) {
+    const fichero = await this.findOne(+id);
+
+    return this.ficheroRepository.delete(+id);
   }
 }

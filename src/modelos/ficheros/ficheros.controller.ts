@@ -1,15 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FicherosService } from './ficheros.service';
 import { CreateFicheroDto } from './dto/create-fichero.dto';
 import { UpdateFicheroDto } from './dto/update-fichero.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { JsonFileValidationPipe } from 'src/pipe/json-file-validation.pipe';
 
 @Controller('ficheros')
 export class FicherosController {
-  constructor(private readonly ficherosService: FicherosService) {}
+  constructor(private readonly ficherosService: FicherosService) { }
 
   @Post()
-  create(@Body() createFicheroDto: CreateFicheroDto) {
-    return this.ficherosService.create(createFicheroDto);
+  @UseInterceptors(FileInterceptor('contenido'))
+  create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createFicheroDto: CreateFicheroDto) {
+
+    return this.ficherosService.create(createFicheroDto, file);
   }
 
   @Get()
