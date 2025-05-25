@@ -1,14 +1,15 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { FicherosService } from './ficheros.service';
 import { FicherosController } from './ficheros.controller';
 import { Repositorio } from '../repositorio/entities/repositorio.entity';
 import { Fichero } from './entities/fichero.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { RepositorioModule } from '../repositorio/repositorio.module';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([Fichero]),
-    Repositorio
+    forwardRef(() => RepositorioModule),
   ],
   controllers: [FicherosController],
   providers: [FicherosService],

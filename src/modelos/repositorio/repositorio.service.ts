@@ -30,7 +30,7 @@ export class RepositorioService {
     @Inject(forwardRef(() => ProyectoService))
     private proyectoRepository: ProyectoService,
     private gitService: GitService,
-  ) {}
+  ) { }
 
   /**
    * Creates a new repository associated with an existing project.
@@ -119,7 +119,7 @@ export class RepositorioService {
   async findOne(id: number) {
     const repo = await this.repositorioRepository.findOne({
       where: { id: id },
-      relations: ['proyecto_id', 'logs'],
+      relations: ['proyecto_id', 'logs','ficheros'],
     });
     if (!repo) {
       throw new NotFoundException(`El repositorio con el id: ${id}, no existe`);
@@ -183,33 +183,35 @@ export class RepositorioService {
       'temp',
       filePath,
     );
-
-    //Crear un directorio temporal para almacenar los archivos
-    fs.mkdirSync(tempDir, { recursive: true });
     try {
+      //Crear un directorio temporal para almacenar los archivos
+      fs.mkdirSync(tempDir, { recursive: true });
+
       const zip = new AdmZip(filePath);
       zip.extractAllTo(tempDir, true);
-    } catch (error) {
+
+      let repo, exist;
+
+      try {
+        exist = await this.gitService.repoExists(id);
+      } catch {
+        repo = await this.gitService.createGitHubRepo(id);
+        exist = await this.gitService.repoExists(id);
+      }
+
+      const url = `https://Fireploy:${process.env.GIT_TOKEN}@github.com/Fireploy/${id}.git`;
+
+      await this.gitService.pushFolderToRepo(tempDir, url);
+
+      const repositorio = await this.update(+id, {
+        url: exist,
+      } as UpdateRepositorioDto);
+
+      return repositorio;
+    }
+    catch (error) {
       throw new BadRequestException(error.message);
     }
 
-    let repo, exist;
-
-    try {
-      exist = await this.gitService.repoExists(id);
-    } catch {
-      repo = await this.gitService.createGitHubRepo(id);
-      exist = await this.gitService.repoExists(id);
-    }
-
-    const url = `https://Fireploy:${process.env.GIT_TOKEN}@github.com/Fireploy/${id}.git`;
-
-    await this.gitService.pushFolderToRepo(tempDir, url);
-
-    const repositorio = await this.update(+id, {
-      url: exist,
-    } as UpdateRepositorioDto);
-
-    return repositorio;
   }
 }

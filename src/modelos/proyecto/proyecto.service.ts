@@ -266,6 +266,7 @@ export class ProyectoService {
       .leftJoin('curso.materia', 'materia')
       .leftJoin('proyecto.tutor', 'tutor')
       .leftJoin('proyecto.repositorios', 'repositorio')
+      .leftJoinAndSelect('repositorio.ficheros', 'fichero')
       .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
       .leftJoin('proyecto.creador', 'creador')
       .leftJoin('proyecto.fav_usuarios', 'favorito')
@@ -351,6 +352,21 @@ export class ProyectoService {
       throw new NotFoundException(
         `El proyecto con el id ${id} no se encuentra registrado.`,
       );
+
+    if (result.repositorios && result.repositorios.length > 0) {
+      result.repositorios.forEach(repositorio => {
+        if (repositorio.ficheros && repositorio.ficheros.length > 0) {
+          repositorio.ficheros.forEach(fichero => {
+            if (fichero.contenido) {
+              const buffer = Buffer.isBuffer(fichero.contenido)
+                ? fichero.contenido
+                : Buffer.from(fichero.contenido); // por si llega como Uint8Array
+              fichero.contenido = buffer.toString('base64');
+            }
+          });
+        }
+      });
+    }
 
     return result;
   }
@@ -694,6 +710,7 @@ export class ProyectoService {
       );
     }
     let dockerfiles: any;
+    console.log(repositorios)
     try {
       dockerfiles = await this.deployQueueService.enqueDeploy({
         proyect: proyect,
