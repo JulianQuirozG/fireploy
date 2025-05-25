@@ -352,7 +352,7 @@ export class ProyectoService {
       throw new NotFoundException(
         `El proyecto con el id ${id} no se encuentra registrado.`,
       );
-
+//convertimos lo buffer en base64 para pasarlo por la cola del worker
     if (result.repositorios && result.repositorios.length > 0) {
       result.repositorios.forEach(repositorio => {
         if (repositorio.ficheros && repositorio.ficheros.length > 0) {

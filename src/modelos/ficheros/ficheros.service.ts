@@ -20,8 +20,9 @@ export class FicherosService {
     return await this.ficheroRepository.save(fichero);
   }
 
-  findAll() {
-    return `This action returns all ficheros`;
+  async findAll() {
+    const fichero = await this.ficheroRepository.find({ relations: ['repositorio'] });
+    return fichero;
   }
 
   async findOne(id: number) {
