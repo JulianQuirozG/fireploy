@@ -63,7 +63,8 @@ export class ProyectoController {
     return this.proyectoService.findAllBySection(id);
   }
 
-  @Get('/estudiante/:id')
+  @Get('/usuario/:id')
+  @Public()
   findAllByUser(@Param('id') id: number) {
     return this.proyectoService.findAllbyUser(id);
   }

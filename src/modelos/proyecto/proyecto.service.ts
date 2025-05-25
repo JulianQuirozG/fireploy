@@ -51,7 +51,7 @@ export class ProyectoService {
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
     private logService: LogService,
-  ) {}
+  ) { }
 
   /**
    * Creates a new project, assigns related entities
@@ -469,11 +469,14 @@ export class ProyectoService {
     return this.proyectoRepository
       .createQueryBuilder('proyecto')
       .leftJoinAndSelect('proyecto.estudiantes', 'estudiante')
+      .leftJoin('seccion.curso', 'curso')
+      .leftJoin('curso.materia', 'materia')
       .leftJoinAndSelect('proyecto.seccion', 'seccion')
       .leftJoinAndSelect('proyecto.tutor', 'tutor')
       .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
       .leftJoinAndSelect('proyecto.base_de_datos', 'baseDeDatos')
       .leftJoin('proyecto.creador', 'creador')
+      .leftJoin('proyecto.fav_usuarios', 'favorito')
       .where('estudiante.id = :id OR creador.id = :id', { id: usuarioId }) // Filtro por estudiante
       .addSelect([
         'estudiante.id',
@@ -513,7 +516,16 @@ export class ProyectoService {
         'creador.tipo',
         'creador.est_fecha_inicio',
       ])
+      .addSelect([
+        'repositorio.id',
+        'repositorio.url',
+        'repositorio.tipo',
+        'repositorio.tecnologia',
+        'repositorio.version',
+        'repositorio.framework',
+      ])
       .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
+      .addSelect(['favorito.id', 'favorito.nombre'])
       .getMany();
   }
 
