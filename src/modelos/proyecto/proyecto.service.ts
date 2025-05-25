@@ -469,9 +469,9 @@ export class ProyectoService {
     return this.proyectoRepository
       .createQueryBuilder('proyecto')
       .leftJoinAndSelect('proyecto.estudiantes', 'estudiante')
+      .leftJoinAndSelect('proyecto.seccion', 'seccion')
       .leftJoin('seccion.curso', 'curso')
       .leftJoin('curso.materia', 'materia')
-      .leftJoinAndSelect('proyecto.seccion', 'seccion')
       .leftJoinAndSelect('proyecto.tutor', 'tutor')
       .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
       .leftJoinAndSelect('proyecto.base_de_datos', 'baseDeDatos')
