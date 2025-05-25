@@ -468,13 +468,13 @@ export class ProyectoService {
   async findAllbyUser(usuarioId: number) {
     return this.proyectoRepository
       .createQueryBuilder('proyecto')
-      .leftJoinAndSelect('proyecto.estudiantes', 'estudiante')
+      .leftJoin('proyecto.estudiantes', 'estudiante')
       .leftJoinAndSelect('proyecto.seccion', 'seccion')
-      .leftJoin('seccion.curso', 'curso')
-      .leftJoin('curso.materia', 'materia')
-      .leftJoinAndSelect('proyecto.tutor', 'tutor')
-      .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
-      .leftJoinAndSelect('proyecto.base_de_datos', 'baseDeDatos')
+      .leftJoinAndSelect('seccion.curso', 'curso')
+      .leftJoinAndSelect('curso.materia', 'materia')
+      .leftJoin('proyecto.tutor', 'tutor')
+      .leftJoin('proyecto.repositorios', 'repositorio')
+      .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
       .leftJoin('proyecto.creador', 'creador')
       .leftJoin('proyecto.fav_usuarios', 'favorito')
       .where('estudiante.id = :id OR creador.id = :id', { id: usuarioId }) // Filtro por estudiante
