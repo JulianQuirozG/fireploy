@@ -762,6 +762,7 @@ export class ProyectoService {
       url: `https://proyectos.fireploy.online/app${id}`,
     } as UpdateProyectoDto);
 
+    console.log(dockerfiles.dockerfiles);
     //Set repositorios logs
     for (const repositorio of dockerfiles.dockerfiles) {
       //Save log
