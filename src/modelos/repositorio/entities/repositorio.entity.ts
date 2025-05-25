@@ -1,3 +1,4 @@
+import { Fichero } from 'src/modelos/ficheros/entities/fichero.entity';
 import { Log } from 'src/modelos/log/entities/log.entity';
 import { Proyecto } from 'src/modelos/proyecto/entities/proyecto.entity';
 import {
@@ -38,4 +39,7 @@ export class Repositorio {
 
   @OneToMany(() => Log, (log) => log.repositorio)
   logs: Log[];
+
+  @OneToMany(() => Fichero, (fichero) => fichero.repositorio)
+  ficheros: Fichero[];
 }

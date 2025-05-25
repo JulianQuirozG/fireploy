@@ -7,9 +7,10 @@ import { ProyectoModule } from '../proyecto/proyecto.module';
 import { Proyecto } from '../proyecto/entities/proyecto.entity';
 import { GitService } from 'src/services/git.service';
 import { PueshRepositorioMiddleware } from 'src/middleware/pushRepositorio.middleware';
+import { Fichero } from '../ficheros/entities/fichero.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Repositorio,]), forwardRef(() => ProyectoModule),],
+  imports: [TypeOrmModule.forFeature([Repositorio,]), forwardRef(() => ProyectoModule),Fichero],
   controllers: [RepositorioController],
   providers: [RepositorioService, GitService],
   exports: [RepositorioService],

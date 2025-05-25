@@ -37,6 +37,8 @@ import { NotificacionesModule } from './modelos/notificaciones/notificaciones.mo
 import { Notificacione } from './modelos/notificaciones/entities/notificacione.entity';
 import { LogModule } from './modelos/log/log.module';
 import { Log } from './modelos/log/entities/log.entity';
+import { FicherosModule } from './modelos/ficheros/ficheros.module';
+import { Fichero } from './modelos/ficheros/entities/fichero.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -63,6 +65,7 @@ import { Log } from './modelos/log/entities/log.entity';
         Solicitud,
         Notificacione,
         Log,
+        Fichero,
       ],
       synchronize: true,
     }),
@@ -84,6 +87,7 @@ import { Log } from './modelos/log/entities/log.entity';
     NotificationsModule,
     NotificacionesModule,
     LogModule,
+    FicherosModule,
   ],
   controllers: [AppController],
   providers: [
@@ -95,4 +99,4 @@ import { Log } from './modelos/log/entities/log.entity';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
