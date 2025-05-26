@@ -24,6 +24,7 @@ import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
 import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProjectImageGuard } from 'src/guard/updateProjectImage.guard';
+import { DeleteProyectoGuard } from 'src/guard/deleteProject.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -89,6 +90,7 @@ export class ProyectoController {
   }
 
   @Delete(':id')
+  @UseGuards(DeleteProyectoGuard)
   remove(@Param('id') id: string) {
     return this.proyectoService.remove(+id);
   }
