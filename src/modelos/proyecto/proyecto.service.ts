@@ -735,7 +735,7 @@ export class ProyectoService {
         //Save log
         await this.logService.create({
           fecha_registro: new Date(Date.now()),
-          log: e.messageslice(0, 2048),
+          log: e.messageslice(0, 10000),
           repositorioId: repositorio.id,
         });
       }
@@ -778,7 +778,7 @@ export class ProyectoService {
       //Save log
       await this.logService.create({
         fecha_registro: new Date(Date.now()),
-        log: repositorio.log.slice(0, 2048),
+        log: repositorio.log.slice(0, 10000),
         repositorioId: repositorio.repositorioId,
       });
     }
