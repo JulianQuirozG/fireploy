@@ -721,10 +721,10 @@ export class ProyectoService {
       proyect.estado_ejecucion = 'E';
       await this.update(+id, proyect);
 
-      console.log(typeof e);
+      console.log(e.message);
       //Save notificacion
       notificacion.titulo = `Error al cargar un proyecto`;
-      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e.slice(-13)}`;
+      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e.message.slice(-13)}`;
       await this.notificacionService.create(notificacion);
 
       //Send notificacion
