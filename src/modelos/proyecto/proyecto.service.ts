@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -51,7 +52,7 @@ export class ProyectoService {
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
     private logService: LogService,
-  ) { }
+  ) {}
 
   /**
    * Creates a new project, assigns related entities
@@ -352,11 +353,11 @@ export class ProyectoService {
       throw new NotFoundException(
         `El proyecto con el id ${id} no se encuentra registrado.`,
       );
-//convertimos lo buffer en base64 para pasarlo por la cola del worker
+    //convertimos lo buffer en base64 para pasarlo por la cola del worker
     if (result.repositorios && result.repositorios.length > 0) {
-      result.repositorios.forEach(repositorio => {
+      result.repositorios.forEach((repositorio) => {
         if (repositorio.ficheros && repositorio.ficheros.length > 0) {
-          repositorio.ficheros.forEach(fichero => {
+          repositorio.ficheros.forEach((fichero) => {
             if (fichero.contenido) {
               const buffer = Buffer.isBuffer(fichero.contenido)
                 ? fichero.contenido
@@ -710,7 +711,6 @@ export class ProyectoService {
       );
     }
     let dockerfiles: any;
-    console.log(repositorios)
     try {
       dockerfiles = await this.deployQueueService.enqueDeploy({
         proyect: proyect,
@@ -723,11 +723,21 @@ export class ProyectoService {
 
       //Save notificacion
       notificacion.titulo = `Error al cargar un proyecto`;
-      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e}`;
+      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e.slice(-13)}`;
       await this.notificacionService.create(notificacion);
 
       //Send notificacion
       this.socketService.sendToUser(proyect.creador.id, 'Proyecto fallido');
+
+      //save logs
+      for (const repositorio of repositorios) {
+        //Save log
+        await this.logService.create({
+          fecha_registro: new Date(Date.now()),
+          log: e,
+          repositorioId: repositorio.id,
+        });
+      }
       throw new BadRequestException(
         `Ha ocurrido un error al cargar el proyecto`,
         e.message,
@@ -762,13 +772,12 @@ export class ProyectoService {
       url: `https://proyectos.fireploy.online/app${id}`,
     } as UpdateProyectoDto);
 
-    console.log(dockerfiles.dockerfiles);
     //Set repositorios logs
     for (const repositorio of dockerfiles.dockerfiles) {
       //Save log
       await this.logService.create({
         fecha_registro: new Date(Date.now()),
-        log: repositorio.log,
+        log: repositorio.log.slice(0, 2048),
         repositorioId: repositorio.repositorioId,
       });
     }
