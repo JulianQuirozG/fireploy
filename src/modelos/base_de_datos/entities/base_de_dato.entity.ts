@@ -23,8 +23,8 @@ export class BaseDeDato {
   url: string;
 
   @Column({ type: 'char', nullable: false, length: 1 })
-  @IsIn(['S', 'N'], {
-    message: 'SQL (S) y NoSQL (N).',
+  @IsIn(['S', 'N', 'P', 'M'], {
+    message: 'SQL (S) y NoSQL (N), Postgress (P), MariaDB (M)',
   })
   tipo: string;
 
