@@ -44,7 +44,7 @@ export class Usuario {
   @Column({ type: 'char', length: 1, nullable: false })
   estado: string = 'A';
 
-  @Column({ length: 256, nullable: true })
+  @Column({ length: 2048, nullable: true })
   red_social: string;
 
   @Column({ length: 256, nullable: true })
