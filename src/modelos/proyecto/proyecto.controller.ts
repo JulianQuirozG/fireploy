@@ -57,7 +57,6 @@ export class ProyectoController {
     return this.proyectoService.updateImageProject(+id, image);
   }
 
-
   @Get('/seccion/:id')
   findAllByMateria(@Param('id') id: number) {
     return this.proyectoService.findAllBySection(id);
