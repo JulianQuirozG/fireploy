@@ -28,6 +28,8 @@ export class BaseDeDato {
   })
   tipo: string;
 
-  @OneToOne(() => Proyecto, (proyecto) => proyecto.base_de_datos)
+  @OneToOne(() => Proyecto, (proyecto) => proyecto.base_de_datos, {
+    onDelete: 'CASCADE',
+  })
   proyecto: Proyecto;
 }

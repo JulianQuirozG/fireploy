@@ -13,7 +13,7 @@ export class Log {
   log: string;
 
   @ManyToOne(() => Repositorio, (repositorio) => repositorio.logs, {
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   repositorio: Repositorio;
 }

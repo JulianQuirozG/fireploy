@@ -32,6 +32,7 @@ import { FirebaseService } from 'src/services/firebase.service';
 import { DeployQueueService } from 'src/Queue/Services/deploy.service';
 import { ProjectManagerQueueService } from 'src/Queue/Services/projects_manager.service';
 import { LogService } from '../log/log.service';
+import { deleteQueueService } from 'src/Queue/Services/delete.service';
 
 @Injectable()
 export class ProyectoService {
@@ -47,6 +48,7 @@ export class ProyectoService {
     private repositoryService: RepositorioService,
     private deployQueueService: DeployQueueService,
     private projectManagerQueueService: ProjectManagerQueueService,
+    private projectDeleteQueueService: deleteQueueService,
     private jwtService: JwtService,
     private socketService: NotificationsGateway,
     private notificacionService: NotificacionesService,
@@ -651,8 +653,27 @@ export class ProyectoService {
     return proyectoActualizado;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} proyecto`;
+  async remove(id: number) {
+    const project = await this.proyectoRepository.findOne({
+      where: { id },
+      relations: [
+        'estudiantes',
+        'seccion',
+        'tutor',
+        'repositorios',
+        'base_de_datos',
+        'creador',
+        'fav_usuarios',
+      ],
+    });
+
+    if (project) await this.projectDeleteQueueService.enqueDelete(project);
+    if (project) await this.proyectoRepository.remove(project);
+
+    console.log(project);
+    //remove database
+    if (project?.base_de_datos)
+      await this.baseDeDatosService.remove(project.base_de_datos.id);
   }
 
   /**

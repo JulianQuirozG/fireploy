@@ -33,13 +33,17 @@ export class Repositorio {
   version: string;
 
   @ManyToOne(() => Proyecto, (proyecto) => proyecto.repositorios, {
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   proyecto_id: Proyecto;
 
-  @OneToMany(() => Log, (log) => log.repositorio)
+  @OneToMany(() => Log, (log) => log.repositorio, {
+    onDelete: 'CASCADE',
+  })
   logs: Log[];
 
-  @OneToMany(() => Fichero, (fichero) => fichero.repositorio)
+  @OneToMany(() => Fichero, (fichero) => fichero.repositorio, {
+    onDelete: 'CASCADE',
+  })
   ficheros: Fichero[];
 }
