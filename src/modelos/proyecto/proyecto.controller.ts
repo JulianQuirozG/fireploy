@@ -25,9 +25,10 @@ import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProjectImageGuard } from 'src/guard/updateProjectImage.guard';
 import { RequestProjectWithUser } from 'src/interfaces/request.proyect.interface';
-import { GetProjectByUserGuard } from 'src/guard/GetProjectByUser.guard';
+
 import { GetAllProjectsGuard } from 'src/guard/GetAllProyects.guard';
 import { DeleteProyectoGuard } from 'src/guard/deleteProject.guard';
+import { GetProjectByUserGuard } from 'src/guard/findOneProyectoIds.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
