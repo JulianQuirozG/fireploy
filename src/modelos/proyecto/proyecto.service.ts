@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -31,6 +32,7 @@ import { FirebaseService } from 'src/services/firebase.service';
 import { DeployQueueService } from 'src/Queue/Services/deploy.service';
 import { ProjectManagerQueueService } from 'src/Queue/Services/projects_manager.service';
 import { LogService } from '../log/log.service';
+import { deleteQueueService } from 'src/Queue/Services/delete.service';
 
 @Injectable()
 export class ProyectoService {
@@ -46,12 +48,13 @@ export class ProyectoService {
     private repositoryService: RepositorioService,
     private deployQueueService: DeployQueueService,
     private projectManagerQueueService: ProjectManagerQueueService,
+    private projectDeleteQueueService: deleteQueueService,
     private jwtService: JwtService,
     private socketService: NotificationsGateway,
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
     private logService: LogService,
-  ) { }
+  ) {}
 
   /**
    * Creates a new project, assigns related entities
@@ -360,9 +363,9 @@ export class ProyectoService {
       );
     //convertimos lo buffer en base64 para pasarlo por la cola del worker
     if (result.repositorios && result.repositorios.length > 0) {
-      result.repositorios.forEach(repositorio => {
+      result.repositorios.forEach((repositorio) => {
         if (repositorio.ficheros && repositorio.ficheros.length > 0) {
-          repositorio.ficheros.forEach(fichero => {
+          repositorio.ficheros.forEach((fichero) => {
             if (fichero.contenido) {
               const buffer = Buffer.isBuffer(fichero.contenido)
                 ? fichero.contenido
@@ -665,8 +668,27 @@ export class ProyectoService {
     return proyectoActualizado;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} proyecto`;
+  async remove(id: number) {
+    const project = await this.proyectoRepository.findOne({
+      where: { id },
+      relations: [
+        'estudiantes',
+        'seccion',
+        'tutor',
+        'repositorios',
+        'base_de_datos',
+        'creador',
+        'fav_usuarios',
+      ],
+    });
+
+    if (project) await this.projectDeleteQueueService.enqueDelete(project);
+    if (project) await this.proyectoRepository.remove(project);
+
+    console.log(project);
+    //remove database
+    if (project?.base_de_datos)
+      await this.baseDeDatosService.remove(project.base_de_datos.id);
   }
 
   /**
@@ -725,7 +747,6 @@ export class ProyectoService {
       );
     }
     let dockerfiles: any;
-    console.log(repositorios)
     try {
       dockerfiles = await this.deployQueueService.enqueDeploy({
         proyect: proyect,
@@ -736,13 +757,24 @@ export class ProyectoService {
       proyect.estado_ejecucion = 'E';
       await this.update(+id, proyect);
 
+      console.log(e.message);
       //Save notificacion
       notificacion.titulo = `Error al cargar un proyecto`;
-      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e}`;
+      notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e.message.slice(-13)}`;
       await this.notificacionService.create(notificacion);
 
       //Send notificacion
       this.socketService.sendToUser(proyect.creador.id, 'Proyecto fallido');
+
+      //save logs
+      for (const repositorio of repositorios) {
+        //Save log
+        await this.logService.create({
+          fecha_registro: new Date(Date.now()),
+          log: e.message.slice(0, 10000),
+          repositorioId: repositorio.id,
+        });
+      }
       throw new BadRequestException(
         `Ha ocurrido un error al cargar el proyecto`,
         e.message,
@@ -782,7 +814,7 @@ export class ProyectoService {
       //Save log
       await this.logService.create({
         fecha_registro: new Date(Date.now()),
-        log: repositorio.log,
+        log: repositorio.log.slice(0, 10000),
         repositorioId: repositorio.repositorioId,
       });
     }

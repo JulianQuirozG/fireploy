@@ -4,6 +4,7 @@ import { DeployController } from './deploy.controller';
 import { BullModule } from '@nestjs/bull';
 import { SystemQueueService } from './Services/system.service';
 import { ProjectManagerQueueService } from './Services/projects_manager.service';
+import { deleteQueueService } from './Services/delete.service';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ProjectManagerQueueService } from './Services/projects_manager.service'
       { name: 'deploy' },
       { name: 'data_base' },
       { name: 'project_manager' },
+      { name: 'delete' },
     ),
   ],
   controllers: [DeployController],
@@ -24,7 +26,13 @@ import { ProjectManagerQueueService } from './Services/projects_manager.service'
     DeployQueueService,
     SystemQueueService,
     ProjectManagerQueueService,
+    deleteQueueService,
   ],
-  exports: [DeployQueueService, SystemQueueService, ProjectManagerQueueService],
+  exports: [
+    DeployQueueService,
+    SystemQueueService,
+    ProjectManagerQueueService,
+    deleteQueueService,
+  ],
 })
 export class DeployModule {}

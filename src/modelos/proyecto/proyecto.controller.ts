@@ -27,6 +27,7 @@ import { UpdateProjectImageGuard } from 'src/guard/updateProjectImage.guard';
 import { RequestProjectWithUser } from 'src/interfaces/request.proyect.interface';
 import { GetProjectByUserGuard } from 'src/guard/GetProjectByUser.guard';
 import { GetAllProjectsGuard } from 'src/guard/GetAllProyects.guard';
+import { DeleteProyectoGuard } from 'src/guard/deleteProject.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
@@ -60,7 +61,6 @@ export class ProyectoController {
   ) {
     return this.proyectoService.updateImageProject(+id, image);
   }
-
 
   @Get('/seccion/:id')
   findAllByMateria(@Param('id') id: number) {
@@ -96,6 +96,7 @@ export class ProyectoController {
   }
 
   @Delete(':id')
+  @UseGuards(DeleteProyectoGuard)
   remove(@Param('id') id: string) {
     return this.proyectoService.remove(+id);
   }

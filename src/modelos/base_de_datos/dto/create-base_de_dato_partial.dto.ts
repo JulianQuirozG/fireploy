@@ -15,8 +15,8 @@ export class CreateBaseDeDatoPartialDto {
 
   @IsNotEmpty({ message: 'El tipo no puede estar vacío' })
   @IsString({ message: 'El tipo debe ser una cadena de texto' })
-  @IsIn(['S', 'N','P','M'], {
-    message: 'El tipo debe ser "S" para MYSQL,"N" para NOSQL, "P" para POSTGRES, "M" para MARIADB',
+  @IsIn(['S', 'N', 'P', 'M'], {
+    message: 'SQL (S) y NoSQL (N), Postgress (P), MariaDB (M)',
   })
   tipo: string;
 }

@@ -3,6 +3,7 @@ import { Repositorio } from 'src/modelos/repositorio/entities/repositorio.entity
 import { Seccion } from 'src/modelos/seccion/entities/seccion.entity';
 import { Usuario } from 'src/modelos/usuario/entities/usuario.entity';
 import {
+  BeforeRemove,
   Column,
   Entity,
   JoinColumn,
@@ -39,10 +40,14 @@ export class Proyecto {
   @Column({ nullable: true, unique: true })
   puerto: number;
 
-  @ManyToMany(() => Usuario, (usuario) => usuario.proyectos)
+  @ManyToMany(() => Usuario, (usuario) => usuario.proyectos, {
+    cascade: ['remove'],
+  })
   estudiantes: Usuario[];
 
-  @ManyToMany(() => Usuario, (usuario) => usuario.proyectos_fav)
+  @ManyToMany(() => Usuario, (usuario) => usuario.proyectos_fav, {
+    cascade: ['remove'],
+  })
   fav_usuarios: Usuario[];
 
   @ManyToOne(() => Seccion, (seccion) => seccion.proyectos, {
@@ -55,19 +60,33 @@ export class Proyecto {
   })
   tutor: Usuario;
 
-  @OneToMany(() => Repositorio, (repositorio) => repositorio.proyecto_id)
+  @OneToMany(() => Repositorio, (repositorio) => repositorio.proyecto_id, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   repositorios: Repositorio[];
 
-  @OneToOne(() => BaseDeDato, (db) => db.proyecto)
+  @OneToOne(() => BaseDeDato, (db) => db.proyecto, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   base_de_datos: BaseDeDato;
 
   @Column({ nullable: false })
   fecha_creacion: Date;
 
-  @ManyToOne(() => Usuario, (usuario) => usuario.proyectosCreados, { onDelete: 'SET NULL' })
+  @ManyToOne(() => Usuario, (usuario) => usuario.proyectosCreados, {
+    onDelete: 'SET NULL',
+  })
   creador: Usuario;
 
   @Column({ nullable: false, type: 'char', length: 1 })
   tipo_proyecto: string;
+
+  @BeforeRemove()
+  removeRelations() {
+    this.estudiantes = [];
+    this.fav_usuarios = [];
+  }
 }
