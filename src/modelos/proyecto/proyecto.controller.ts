@@ -24,11 +24,15 @@ import { AddFavoriteProject } from 'src/guard/addFavoriteProject.guard';
 import { DeployProyectoGuard } from 'src/guard/deployProyect.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProjectImageGuard } from 'src/guard/updateProjectImage.guard';
+import { RequestProjectWithUser } from 'src/interfaces/request.proyect.interface';
+
+import { GetAllProjectsGuard } from 'src/guard/GetAllProyects.guard';
 import { DeleteProyectoGuard } from 'src/guard/deleteProject.guard';
+import { GetProjectByUserGuard } from 'src/guard/findOneProyectoIds.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
-  constructor(private readonly proyectoService: ProyectoService) {}
+  constructor(private readonly proyectoService: ProyectoService) { }
 
   @Post()
   @UseGuards(ExtractUserIdGuard)
@@ -44,8 +48,9 @@ export class ProyectoController {
 
   @Get()
   @Public()
-  findAll() {
-    return this.proyectoService.findAll();
+  @UseGuards(GetAllProjectsGuard)
+  findAll(@Req() request: RequestProjectWithUser) {
+    return this.proyectoService.findAll(request.user);
   }
 
   @Patch('image/:id')
@@ -65,8 +70,10 @@ export class ProyectoController {
 
   @Get('/usuario/:id')
   @Public()
-  findAllByUser(@Param('id') id: number) {
-    return this.proyectoService.findAllbyUser(id);
+  @UseGuards(GetProjectByUserGuard)
+  findAllByUser(@Param('id') id: number,
+    @Req() request: RequestProjectWithUser,) {
+    return this.proyectoService.findAllbyUser(id, request.user);
   }
 
   @Get(':id')

@@ -28,8 +28,8 @@ export class AuthController {
   @Post('changePassword/:token')
   @Public()
   @UseGuards(ForGetPasswordGuard)
-  async forgetPassword(@Param('token') token: string, @Body() updateUsuarioDto: UpdatePasswordUserDto) {
-    return this.authService.changepassword(updateUsuarioDto);
+  async forgetPassword(@Param('token') token: string, @Body() updateUsuarioDto: UpdatePasswordDto) {
+    return this.authService.forgetpassword(updateUsuarioDto);
   }
 
   @Post('updatePassword')
