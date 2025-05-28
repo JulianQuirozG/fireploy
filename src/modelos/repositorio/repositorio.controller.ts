@@ -21,10 +21,9 @@ import { extname } from 'path';
 import * as fs from 'fs';
 import { PueshRepositorioMiddleware } from 'src/middleware/pushRepositorio.middleware';
 
-
 @Controller('repositorio')
 export class RepositorioController {
-  constructor(private readonly repositorioService: RepositorioService) { }
+  constructor(private readonly repositorioService: RepositorioService) {}
 
   @Post()
   @UseGuards(CreateRepositorioGuard)
@@ -58,21 +57,25 @@ export class RepositorioController {
 
   @Post('uploadZip/:id')
   @UseGuards(updateRepositorioGuard)
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: `${process.env.FOLDER_ROUTE_ZIP}`,
-      filename: (req, file, cb) => {
-        if (!fs.existsSync(`${process.env.FOLDER_ROUTE_ZIP}`)) {
-          fs.mkdirSync(`${process.env.FOLDER_ROUTE_ZIP}`, { recursive: true });
-        }
-        cb(null, `${Date.now()}${extname(file.originalname)}`);
-      },
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: `${process.env.FOLDER_ROUTE_ZIP}`,
+        filename: (req, file, cb) => {
+          if (!fs.existsSync(`${process.env.FOLDER_ROUTE_ZIP}`)) {
+            fs.mkdirSync(`${process.env.FOLDER_ROUTE_ZIP}`, {
+              recursive: true,
+            });
+          }
+          cb(null, `${Date.now()}${extname(file.originalname)}`);
+        },
+      }),
     }),
-  }))
+  )
   //@UseGuards(PueshRepositorioMiddleware)
   async uploadProjectZip(
     @UploadedFile() file: Express.Multer.File,
-    @Param('id') id: string
+    @Param('id') id: string,
   ) {
     return this.repositorioService.uploadProjectZip(file.path, id);
   }

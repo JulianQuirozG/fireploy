@@ -30,7 +30,7 @@ export class RepositorioService {
     @Inject(forwardRef(() => ProyectoService))
     private proyectoRepository: ProyectoService,
     private gitService: GitService,
-  ) { }
+  ) {}
 
   /**
    * Creates a new repository associated with an existing project.
@@ -119,7 +119,7 @@ export class RepositorioService {
   async findOne(id: number) {
     const repo = await this.repositorioRepository.findOne({
       where: { id: id },
-      relations: ['proyecto_id', 'logs','ficheros'],
+      relations: ['proyecto_id', 'logs', 'ficheros'],
     });
     if (!repo) {
       throw new NotFoundException(`El repositorio con el id: ${id}, no existe`);
@@ -141,15 +141,16 @@ export class RepositorioService {
     let repo = await this.findOne(id);
     updateRepositorioDto.id = repo.id;
     //update repository
-    if (
-      updateRepositorioDto.variables_de_entorno &&
-      updateRepositorioDto.variables_de_entorno.length > 0
-    ) {
-      repo.variables_de_entorno = updateRepositorioDto.variables_de_entorno
-        .map((variable_entorno: VariablesDeEntorno) => {
-          return variable_entorno.clave + `=` + variable_entorno.valor;
-        })
-        .join('\n');
+    if (updateRepositorioDto.variables_de_entorno) {
+      if (updateRepositorioDto.variables_de_entorno.length > 0) {
+        repo.variables_de_entorno = updateRepositorioDto.variables_de_entorno
+          .map((variable_entorno: VariablesDeEntorno) => {
+            return variable_entorno.clave + `=` + variable_entorno.valor;
+          })
+          .join('\n');
+      } else {
+        repo.variables_de_entorno = '';
+      }
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { variables_de_entorno, ...restoDto } = updateRepositorioDto;
@@ -208,10 +209,8 @@ export class RepositorioService {
       } as UpdateRepositorioDto);
 
       return repositorio;
-    }
-    catch (error) {
+    } catch (error) {
       throw new BadRequestException(error.message);
     }
-
   }
 }
