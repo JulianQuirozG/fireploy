@@ -54,7 +54,7 @@ export class ProyectoService {
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
     private logService: LogService,
-  ) { }
+  ) {}
 
   /**
    * Creates a new project, assigns related entities
@@ -86,7 +86,9 @@ export class ProyectoService {
     const curso: Curso = await this.cursoService.findOne(seccion.curso.id);
 
     if (!curso.docente) {
-      throw new BadRequestException(`El curso no cuenta con un docente asignado.`)
+      throw new BadRequestException(
+        `El curso no cuenta con un docente asignado.`,
+      );
     }
 
     const docente: Docente = await this.docenteService.findOne(
@@ -232,10 +234,12 @@ export class ProyectoService {
         'curso.descripcion',
       ])
 
-      .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
+      .addSelect(['materia.id', 'materia.nombre', 'materia.semestre']);
 
     if (!isInProject) {
-      query.andWhere('proyecto.estado_proyecto = :estado_proyecto', { estado_proyecto: 'A' });
+      query.andWhere('proyecto.estado_proyecto = :estado_proyecto', {
+        estado_proyecto: 'A',
+      });
     }
 
     return query.getMany();
@@ -478,7 +482,9 @@ export class ProyectoService {
       .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
 
       .where('proyecto.id = :id', { id })
-      .andWhere('proyecto.estado_proyecto = :estado_proyecto', { estado_proyecto: 'A' })
+      .andWhere('proyecto.estado_proyecto = :estado_proyecto', {
+        estado_proyecto: 'A',
+      })
       .getOne();
 
     if (!result)
@@ -556,15 +562,15 @@ export class ProyectoService {
         'repositorio.framework',
       ])
       .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
-      .addSelect(['favorito.id', 'favorito.nombre'])
+      .addSelect(['favorito.id', 'favorito.nombre']);
 
     if (!isInProject) {
-      query.andWhere('proyecto.estado_proyecto = :estado_proyecto', { estado_proyecto: 'A' });
+      query.andWhere('proyecto.estado_proyecto = :estado_proyecto', {
+        estado_proyecto: 'A',
+      });
     }
 
     return query.getMany();
-
-
   }
 
   /**
@@ -812,7 +818,7 @@ export class ProyectoService {
     this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
 
     const updateProyect = await this.update(+id, {
-      url: `https://proyectos.fireploy.online/app${id}`,
+      url: `https://app${id}.proyectos.fireploy.online`,
     } as UpdateProyectoDto);
 
     //Set repositorios logs
