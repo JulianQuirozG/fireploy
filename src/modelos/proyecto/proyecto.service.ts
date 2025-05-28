@@ -54,7 +54,7 @@ export class ProyectoService {
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
     private logService: LogService,
-  ) {}
+  ) { }
 
   /**
    * Creates a new project, assigns related entities
@@ -84,6 +84,10 @@ export class ProyectoService {
     );
 
     const curso: Curso = await this.cursoService.findOne(seccion.curso.id);
+
+    if (!curso.docente) {
+      throw new BadRequestException(`El curso no cuenta con un docente asignado.`)
+    }
 
     const docente: Docente = await this.docenteService.findOne(
       curso.docente.id,
@@ -153,8 +157,9 @@ export class ProyectoService {
    * @returns A promise that resolves with an array of projects, each populated with
    * their related entities and selected fields for performance optimization.
    */
-  async findAll() {
-    return await this.proyectoRepository
+  async findAll(own: any) {
+    const { isInProject } = own;
+    const query = await this.proyectoRepository
       .createQueryBuilder('proyecto')
       .leftJoin('proyecto.estudiantes', 'estudiante')
       .leftJoinAndSelect('proyecto.seccion', 'seccion')
@@ -229,7 +234,11 @@ export class ProyectoService {
 
       .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
 
-      .getMany();
+    if (!isInProject) {
+      query.andWhere('proyecto.estado_proyecto = :estado_proyecto', { estado_proyecto: 'A' });
+    }
+
+    return query.getMany();
   }
 
   /**
@@ -240,7 +249,7 @@ export class ProyectoService {
    */
   findAllBySection(id: number) {
     return this.proyectoRepository.find({
-      where: { seccion: { id } },
+      where: { seccion: { id }, estado_proyecto: 'A' },
       relations: [
         'estudiantes',
         'seccion',
@@ -349,6 +358,7 @@ export class ProyectoService {
       .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
 
       .where('proyecto.id = :id', { id })
+
       .getOne();
 
     if (!result)
@@ -468,6 +478,7 @@ export class ProyectoService {
       .addSelect(['materia.id', 'materia.nombre', 'materia.semestre'])
 
       .where('proyecto.id = :id', { id })
+      .andWhere('proyecto.estado_proyecto = :estado_proyecto', { estado_proyecto: 'A' })
       .getOne();
 
     if (!result)
@@ -484,17 +495,18 @@ export class ProyectoService {
    * @param usuarioId The ID of the student whose projects are to be retrieved.
    * @returns A promise that resolves to an array of projects linked to the given student.
    */
-  async findAllbyUser(usuarioId: number) {
-    return this.proyectoRepository
+  async findAllbyUser(usuarioId: number, own: any) {
+    const { isInProject } = own;
+    const query = await this.proyectoRepository
       .createQueryBuilder('proyecto')
-      .leftJoin('proyecto.estudiantes', 'estudiante')
+      .leftJoinAndSelect('proyecto.estudiantes', 'estudiante')
       .leftJoinAndSelect('proyecto.seccion', 'seccion')
       .leftJoinAndSelect('seccion.curso', 'curso')
       .leftJoinAndSelect('curso.materia', 'materia')
-      .leftJoin('proyecto.tutor', 'tutor')
-      .leftJoin('proyecto.repositorios', 'repositorio')
+      .leftJoinAndSelect('proyecto.tutor', 'tutor')
+      .leftJoinAndSelect('proyecto.repositorios', 'repositorio')
       .leftJoin('proyecto.base_de_datos', 'baseDeDatos')
-      .leftJoin('proyecto.creador', 'creador')
+      .leftJoinAndSelect('proyecto.creador', 'creador')
       .leftJoin('proyecto.fav_usuarios', 'favorito')
       .where('estudiante.id = :id OR creador.id = :id', { id: usuarioId }) // Filtro por estudiante
       .addSelect([
@@ -545,7 +557,14 @@ export class ProyectoService {
       ])
       .addSelect(['baseDeDatos.id', 'baseDeDatos.tipo'])
       .addSelect(['favorito.id', 'favorito.nombre'])
-      .getMany();
+
+    if (!isInProject) {
+      query.andWhere('proyecto.estado_proyecto = :estado_proyecto', { estado_proyecto: 'A' });
+    }
+
+    return query.getMany();
+
+
   }
 
   /**
@@ -568,6 +587,7 @@ export class ProyectoService {
     ) {
       await this.repositoryService.remove(proyecto.repositorios[1].id);
       await this.repositoryService.remove(proyecto.repositorios[0].id);
+      proyecto.repositorios = [];
       proyecto.repositorios.push(
         await this.repositoryService.create({
           tipo: 'I',
@@ -580,6 +600,7 @@ export class ProyectoService {
       proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto
     ) {
       await this.repositoryService.remove(proyecto.repositorios[0].id);
+      proyecto.repositorios = [];
       proyecto.repositorios.push(
         await this.repositoryService.create({
           tipo: 'F',

@@ -186,6 +186,30 @@ export class AuthService {
     throw new BadRequestException('El usuario no existe');
   }
 
+    /**
+ * Updates the user's password by hashing the new one and saving it in the database.
+ *
+ * @param updateUsuarioDto - Object containing the user's email and new password.
+ * @returns A Promise that resolves with the updated user object.
+ *
+ * @throws BadRequestException - If the user does not exist.
+ */
+  async forgetpassword(updateUsuarioDto: UpdatePasswordDto) {
+    const user = await this.usuarioService.findOneCorreo(
+      updateUsuarioDto.correo,
+    );
+       
+    const contraseniahash = await this.encrypt.getHash(
+      updateUsuarioDto.contrasenia,
+    );
+    if (user) {{}
+      user.contrasenia = contraseniahash;
+
+      return await this.usuarioService.update(user?.id, user);
+    }
+    throw new BadRequestException('El usuario no existe');
+  }
+
   /**
  * Logs in a user using their Google ID token. If the user does not exist, it creates a new one.
  *
