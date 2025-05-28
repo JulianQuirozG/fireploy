@@ -142,7 +142,6 @@ export class BaseDeDatosService {
       where: { id: id },
       relations: ['proyecto'],
     });
-console.log(baseDeDatos);
     if (!baseDeDatos) {
       throw new NotFoundException(
         `No se ha encontrado una base de datos con id ${id}`,
