@@ -54,7 +54,7 @@ export class ProyectoService {
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
     private logService: LogService,
-  ) {}
+  ) { }
 
   /**
    * Creates a new project, assigns related entities
@@ -84,6 +84,10 @@ export class ProyectoService {
     );
 
     const curso: Curso = await this.cursoService.findOne(seccion.curso.id);
+
+    if (!curso.docente) {
+      throw new BadRequestException(`El curso no cuenta con un docente asignado.`)
+    }
 
     const docente: Docente = await this.docenteService.findOne(
       curso.docente.id,
@@ -583,6 +587,7 @@ export class ProyectoService {
     ) {
       await this.repositoryService.remove(proyecto.repositorios[1].id);
       await this.repositoryService.remove(proyecto.repositorios[0].id);
+      proyecto.repositorios = [];
       proyecto.repositorios.push(
         await this.repositoryService.create({
           tipo: 'I',
@@ -595,6 +600,7 @@ export class ProyectoService {
       proyecto.tipo_proyecto != updateProyectoDto.tipo_proyecto
     ) {
       await this.repositoryService.remove(proyecto.repositorios[0].id);
+      proyecto.repositorios = [];
       proyecto.repositorios.push(
         await this.repositoryService.create({
           tipo: 'F',
