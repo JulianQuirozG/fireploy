@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -48,7 +49,11 @@ export class ExtractUserIdGuard implements CanActivate {
     const seccion = await this.seccionService.findOne(seccionId);
     const curso = await this.cursoService.findOne(seccion.curso.id);
 
-    if ((tutorId && curso.docente.id) && curso.docente.id === tutorId) {
+    if(!curso.docente){
+      throw new BadRequestException('El curso no cuenta con un tutor asignado');
+    }
+
+    if ((payload.tipo === 'Docente') && curso.docente.id === payload.sub) {
       return true;
     }
 
