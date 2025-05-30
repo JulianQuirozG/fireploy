@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -49,8 +50,9 @@ export class updateProyectoGuard implements CanActivate {
     const seccion = await this.seccionService.findOne(proyecto.seccion.id);
     const curso = await this.cursoService.findOne(seccion.curso.id);
 
-    if (payload.tipo === 'Docente' && proyecto.tutor.id != payload.sub) {
-      throw new ForbiddenException('El docente no es tutor del proyecto');
+
+    if (proyecto.creador.id === payload.sub) {
+      return true;
     }
 
     if (
