@@ -45,7 +45,7 @@ export class DeleteProyectoGuard implements CanActivate {
 
     const proyecto = await this.proyectoService.findOne(+id);
 
-    if (payload.tipo === 'Docente') {
+    if (payload.tipo === 'Docente' && payload.sub != proyecto.creador.id ) {
       throw new ForbiddenException(
         'El usuario no tiene permiso para realizar esa acción.',
       );
