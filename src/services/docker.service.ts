@@ -170,10 +170,8 @@ CMD ["npm", "run", "dev"] `,
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error ejecutando: ${command}`, stderr);
           reject(error);
         } else {
-          console.log(`Ejecutado: ${command}`, stdout);
           resolve();
         }
       });
@@ -299,7 +297,6 @@ CMD ["npm", "run", "dev"] `,
       const networks = stdout.split('\n');
 
       if (!networks.includes(networkName)) {
-        console.log(`Creating Docker network: ${networkName}`);
         execSync(`docker network create ${networkName}`);
         return networkName;
       }
@@ -352,7 +349,6 @@ networks:
     try {
       fs.writeFileSync(composePath, composeContent);
     } catch (error) {
-      console.log('Error creando el docker compose' + error);
     }
 
     try {

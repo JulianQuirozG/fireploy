@@ -13,13 +13,10 @@ import * as fs from 'fs';
 //Middleware to create user permissions
 @Injectable()
 export class PueshRepositorioMiddleware implements NestMiddleware {
-  constructor(
-    private readonly zipDir = `${process.env.FOLDER_ROUTE_ZIP}`
-  ) { }
+  constructor(private readonly zipDir = `${process.env.FOLDER_ROUTE_ZIP}`) {}
   async use(req: Request, res: Response, next: NextFunction) {
     if (!fs.existsSync(this.zipDir)) {
       fs.mkdirSync(this.zipDir, { recursive: true });
-      console.log(`Directorio ${this.zipDir} creado`);
     }
 
     // 2. Verificar archivo subido (solo si ya está presente en req.file)

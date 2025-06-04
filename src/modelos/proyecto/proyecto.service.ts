@@ -697,7 +697,6 @@ export class ProyectoService {
     if (project) await this.projectDeleteQueueService.enqueDelete(project);
     if (project) await this.proyectoRepository.remove(project);
 
-    console.log(project);
     //remove database
     if (project?.base_de_datos)
       await this.baseDeDatosService.remove(project.base_de_datos.id);
@@ -769,7 +768,6 @@ export class ProyectoService {
       proyect.estado_ejecucion = 'E';
       await this.update(+id, proyect);
 
-      console.log(e.message);
       //Save notificacion
       notificacion.titulo = `Error al cargar un proyecto`;
       notificacion.mensaje = `Al intentar cargar el proyecto ${proyect.id}-${proyect.titulo}, se ha generado el siguiente mensaje de error ${e.message.slice(-13)}`;
@@ -987,5 +985,45 @@ export class ProyectoService {
 
     await this.update(project.id, project);
     return response;
+  }
+
+  async generateProjectLogs(id: string) {
+    //get the project
+    const project = await this.findOne(+id);
+
+    //Check project status
+    if (project.estado_ejecucion != 'N')
+      throw new BadRequestException(
+        'El proyecto no se encuentra en ejecución, enciendelo antes de obtener logs.',
+      );
+
+    //Get logs
+    let logs;
+    try {
+      logs = await this.projectManagerQueueService.getProjectLogs(project);
+    } catch (e) {
+      for (const repositorio of project.repositorios) {
+        await this.logService.create({
+          fecha_registro: new Date(Date.now()),
+          log: 'No se pudieron obtener los del proyecto, entre las posibles causas estan: problema en la ejecución del proyecto.',
+          repositorioId: +repositorio.id,
+        });
+      }
+      throw new BadRequestException(
+        'No se pudieron obtener los del proyecto, entre las posibles causas estan: problema en la ejecución del proyecto.',
+      );
+    }
+
+    //Save Logs
+    for (const log of logs) {
+      await this.logService.create({
+        fecha_registro: new Date(Date.now()),
+        log: log.log,
+        repositorioId: log.repository_id,
+      });
+    }
+
+    //return project
+    return await this.findOne(+id);
   }
 }

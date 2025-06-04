@@ -17,7 +17,6 @@ export class SystemQueueService {
  */
   async enqueSystem(data: any) {
     const job = await this.systemQueue.add('create_DB', data);
-    console.log('Trabajo enviado a la cola: system', data);
     const response = await job.finished();
     return response.connection_URI as string;
   }

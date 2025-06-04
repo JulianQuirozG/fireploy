@@ -29,10 +29,11 @@ import { RequestProjectWithUser } from 'src/interfaces/request.proyect.interface
 import { GetAllProjectsGuard } from 'src/guard/GetAllProyects.guard';
 import { DeleteProyectoGuard } from 'src/guard/deleteProject.guard';
 import { GetProjectByUserGuard } from 'src/guard/findOneProyectoIds.guard';
+import { GenerateProjectLogsGuard } from 'src/guard/generateProjectLogs.guard';
 
 @Controller('proyecto')
 export class ProyectoController {
-  constructor(private readonly proyectoService: ProyectoService) { }
+  constructor(private readonly proyectoService: ProyectoService) {}
 
   @Post()
   @UseGuards(ExtractUserIdGuard)
@@ -71,8 +72,10 @@ export class ProyectoController {
   @Get('/usuario/:id')
   @Public()
   @UseGuards(GetProjectByUserGuard)
-  findAllByUser(@Param('id') id: number,
-    @Req() request: RequestProjectWithUser,) {
+  findAllByUser(
+    @Param('id') id: number,
+    @Req() request: RequestProjectWithUser,
+  ) {
     return this.proyectoService.findAllbyUser(id, request.user);
   }
 
@@ -128,5 +131,11 @@ export class ProyectoController {
   @Post('/start/:id')
   startProyecto(@Param('id') id: string) {
     return this.proyectoService.changeStatusProyecto(id, 'Start');
+  }
+
+  @Post('/generar_Logs/:id')
+  @UseGuards(GenerateProjectLogsGuard)
+  GenerateLogs(@Param('id') id: string) {
+    return this.proyectoService.generateProjectLogs(id);
   }
 }
