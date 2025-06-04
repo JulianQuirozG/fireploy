@@ -9,7 +9,6 @@ export class deleteQueueService {
 
   async enqueDelete(data: any) {
     const job = await this.deleteQueue.add('delete', data);
-    console.log('Trabajo enviado a la cola: system', data);
     return await job.finished();
   }
 }

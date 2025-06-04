@@ -115,7 +115,6 @@ export class GitService {
       // Si no hay repo, inicializa uno
       if (!fs.existsSync(path.join(folderPath, '.git'))) {
         await git.init();
-        console.log('Repositorio Git inicializado');
       }
 
       //Elimina el repositorio remoto si lo tiene

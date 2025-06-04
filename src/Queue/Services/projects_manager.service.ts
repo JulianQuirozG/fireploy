@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -10,14 +9,18 @@ export class ProjectManagerQueueService {
   ) {}
 
   /**
- * Adds a job to the project manager queue to change the status of a project or task.
- *
- * @param {any} data - The data required to change the status (e.g. project ID, new status).
- * @returns {Promise<void>} - Resolves when the job has been completed.
- */
+   * Adds a job to the project manager queue to change the status of a project or task.
+   *
+   * @param {any} data - The data required to change the status (e.g. project ID, new status).
+   * @returns {Promise<void>} - Resolves when the job has been completed.
+   */
   async changeStatus(data: any) {
     const job = await this.projectManagerQueue.add('changeStatus', data);
-    console.log('Trabajo enviado a la cola: system', data);
+    await job.finished();
+  }
+
+  async getProjectLogs(data: any) {
+    const job = await this.projectManagerQueue.add('getProjectLogs', data);
     await job.finished();
   }
 }

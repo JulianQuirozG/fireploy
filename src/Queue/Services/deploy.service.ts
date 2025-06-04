@@ -16,7 +16,6 @@ export class DeployQueueService {
    */
   async enqueDeploy(data: any) {
     const job = await this.deployQueue.add('deploy', data);
-    console.log('Trabajo enviado a la cola: system', data);
     return await job.finished();
   }
 
