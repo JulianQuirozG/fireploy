@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -21,6 +22,6 @@ export class ProjectManagerQueueService {
 
   async getProjectLogs(data: any) {
     const job = await this.projectManagerQueue.add('getProjectLogs', data);
-    await job.finished();
+    return await job.finished();
   }
 }
