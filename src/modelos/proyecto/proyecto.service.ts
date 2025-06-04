@@ -1014,6 +1014,7 @@ export class ProyectoService {
       );
     }
 
+    console.log(logs);
     //Save Logs
     for (const log of logs) {
       await this.logService.create({
