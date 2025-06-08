@@ -289,9 +289,9 @@ export class UsuarioService {
    * @throws InternalServerErrorException if the upload fails or the update operation encounters an error.
    */
   async updateImageUser(id: number, file: Express.Multer.File) {
-    //check imagen extension
+    //check imagen type
     if (
-      !(process.env.ALLOWED_MIME_TYPES as unknown as string[]).includes(
+      !(process.env.ALLOWED_IMAGE_MIME_TYPES as unknown as string[]).includes(
         file.mimetype,
       )
     ) {
