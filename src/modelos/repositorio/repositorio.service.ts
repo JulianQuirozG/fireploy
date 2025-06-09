@@ -207,9 +207,10 @@ export class RepositorioService {
       const repositorio = await this.update(+id, {
         url: exist,
       } as UpdateRepositorioDto);
-
+      fs.unlinkSync(filePath);
       return repositorio;
     } catch (error) {
+      fs.unlinkSync(filePath);
       throw new BadRequestException(error.message);
     }
   }
