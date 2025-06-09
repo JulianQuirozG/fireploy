@@ -9,11 +9,12 @@ import { JwtService } from '@nestjs/jwt';
 import { Request, Response, NextFunction } from 'express';
 import * as path from 'path';
 import * as fs from 'fs';
+import AdmZip from 'adm-zip';
 
 //Middleware to create user permissions
 @Injectable()
 export class PueshRepositorioMiddleware implements NestMiddleware {
-  constructor(private readonly zipDir = `${process.env.FOLDER_ROUTE_ZIP}`) {}
+  private readonly zipDir = `${process.env.FOLDER_ROUTE_ZIP}`
   async use(req: Request, res: Response, next: NextFunction) {
     if (!fs.existsSync(this.zipDir)) {
       fs.mkdirSync(this.zipDir, { recursive: true });
@@ -28,6 +29,12 @@ export class PueshRepositorioMiddleware implements NestMiddleware {
     const ext = path.extname(file.originalname);
     if (ext !== '.zip') {
       throw new BadRequestException('El archivo debe ser un .zip');
+    }
+
+    try {
+      new AdmZip(file.buffer); // Lanza error si el buffer no es ZIP válido
+    } catch (err) {
+      throw new BadRequestException('El contenido del archivo no es un ZIP válido');
     }
     next();
   }
