@@ -13,7 +13,7 @@ import { FicherosModule } from '../ficheros/ficheros.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Repositorio,]), forwardRef(() => ProyectoModule),forwardRef(() => FicherosModule)],
   controllers: [RepositorioController],
-  providers: [RepositorioService, GitService],
+  providers: [RepositorioService, GitService, PueshRepositorioMiddleware],
   exports: [RepositorioService],
 })
 export class RepositorioModule { }
