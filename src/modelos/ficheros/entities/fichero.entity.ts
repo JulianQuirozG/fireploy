@@ -1,7 +1,8 @@
 import { Repositorio } from 'src/modelos/repositorio/entities/repositorio.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity()
+@Unique(['nombre', 'repositorio'])
 export class Fichero {
   @PrimaryGeneratedColumn()
   id: number;

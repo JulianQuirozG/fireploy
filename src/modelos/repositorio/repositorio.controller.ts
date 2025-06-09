@@ -9,6 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { RepositorioService } from './repositorio.service';
 import { CreateRepositorioDto } from './dto/create-repositorio.dto';
@@ -21,9 +22,10 @@ import { extname } from 'path';
 import * as fs from 'fs';
 import { PueshRepositorioMiddleware } from 'src/middleware/pushRepositorio.middleware';
 
+
 @Controller('repositorio')
 export class RepositorioController {
-  constructor(private readonly repositorioService: RepositorioService) {}
+  constructor(private readonly repositorioService: RepositorioService) { }
 
   @Post()
   @UseGuards(CreateRepositorioGuard)
@@ -70,9 +72,21 @@ export class RepositorioController {
           cb(null, `${Date.now()}${extname(file.originalname)}`);
         },
       }),
+      fileFilter: (req, file, callback) => {
+        const allowedExtensions = ['.zip'];
+        const ext = extname(file.originalname).toLowerCase();
+
+        if (allowedExtensions.includes(ext)) {
+          callback(null, true); // archivo válido
+        } else {
+          callback(
+            new BadRequestException('Solo se permiten archivos .zip'),
+            false,
+          ); // archivo inválido
+        }
+      },
     }),
   )
-  //@UseGuards(PueshRepositorioMiddleware)
   async uploadProjectZip(
     @UploadedFile() file: Express.Multer.File,
     @Param('id') id: string,
