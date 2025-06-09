@@ -908,6 +908,17 @@ export class ProyectoService {
    * @throws NotFoundException if the project with the given ID does not exist.
    */
   async updateImageProject(id: number, file: Express.Multer.File) {
+    //check imagen type
+    if (
+      !(process.env.ALLOWED_IMAGE_MIME_TYPES as unknown as string[]).includes(
+        file.mimetype,
+      )
+    ) {
+      throw new BadRequestException(
+        'El archivo debe ser extension (jpg, jpeg, png, gif o webp)',
+      );
+    }
+
     //Save the image
     if (!file) {
       throw new BadRequestException('No se envió ningún archivo.');
