@@ -178,6 +178,14 @@ export class RepositorioService {
     return `repositorio con el #${id} ha sido eliminado, con referencia al proyecto ${repository.proyecto_id} ha sido elimnado correctamente`;
   }
 
+  /**
+ * Uploads a ZIP file containing a project, extracts it, and pushes the contents to a GitHub repository.
+ *
+ * @param filePath - The absolute path to the uploaded ZIP file.
+ * @param id - The project ID to associate the repository with.
+ * @returns A promise that resolves to the updated repository information.
+ * @throws {BadRequestException} If any step in the process fails (e.g., extraction, repo creation, push).
+ */
   async uploadProjectZip(filePath: string, id: string) {
     const tempDir = path.join(
       `${process.env.FOLDER_ROUTE_ZIP}`,

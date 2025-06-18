@@ -32,7 +32,7 @@ export class CursoService {
     private usuarioService: UsuarioService,
     private estudianteService: EstudianteService,
     private docenteService: DocenteService,
-  ) {}
+  ) { }
 
   /**
    * Creates a new course by combining the subject ID, group, and semester into a unique course ID.
@@ -355,6 +355,13 @@ export class CursoService {
     return await this.findOne(id);
   }
 
+/**
+ * Deletes a COURSE by its ID.
+ * 
+ * @param id - Unique identifier of the COURSE to delete.
+ * @returns A promise that resolves when the COURSE has been deleted.
+ * @throws {NotFoundException} If the COURSE with the given ID is not found.
+ */
   async remove(id: string) {
     await this.findOne(id);
     return;

@@ -61,6 +61,15 @@ export class GitService {
     }
   }
 
+  /**
+ * Checks if a GitHub repository exists under the "Fireploy" organization.
+ *
+ * Sends a GET request to the GitHub API to verify the existence of the repository.
+ *
+ * @param repoName - The name of the repository to check.
+ * @returns A promise that resolves with the clone URL of the repository if it exists.
+ * @throws {BadRequestException} If the repository is not found or the request fails.
+ */
   async repoExists(repoName: string): Promise<string> {
     const url = `https://api.github.com/repos/Fireploy/${repoName}`;
 
@@ -78,7 +87,16 @@ export class GitService {
 
   }
 
-
+  /**
+ * Creates a new GitHub repository under the authenticated user's account.
+ *
+ * Sends a POST request to the GitHub API to create a public repository
+ * with auto-initialization.
+ *
+ * @param repoName - The name of the repository to be created.
+ * @returns A promise that resolves with the repository data returned by GitHub.
+ * @throws {Error} If the repository creation fails.
+ */
   async createGitHubRepo(repoName: string) {
     const url = 'https://api.github.com/user/repos';
     const headers = {
@@ -101,6 +119,19 @@ export class GitService {
     }
   }
 
+  /**
+ * Pushes the contents of a local folder to a remote GitHub repository.
+ *
+ * Initializes a Git repository if one does not exist in the given folder,
+ * sets the remote origin, creates or switches to the 'main' branch,
+ * commits all changes, and performs a forced push to the remote repository.
+ *
+ * @param folderPath - The absolute path to the local folder to be pushed.
+ * @param remoteRepoUrl - The URL of the remote GitHub repository.
+ * @returns A promise that resolves with a success message upon completion.
+ * @throws {BadRequestException} If the folder path does not exist.
+ * @throws {Error} If the Git operations fail.
+ */
   async pushFolderToRepo(
     folderPath: string,
     remoteRepoUrl: string,

@@ -135,6 +135,16 @@ CMD ["npm", "run", "dev"] `,
     return dockerfilePath;
   }
 
+  /**
+ * Builds and runs a Docker container for a given project.
+ *
+ * @param Name - The name to identify the image and container.
+ * @param projectPath - The local path to the project's Docker context.
+ * @param language - The programming language of the project (e.g., 'node', 'python', 'php').
+ * @param port - The external port to expose the container's internal port.
+ * @returns A promise that resolves to a message indicating the container is running.
+ * @throws An error if the Docker build or run process fails.
+ */
   async buildAndRunContainer(
     Name: string,
     projectPath: string,
@@ -166,6 +176,12 @@ CMD ["npm", "run", "dev"] `,
     }
   }
 
+  /**
+ * Executes a shell command asynchronously.
+ *
+ * @param command - The shell command to execute.
+ * @returns A promise that resolves when the command finishes successfully, or rejects if an error occurs.
+ */
   private executeCommand(command: string): Promise<void> {
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
@@ -178,6 +194,18 @@ CMD ["npm", "run", "dev"] `,
     });
   }
 
+  /**
+ * Checks if a Docker container is running, starts it if it's stopped,
+ * or creates and runs it if it doesn't exist.
+ *
+ * @param containerName - The name of the Docker container.
+ * @param image - The Docker image to use if the container needs to be created.
+ * @param port - The port to expose on the container.
+ * @param volume - The volume path to mount inside the container.
+ * @param network - The Docker network to attach the container to.
+ * @param envVars - Optional list of environment variables (e.g., ["KEY=value"]).
+ * @returns A promise that resolves once the container is confirmed to be running.
+ */
   async checkAndCreateContainer(
     containerName: string,
     image: string,
@@ -216,6 +244,17 @@ CMD ["npm", "run", "dev"] `,
     }
   }
 
+  /**
+ * Sets up the required Docker containers for MySQL and MongoDB.
+ * 
+ * - Creates the Docker network if it does not exist.
+ * - Checks if each database container is running.
+ *   - If running, does nothing.
+ *   - If stopped, starts the container.
+ *   - If not present, creates and starts a new container.
+ * 
+ * @returns A promise that resolves when both containers are ready.
+ */
   async setupDatabases() {
     const networkName = process.env.DOCKER_NETWORK || 'DataBases-Network';
     this.createNetwork(networkName);
@@ -305,6 +344,18 @@ CMD ["npm", "run", "dev"] `,
     }
   }
 
+  /**
+ * Generates and runs a Docker Compose configuration for a project.
+ *
+ * - Removes any existing frontend and backend containers for the given ID.
+ * - Generates a `docker-compose.yml` file with frontend and backend services.
+ * - Builds and starts the services using Docker Compose.
+ *
+ * @param id - Unique identifier for the project.
+ * @param port - Port to expose the frontend; backend will use `port + 1`.
+ * @returns A promise that resolves to the path of the generated docker-compose file.
+ * @throws Will log errors if file writing or Docker Compose execution fails.
+ */
   async createDockerCompose(id: number, port: number) {
     const composePath = path.join(
       process.env.FOLDER_ROUTE + `/${id}`,

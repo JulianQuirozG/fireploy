@@ -40,7 +40,7 @@ export class RecoverPasswordGuard implements CanActivate {
 
     const user = await this.usuarioService.findOneCorreo(payload.correo);
     if (payload.sub != user?.id || payload.correo != user?.correo || correo != user?.correo) {
-      throw new UnauthorizedException('El usuario id del token no coincide con el id del request');
+      throw new UnauthorizedException('El correo suministrado por el usuario no coincide con el que se utilizó para solicitar el token.');
     }
 
     if (nuevaContrasenia != contrasenia) {
