@@ -20,6 +20,12 @@ export class ProjectManagerQueueService {
     await job.finished();
   }
 
+  /**
+ * Adds a job to retrieve project logs and waits for its completion.
+ *
+ * @param data - The data needed to retrieve logs for the project.
+ * @returns A promise that resolves with the logs once the job has finished.
+ */
   async getProjectLogs(data: any) {
     const job = await this.projectManagerQueue.add('getProjectLogs', data);
     return await job.finished();

@@ -14,6 +14,13 @@ export class LogService {
     private repositorioService: RepositorioService,
   ) {}
 
+  /**
+ * Creates a new log entry associated with a specific repository.
+ *
+ * @param createLogDto - The data transfer object containing the log information.
+ * @returns A promise that resolves with the saved log entity.
+ * @throws {NotFoundException} If the associated repository does not exist.
+ */
   async create(createLogDto: CreateLogDto) {
     //get repositorio
     const repositorio = await this.repositorioService.findOne(

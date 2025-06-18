@@ -240,7 +240,7 @@ export class UsuarioService {
 
     if (!usuario)
       throw new NotFoundException(
-        `El usuario con el correo: ${correo},no se encuentra en la base de datos`,
+        `El usuario con el correo: ${correo}, no se encuentra en la base de datos`,
       );
 
     return usuario;
@@ -407,6 +407,13 @@ export class UsuarioService {
     }
   }
 
+  /**
+ * Sends a test email to confirm password change functionality.
+ *
+ * @param id - The ID of the user whose password is being updated.
+ * @param updateUsuarioDto - DTO containing the user's email and new password.
+ * @returns A promise resolving when the email has been sent.
+ */
   async changePassword(id: number, updateUsuarioDto: UpdatePasswordDto) {
     return this.mailService.enviarCorreo(
       updateUsuarioDto.correo,

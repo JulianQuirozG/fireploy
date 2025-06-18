@@ -54,7 +54,7 @@ export class ProyectoService {
     private notificacionService: NotificacionesService,
     private firebaseService: FirebaseService,
     private logService: LogService,
-  ) {}
+  ) { }
 
   /**
    * Creates a new project, assigns related entities
@@ -680,6 +680,13 @@ export class ProyectoService {
     return proyectoActualizado;
   }
 
+  /**
+ * Removes a project by its ID, including associated resources such as its database.
+ *
+ * @param id - The unique identifier of the project to remove.
+ * @returns A promise that resolves once the project and its related entities are deleted.
+ * @throws {NotFoundException} If the project with the given ID is not found.
+ */
   async remove(id: number) {
     const project = await this.proyectoRepository.findOne({
       where: { id },
@@ -998,6 +1005,13 @@ export class ProyectoService {
     return response;
   }
 
+  /**
+ * Generates and stores logs for a given project by its ID.
+ *
+ * @param id - The unique identifier of the project.
+ * @returns A promise that resolves with the updated project after logs are stored.
+ * @throws {BadRequestException} If the project is not running or if logs could not be retrieved.
+ */
   async generateProjectLogs(id: string) {
     //get the project
     const project = await this.findOne(+id);

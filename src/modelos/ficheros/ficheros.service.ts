@@ -13,7 +13,17 @@ export class FicherosService {
     @InjectRepository(Fichero)
     private readonly ficheroRepository: Repository<Fichero>,
     private readonly repositorioService: RepositorioService) { }
-
+  
+/**
+ * Creates and saves a new file entity with its content in the repository.
+ *
+ * Validates if a file with the same name already exists in the specified repository.
+ *
+ * @param createFicheroDto - DTO containing file metadata, including the repository ID and file name.
+ * @param file - The uploaded file from Multer, containing the content as a buffer.
+ * @returns A promise that resolves to the newly created `Fichero` entity.
+ * @throws BadRequestException if a file with the same name already exists or another error occurs during creation.
+ */
   async create(createFicheroDto: CreateFicheroDto, file: Express.Multer.File): Promise<Fichero> {
     try {
       const repositorio = await this.repositorioService.findOne(+createFicheroDto.repositorio);
@@ -29,11 +39,23 @@ export class FicherosService {
 
   }
 
+ /**
+ * Retrieves all file entities from the database, including their associated repository.
+ *
+ * @returns A promise that resolves to an array of `Fichero` entities.
+ */
   async findAll() {
     const fichero = await this.ficheroRepository.find({ relations: ['repositorio'] });
     return fichero;
   }
 
+  /**
+ * Finds and returns a file by its unique identifier.
+ *
+ * @param id - The unique identifier of the file to retrieve.
+ * @returns A promise that resolves with the file entity, including its related repository.
+ * @throws {BadRequestException} Thrown if no file is found with the specified ID.
+ */
   async findOne(id: number) {
     const fichero = await this.ficheroRepository.findOne({
       where: { id: id },
@@ -49,6 +71,15 @@ export class FicherosService {
     return `This action updates a #${id} fichero`;
   }
 
+  /**
+ * Deletes a file entity from the database by its ID.
+ *
+ * First verifies that the file exists using `findOne`, then performs the deletion.
+ *
+ * @param id - The ID of the file to delete.
+ * @returns A promise that resolves to the result of the deletion operation.
+ * @throws BadRequestException if the file does not exist.
+ */
   async remove(id: number) {
     const fichero = await this.findOne(+id);
 
