@@ -1,99 +1,234 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Licencia y acuerdos
+Este proyecto y sus componentes se encuentran licenciados bajo la Licencia MIT, lo que significa que cualquier persona puede utilizar, copiar, modificar y distribuir el software con fines personales, académicos o comerciales, siempre que se mantenga el aviso original de derechos de autor. Esta licencia es muy permisiva y favorece la adopción abierta, pero también indica que el software se proporciona "tal cual", sin garantías de ningún tipo, por lo que el autor no se hace responsable de su uso.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Este repositorio contiene el backend del proyecto **Fireploy**, un sistema que gestiona despliegues automatizados usando colas de trabajo, contenedores, y una base de datos MySQL. El backend está dividido en tres entornos principales:
 
-## Description
+- **Backend principal**
+- **Worker**
+- **Base de datos**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+# 🔥 Fireploy Backend
 
-```bash
-$ npm install
-```
 
-## Compile and run the project
+## ⚙️ Requisitos Previos
+
+Asegúrate de tener instalados los siguientes componentes en tu servidor:
+
+- Ubuntu 20.04/22.04
+- Node.js >= 18.x
+- PM2
+- Docker
+- Git
+- Nginx
+- Certbot (para HTTPS)
+- Redis (contenedor)
+- MySQL
+
+---
+
+## 🌐 Configuración de Nginx
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+sudo apt update
+sudo apt install nginx -y
 ```
 
-## Run tests
+Crear archivo de configuración:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+sudo nano /etc/nginx/sites-available/fireploy
 ```
 
-## Deployment
+Contenido del archivo:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```nginx
+server {
+    listen 80 default_server;
+    server_name fireploy.online;
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+    location / {
+        proxy_pass http://localhost:4173;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+Activar la configuración:
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+sudo ln -s /etc/nginx/sites-available/fireploy /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+sudo systemctl status nginx
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🔐 Certificado SSL con Certbot
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d api.fireploy.online
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## 🧠 Base de Datos (MySQL)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 🔧 Instalación y configuración
 
-## Stay in touch
+```bash
+sudo apt update
+sudo apt install mysql-server
+sudo mysql_secure_installation
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### ⚙️ Configuración del usuario y base de datos
 
-## License
+```sql
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'TU_CONTRASEÑA';
+CREATE USER 'fireploy'@'%' IDENTIFIED BY 'Fireploy4769!';
+GRANT ALL PRIVILEGES ON *.* TO 'fireploy'@'%' WITH GRANT OPTION;
+CREATE DATABASE fireploy;
+FLUSH PRIVILEGES;
+EXIT;
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Habilitar acceso externo:
+
+```bash
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+# Cambiar bind-address = 127.0.0.1 por 0.0.0.0
+sudo systemctl restart mysql
+```
+
+---
+
+## ⚙️ Configuración del Worker
+
+### 🖥 Crear usuario
+
+```bash
+sudo adduser fireploy_worker
+sudo usermod -aG sudo fireploy_worker
+su fireploy_worker
+```
+
+### 🛠 Instalación de dependencias
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git nodejs npm
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pm2
+```
+
+### 🐳 Docker
+
+```bash
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+sudo apt update
+sudo apt install docker-ce
+sudo usermod -aG docker fireploy_worker
+su - fireploy_worker
+```
+
+### 🚀 Despliegue del Worker
+
+```bash
+git clone https://github.com/JulianQuirozG/Fireploy_Worker
+# Copiar el archivo .env al directorio raíz del proyecto
+cd Fireploy_Worker
+sudo npm install
+sudo npm run build
+pm2 start dist/main.js --name fireploy_worker
+pm2 save
+pm2 startup
+pm2 list
+```
+
+---
+
+## 🧰 Configuración del Backend
+
+### 🖥 Crear usuario
+
+```bash
+sudo adduser fireploy_backend
+sudo usermod -aG sudo fireploy_backend
+su fireploy_backend
+```
+
+### 🛠 Instalación
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git nodejs npm
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pm2
+```
+
+### 🐳 Docker
+
+```bash
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+sudo apt update
+sudo apt install docker-ce
+sudo usermod -aG docker fireploy_backend
+su - fireploy_backend
+```
+
+### 🛠 Redis (en contenedor)
+
+```bash
+docker run -d --name redis-bull -p 6380:6379 redis
+```
+
+### 🚀 Despliegue del Backend
+
+```bash
+git clone https://github.com/JulianQuirozG/fireploy.git
+# Copiar el archivo .env al directorio raíz del proyecto
+cd fireploy
+sudo npm install
+sudo npm run build
+pm2 start dist/main.js --name fireploy_backend
+pm2 save
+pm2 startup
+pm2 list
+```
+
+---
+
+## 🌐 Configuración de Red
+
+Asegúrate de abrir los siguientes puertos en tu firewall o proveedor de nube:
+
+| Puerto | Protocolo | Descripción       |
+|--------|-----------|-------------------|
+| 80     | HTTP      | Tráfico web       |
+| 443    | HTTPS     | Tráfico seguro    |
+| 3306   | TCP       | MySQL             |
+| 6380   | TCP       | Redis (opcional)  |
+
+---
+
+## 🧪 Verificación Final
+
+- ✅ Nginx redirecciona correctamente a tu aplicación
+- ✅ Certificado SSL emitido por Let's Encrypt
+- ✅ Worker y backend ejecutándose con PM2
+- ✅ Base de datos accesible externamente (segura y restringida)
+- ✅ Redis en contenedor operativo
+
