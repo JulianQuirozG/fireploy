@@ -5,8 +5,8 @@ Este proyecto y sus componentes se encuentran licenciados bajo la Licencia MIT, 
 Este repositorio contiene el backend del proyecto **Fireploy**, un sistema que gestiona despliegues automatizados usando colas de trabajo, contenedores, y una base de datos MySQL. El backend está dividido en tres entornos principales:
 
 - **Backend principal**
-- **Worker**
 - **Base de datos**
+- **Worker** (se ve a profundidad en su repositorio)
 
 ---
 
@@ -105,54 +105,6 @@ Habilitar acceso externo:
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 # Cambiar bind-address = 127.0.0.1 por 0.0.0.0
 sudo systemctl restart mysql
-```
-
----
-
-## ⚙️ Configuración del Worker
-
-### 🖥 Crear usuario
-
-```bash
-sudo adduser fireploy_worker
-sudo usermod -aG sudo fireploy_worker
-su fireploy_worker
-```
-
-### 🛠 Instalación de dependencias
-
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y git nodejs npm
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-sudo npm install -g pm2
-```
-
-### 🐳 Docker
-
-```bash
-sudo apt install apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
-sudo apt update
-sudo apt install docker-ce
-sudo usermod -aG docker fireploy_worker
-su - fireploy_worker
-```
-
-### 🚀 Despliegue del Worker
-
-```bash
-git clone https://github.com/JulianQuirozG/Fireploy_Worker
-# Copiar el archivo .env al directorio raíz del proyecto
-cd Fireploy_Worker
-sudo npm install
-sudo npm run build
-pm2 start dist/main.js --name fireploy_worker
-pm2 save
-pm2 startup
-pm2 list
 ```
 
 ---
