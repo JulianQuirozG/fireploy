@@ -823,7 +823,7 @@ export class ProyectoService {
     this.socketService.sendToUser(proyect.creador.id, 'Proyecto cargado');
 
     const updateProyect = await this.update(+id, {
-      url: `https://app${id}.proyectos.fireploy.online`,
+      url: `https://app${id}.${process.env.HOST}`,
     } as UpdateProyectoDto);
 
     //Set repositorios logs
